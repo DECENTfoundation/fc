@@ -11,7 +11,6 @@ namespace fc {
 
     sha512::sha512() { memset( _hash, 0, sizeof(_hash) ); }
     sha512::sha512( const string& hex_str ) {
-      memset( _hash, 0, sizeof(_hash) );
       fc::from_hex( hex_str, (char*)_hash, sizeof(_hash) );  
     }
 

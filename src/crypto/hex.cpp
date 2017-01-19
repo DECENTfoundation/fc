@@ -25,6 +25,7 @@ namespace fc {
     }
 
     size_t from_hex( const fc::string& hex_str, char* out_data, size_t out_data_len ) {
+        memset( out_data, 0, sizeof(out_data_len) );
         fc::string::const_iterator i = hex_str.begin();
         uint8_t* out_pos = (uint8_t*)out_data;
         uint8_t* out_end = out_pos + out_data_len;
