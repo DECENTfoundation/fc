@@ -199,6 +199,7 @@ namespace fc {
          assert(_valid);
          return ptr(); 
       }
+
       const T* operator->()const 
       { 
          assert(_valid);
@@ -216,20 +217,22 @@ namespace fc {
          if( a.valid() && b.valid() ) return *a < *b;
          return a.valid() < b.valid();
       }
+
       friend bool operator == ( const optional a, optional b )
       {
          if( a.valid() && b.valid() ) return *a == *b;
          return a.valid() == b.valid();
       }
 
-      void     reset()    
+      void reset()
       { 
           if( _valid ) 
           {
-              ref().~T(); // cal destructor
+              ref().~T();
           }
           _valid = false;
       }
+
     private:
       template<typename U> friend class optional;
       T&       ref()      { return *ptr(); }
