@@ -19,13 +19,152 @@
 
 #include <fc/optional.hpp>
 #include <fc/variant.hpp>
+#include <fc/thread/scoped_lock.hpp>
+#include <fc/thread/spin_lock.hpp>
 #include <fc/thread/thread.hpp>
 #include <fc/asio.hpp>
+
+#include <thread>
 
 #ifdef DEFAULT_LOGGER
 # undef DEFAULT_LOGGER
 #endif
 #define DEFAULT_LOGGER "rpc"
+
+
+namespace {
+
+
+    class shutdown_locker {
+    public:
+        class shutdown_preventing_task {
+        public:
+            explicit shutdown_preventing_task(shutdown_locker& locker)
+                : _acquired(false)
+                , _users(locker._users)
+            {
+            }
+
+            // this is rather maybe_lock()
+            void lock() {
+                FC_ASSERT( !_acquired );
+
+                while(true) {
+                    int curr = _users.load();
+
+                    if (curr < 0) {
+                        // lock could not be acquired at all: shutting down
+                        // additional manual check is required in the outer code
+                        _acquired = false;
+                        return;
+                    }
+
+                    if (_users.compare_exchange_weak(curr, curr + 1)) {
+                        _acquired = true;
+                        return;
+                    }
+
+                    if (curr < 0) {
+                        // lock could not be acquired at all: shutting down
+                        // additional manual check is required in the outer code
+                        _acquired = false;
+                        return;
+                    }
+
+                    std::this_thread::yield();
+                }
+            }
+
+            void unlock() {
+                if (_acquired) {
+                    while(true) {
+                        int curr = _users.load();
+
+                        FC_ASSERT( curr > 0 );
+
+                        if (_users.compare_exchange_weak(curr, curr - 1)) {
+                            _acquired = false;
+                            return;
+                        }
+
+                        FC_ASSERT( curr > 0 );
+
+                        std::this_thread::yield();
+                    }
+                }
+            }
+
+        private:
+            bool _acquired;
+            std::atomic<int>& _users;
+        };
+
+        class shutdown_task {
+        public:
+            explicit shutdown_task(shutdown_locker& locker)
+                : _acquired(false)
+                , _users(locker._users)
+            {
+            }
+
+            void lock() {
+                FC_ASSERT( !_acquired );
+
+                while(true) {
+                    int curr = 0;
+
+                    if (_users.compare_exchange_weak(curr, curr - 1)) {
+                        FC_ASSERT( _users == -1 );
+
+                        _acquired = true;
+                        return;
+                    }
+
+                    FC_ASSERT( _users > 0 );
+
+                    std::this_thread::yield();
+                }
+            }
+
+            void unlock() {
+                FC_ASSERT( _acquired );
+                FC_ASSERT( _users == -1 );
+
+                // keep _users == -1
+                // new users are not allowed after successful shutdown
+                // multiple shutdowns will cause assertions
+                _acquired = false;
+            }
+
+        private:
+            bool _acquired;
+            std::atomic<int>& _users;
+        };
+
+    public:
+        shutdown_locker()
+            : _users(0)
+        {
+        }
+
+        bool is_shutting_down() const {
+            return _users < 0;
+        }
+
+    private:
+        friend class shutdown_preventing_task;
+        friend class shutdown_task;
+
+        std::atomic<int> _users;
+    };
+
+
+    typedef fc::scoped_lock<shutdown_locker::shutdown_preventing_task> shutdown_preventing_task_scoped_maybe_lock;
+    typedef fc::scoped_lock<shutdown_locker::shutdown_task> shutdown_task_scoped_lock;
+
+
+}
+
 
 namespace fc { namespace http {
 
@@ -43,7 +182,7 @@ namespace fc { namespace http {
           typedef base::message_type message_type;
           typedef base::con_msg_manager_type con_msg_manager_type;
           typedef base::endpoint_msg_manager_type endpoint_msg_manager_type;
-          
+
           /// Custom Logging policies, use do-nothing log::stub instead of log::basic
           typedef websocketpp::log::stub elog_type;
           typedef websocketpp::log::stub alog_type;
@@ -109,7 +248,7 @@ namespace fc { namespace http {
           // override default value of 5 sec timeout
           static const long timeout_open_handshake = 0;
       };
-#endif ENABLE_WEBSOCKET_PERMESSAGE_DEFLATE
+#endif
 
       struct asio_tls_stub_log : public websocketpp::config::asio_tls {
           typedef asio_tls_stub_log type;
@@ -231,20 +370,32 @@ namespace fc { namespace http {
       {
          public:
             websocket_server_impl()
-            :_server_thread( fc::thread::current() )
+               : _shutdown_locker( new shutdown_locker() )
+               , _server_thread( fc::thread::current() )
             {
+               auto shutdown_locker_wraith = _shutdown_locker;
 
                _server.clear_access_channels( websocketpp::log::alevel::all );
                _server.init_asio(&fc::asio::default_io_service());
                _server.set_reuse_addr(true);
-               _server.set_open_handler( [&]( connection_hdl hdl ){
-                    _server_thread.async( [&](){
+
+               _server.set_open_handler( [&, shutdown_locker_wraith]( connection_hdl hdl ){
+                    _server_thread.async( [&, shutdown_locker_wraith](){
+                       shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                       const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                       if (shutdown_locker_wraith->is_shutting_down()) return;
+
                        websocket_connection_ptr new_con = std::make_shared<websocket_connection_impl<typename websocketpp::server<config>::connection_ptr>>( _server.get_con_from_hdl(hdl) );
                        _on_connection( _connections[hdl] = new_con );
                     }).wait();
                });
-               _server.set_message_handler( [&]( connection_hdl hdl, typename websocketpp::server<config>::message_ptr msg ){
-                    _server_thread.async( [&](){
+
+               _server.set_message_handler( [&, shutdown_locker_wraith]( connection_hdl hdl, typename websocketpp::server<config>::message_ptr msg ){
+                    _server_thread.async( [&, shutdown_locker_wraith](){
+                       shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                       const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                       if (shutdown_locker_wraith->is_shutting_down()) return;
+
                        auto current_con = _connections.find(hdl);
                        assert( current_con != _connections.end() );
                        //wdump(("server")(msg->get_payload()));
@@ -252,14 +403,26 @@ namespace fc { namespace http {
                        auto payload = msg->get_payload();
                        std::shared_ptr<websocket_connection> con = current_con->second;
                        ++_pending_messages;
-                       auto f = fc::async([this,con,payload](){ if( _pending_messages ) --_pending_messages; con->on_message( payload ); });
+                       auto f = fc::async([this, con, payload, shutdown_locker_wraith](){
+                           shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                           const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                           if (shutdown_locker_wraith->is_shutting_down()) return;
+
+                           if( _pending_messages )
+                               --_pending_messages;
+                           con->on_message( payload );
+                       });
                        if( _pending_messages > 100 ) 
                          f.wait();
                     }).wait();
                });
 
-               _server.set_http_handler( [&]( connection_hdl hdl ){
-                    _server_thread.async( [&](){
+               _server.set_http_handler( [&, shutdown_locker_wraith]( connection_hdl hdl ){
+                    _server_thread.async( [&, shutdown_locker_wraith](){
+                       shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                       const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                       if (shutdown_locker_wraith->is_shutting_down()) return;
+
                        auto current_con = std::make_shared<websocket_connection_impl<typename websocketpp::server<config>::connection_ptr>>( _server.get_con_from_hdl(hdl) );
                        _on_connection( current_con );
 
@@ -268,7 +431,11 @@ namespace fc { namespace http {
                        std::string request_body = con->get_request_body();
                        //wdump(("server")(request_body));
 
-                       fc::async([current_con, request_body, con] {
+                       fc::async([current_con, request_body, con, shutdown_locker_wraith] {
+                          shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                          const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                          if (shutdown_locker_wraith->is_shutting_down()) return;
+
                           std::string response = current_con->on_http(request_body);
                           con->set_body( response );
                           con->set_status( websocketpp::http::status_code::ok );
@@ -278,8 +445,16 @@ namespace fc { namespace http {
                     }).wait();
                });
 
-               _server.set_close_handler( [&]( connection_hdl hdl ){
-                    _server_thread.async( [&](){
+               _server.set_close_handler( [&, shutdown_locker_wraith]( connection_hdl hdl ){
+                    shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                    const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                    if (shutdown_locker_wraith->is_shutting_down()) return;
+
+                    _server_thread.async( [&, shutdown_locker_wraith](){
+                       shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                       const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                       if (shutdown_locker_wraith->is_shutting_down()) return;
+
                        if( _connections.find(hdl) != _connections.end() )
                        {
                           _connections[hdl]->closed();
@@ -290,14 +465,22 @@ namespace fc { namespace http {
                             wlog( "unknown connection closed" );
                        }
                        if( _connections.empty() && _closed )
-                          _closed->set_value();
+                           _closed->set_value();
                     }).wait();
                });
 
-               _server.set_fail_handler( [&]( connection_hdl hdl ){
+               _server.set_fail_handler( [&, shutdown_locker_wraith]( connection_hdl hdl ){
+                    shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                    const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                    if (shutdown_locker_wraith->is_shutting_down()) return;
+
                     if( _server.is_listening() )
                     {
-                       _server_thread.async( [&](){
+                       _server_thread.async( [&, shutdown_locker_wraith](){
+                          shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                          const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                          if (shutdown_locker_wraith->is_shutting_down()) return;
+
                           if( _connections.find(hdl) != _connections.end() )
                           {
                              _connections[hdl]->closed();
@@ -308,24 +491,29 @@ namespace fc { namespace http {
                             wlog( "unknown connection failed" );
                           }
                           if( _connections.empty() && _closed )
-                             _closed->set_value();
+                              _closed->set_value();
                        }).wait();
                     }
                });
             }
+
             ~websocket_server_impl()
             {
                if( _server.is_listening() )
-                  _server.stop_listening();
+                   _server.stop_listening();
 
                if( _connections.size() )
-                  _closed = new fc::promise<void>();
+                   _closed = fc::promise<void>::ptr( new fc::promise<void>() );
 
                auto cpy_con = _connections;
                for( auto item : cpy_con )
-                  _server.close( item.first, 0, "server exit" );
+                   _server.close( item.first, 0, "server exit" );
 
-               if( _closed ) _closed->wait();
+               if( _closed )
+                   _closed->wait();
+
+                shutdown_locker::shutdown_task st(*_shutdown_locker);
+                const shutdown_task_scoped_lock lock(st);
             }
 
             void on_connection( const on_connection_handler& handler ) override
@@ -350,12 +538,13 @@ namespace fc { namespace http {
 
             typedef std::map<connection_hdl, websocket_connection_ptr,std::owner_less<connection_hdl> > con_map;
 
-            con_map                  _connections;
-            fc::thread&              _server_thread;
-            websocketpp::server<config> _server;
-            on_connection_handler    _on_connection;
-            fc::promise<void>::ptr   _closed;
-            uint32_t                 _pending_messages = 0;
+            std::shared_ptr<shutdown_locker>   _shutdown_locker;
+            con_map                            _connections;
+            fc::thread&                        _server_thread;
+            websocketpp::server<config>        _server;
+            on_connection_handler              _on_connection;
+            fc::promise<void>::ptr             _closed;
+            uint32_t                           _pending_messages = 0;
       };
 
       template <typename config>
@@ -396,29 +585,70 @@ namespace fc { namespace http {
             typedef websocket_client_type::message_ptr message_ptr;
 
             websocket_client_impl()
-            :_client_thread( fc::thread::current() )
+               : _shutdown_locker( new shutdown_locker() )
+               , _client_thread( fc::thread::current() )
             {
+                auto shutdown_locker_wraith = _shutdown_locker;
+
                 _client.clear_access_channels( websocketpp::log::alevel::all );
-                _client.set_message_handler( [&]( connection_hdl hdl, message_ptr msg ){
-                   _client_thread.async( [&](){
+                _client.set_message_handler( [&, shutdown_locker_wraith]( connection_hdl hdl, message_ptr msg ){
+                   shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                   const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                   if (shutdown_locker_wraith->is_shutting_down()) return;
+
+                   _client_thread.async( [&, shutdown_locker_wraith](){
+                        shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                        const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                        if (shutdown_locker_wraith->is_shutting_down()) return;
+
                         wdump((msg->get_payload()));
                         //std::cerr<<"recv: "<<msg->get_payload()<<"\n";
                         auto received = msg->get_payload();
                         fc::async( [=](){
+                           shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                           const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                           if (shutdown_locker_wraith->is_shutting_down()) return;
+
                            if( _connection )
                                _connection->on_message(received);
                         });
                    }).wait();
                 });
                 _client.set_close_handler( [=]( connection_hdl hdl ){
-                   _client_thread.async( [&](){ if( _connection ) {_connection->closed(); _connection.reset();} } ).wait();
-                   if( _closed ) _closed->set_value();
+                   shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                   const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                   if (shutdown_locker_wraith->is_shutting_down()) return;
+
+                   _client_thread.async( [&, shutdown_locker_wraith](){
+                       shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                       const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                       if (shutdown_locker_wraith->is_shutting_down()) return;
+
+                       if( _connection ){
+                           _connection->closed();
+                           _connection.reset();
+                       }
+                   } ).wait();
+                   if( _closed )
+                       _closed->set_value();
                 });
                 _client.set_fail_handler( [=]( connection_hdl hdl ){
+                   shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                   const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                   if (shutdown_locker_wraith->is_shutting_down()) return;
+
                    auto con = _client.get_con_from_hdl(hdl);
                    auto message = con->get_ec().message();
                    if( _connection )
-                      _client_thread.async( [&](){ if( _connection ) _connection->closed(); _connection.reset(); } ).wait();
+                       _client_thread.async( [&, shutdown_locker_wraith](){
+                           shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                           const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                           if (shutdown_locker_wraith->is_shutting_down()) return;
+
+                           if( _connection )
+                               _connection->closed();
+                           _connection.reset();
+                       } ).wait();
                    if( _connected && !_connected->ready() )
                        _connected->set_exception( exception_ptr( new FC_EXCEPTION( exception, "${message}", ("message",message)) ) );
                    if( _closed )
@@ -429,13 +659,19 @@ namespace fc { namespace http {
             }
             ~websocket_client_impl()
             {
-               if(_connection )
+               if( _connection )
                {
                   _connection->close(0, "client closed");
                   _connection.reset();
-                  _closed->wait();
+                  if( _closed )
+                      _closed->wait();
                }
+
+               shutdown_locker::shutdown_task st(*_shutdown_locker);
+               const shutdown_task_scoped_lock lock(st);
             }
+
+            std::shared_ptr<shutdown_locker>   _shutdown_locker;
             fc::promise<void>::ptr             _connected;
             fc::promise<void>::ptr             _closed;
             fc::thread&                        _client_thread;
@@ -451,38 +687,69 @@ namespace fc { namespace http {
             typedef websocket_tls_client_type::message_ptr message_ptr;
 
             websocket_tls_client_impl()
-            :_client_thread( fc::thread::current() )
+               : _shutdown_locker( new shutdown_locker() )
+               , _client_thread( fc::thread::current() )
             {
+                auto shutdown_locker_wraith = _shutdown_locker;
+
                 _client.clear_access_channels( websocketpp::log::alevel::all );
-                _client.set_message_handler( [&]( connection_hdl hdl, message_ptr msg ){
-                   _client_thread.async( [&](){
-                        wdump((msg->get_payload()));
-                      _connection->on_message( msg->get_payload() );
+                _client.set_message_handler( [&, shutdown_locker_wraith]( connection_hdl hdl, message_ptr msg ){
+                   _client_thread.async( [&, shutdown_locker_wraith](){
+                       shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                       const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                       if (shutdown_locker_wraith->is_shutting_down()) return;
+
+                       wdump((msg->get_payload()));
+                       _connection->on_message( msg->get_payload() );
                    }).wait();
                 });
+
                 _client.set_close_handler( [=]( connection_hdl hdl ){
+                   shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                   const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                   if (shutdown_locker_wraith->is_shutting_down()) return;
+
                    if( _connection )
                    {
                       try {
-                         _client_thread.async( [&](){
+                         _client_thread.async( [&, shutdown_locker_wraith](){
+                                 shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                                 const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                                 if (shutdown_locker_wraith->is_shutting_down()) return;
+
                                  wlog(". ${p}", ("p",uint64_t(_connection.get())));
-                                 if( !_shutting_down && !_closed && _connection )
-                                    _connection->closed();
+                                 if( !_closed && _connection )
+                                     _connection->closed();
                                  _connection.reset();
                          } ).wait();
                       } catch ( const fc::exception& e )
                       {
-                          if( _closed ) _closed->set_exception( e.dynamic_copy_exception() );
+                          if( _closed )
+                              _closed->set_exception( e.dynamic_copy_exception() );
                       }
-                      if( _closed ) _closed->set_value();
+                      if( _closed )
+                          _closed->set_value();
                    }
                 });
+
                 _client.set_fail_handler( [=]( connection_hdl hdl ){
+                   shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                   const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                   if (shutdown_locker_wraith->is_shutting_down()) return;
+
                    elog( "." );
                    auto con = _client.get_con_from_hdl(hdl);
                    auto message = con->get_ec().message();
                    if( _connection )
-                      _client_thread.async( [&](){ if( _connection ) _connection->closed(); _connection.reset(); } ).wait();
+                       _client_thread.async( [&, shutdown_locker_wraith](){
+                           shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                           const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                           if (shutdown_locker_wraith->is_shutting_down()) return;
+
+                           if( _connection )
+                               _connection->closed();
+                           _connection.reset();
+                       } ).wait();
                    if( _connected && !_connected->ready() )
                        _connected->set_exception( exception_ptr( new FC_EXCEPTION( exception, "${message}", ("message",message)) ) );
                    if( _closed )
@@ -507,19 +774,23 @@ namespace fc { namespace http {
             }
             ~websocket_tls_client_impl()
             {
-               if(_connection )
+               if( _connection )
                {
                   wlog(".");
-                  _shutting_down = true;
                   _connection->close(0, "client closed");
-                  _closed->wait();
+                  if( _closed )
+                      _closed->wait();
                }
+
+               shutdown_locker::shutdown_task st(*_shutdown_locker);
+               const shutdown_task_scoped_lock lock(st);
             }
-            bool                               _shutting_down = false;
+
+            std::shared_ptr<shutdown_locker>   _shutdown_locker;
             fc::promise<void>::ptr             _connected;
             fc::promise<void>::ptr             _closed;
             fc::thread&                        _client_thread;
-            websocket_tls_client_type              _client;
+            websocket_tls_client_type          _client;
             websocket_connection_ptr           _connection;
       };
 
@@ -617,7 +888,8 @@ namespace fc { namespace http {
           auto con =  my->_client.get_con_from_hdl(hdl);
           my->_connection = std::make_shared<detail::websocket_connection_impl<detail::websocket_client_connection_type>>( con );
           my->_closed = fc::promise<void>::ptr( new fc::promise<void>("websocket::closed") );
-          my->_connected->set_value();
+          if( my->_connected )
+              my->_connected->set_value();
        });
 
        auto con = my->_client.get_connection( uri, ec );
@@ -625,7 +897,8 @@ namespace fc { namespace http {
        if( ec ) FC_ASSERT( !ec, "error: ${e}", ("e",ec.message()) );
 
        my->_client.connect(con);
-       my->_connected->wait();
+       if( my->_connected )
+           my->_connected->wait();
        return my->_connection;
    } FC_CAPTURE_AND_RETHROW( (uri) ) }
 
@@ -643,14 +916,16 @@ namespace fc { namespace http {
           auto con =  smy->_client.get_con_from_hdl(hdl);
           smy->_connection = std::make_shared<detail::websocket_connection_impl<detail::websocket_tls_client_connection_type>>( con );
           smy->_closed = fc::promise<void>::ptr( new fc::promise<void>("websocket::closed") );
-          smy->_connected->set_value();
+          if( smy->_connected )
+              smy->_connected->set_value();
        });
 
        auto con = smy->_client.get_connection( uri, ec );
        if( ec )
           FC_ASSERT( !ec, "error: ${e}", ("e",ec.message()) );
        smy->_client.connect(con);
-       smy->_connected->wait();
+       if( smy->_connected )
+           smy->_connected->wait();
        return smy->_connection;
    } FC_CAPTURE_AND_RETHROW( (uri) ) }
 
@@ -665,7 +940,8 @@ namespace fc { namespace http {
           auto con =  my->_client.get_con_from_hdl(hdl);
           my->_connection = std::make_shared<detail::websocket_connection_impl<detail::websocket_tls_client_connection_type>>( con );
           my->_closed = fc::promise<void>::ptr( new fc::promise<void>("websocket::closed") );
-          my->_connected->set_value();
+          if( my->_connected )
+              my->_connected->set_value();
        });
 
        auto con = my->_client.get_connection( uri, ec );
@@ -674,7 +950,8 @@ namespace fc { namespace http {
           FC_ASSERT( !ec, "error: ${e}", ("e",ec.message()) );
        }
        my->_client.connect(con);
-       my->_connected->wait();
+       if( my->_connected )
+           my->_connected->wait();
        return my->_connection;
    } FC_CAPTURE_AND_RETHROW( (uri) ) }
 
