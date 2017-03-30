@@ -145,6 +145,15 @@ namespace fc {
          {
             api_visitor( generic_api& a, const std::weak_ptr<fc::api_connection>& s ):api(a),_api_con(s){ }
 
+#if defined( _MSC_VER )
+			   template<typename Interface, typename Adaptor, typename ... Args>
+			   variant lambda1_body(const fc::variants& args,
+				   const std::function<fc::api<Interface, Adaptor>(Args...)>& f);
+
+			   template<typename Interface, typename Adaptor, typename ... Args>
+			   variant lambda2_body(const fc::variants& args,
+				   const std::function<fc::api<Interface, Adaptor>(Args...)>& f);
+#endif
             template<typename Interface, typename Adaptor, typename ... Args>
             std::function<variant(const fc::variants&)> to_generic( const std::function<api<Interface,Adaptor>(Args...)>& f )const;
 
@@ -339,28 +348,68 @@ namespace fc {
    {
       boost::any_cast<const Api&>(a)->visit( api_visitor( *this, c ) );
    }
+#if defined( _MSC_VER )
+   template<typename Interface, typename Adaptor, typename ... Args>
+   variant generic_api::api_visitor::lambda1_body(const fc::variants& args, 
+	   const std::function<fc::api<Interface, Adaptor>(Args...)>& f)
+   {
+	   auto api_con = _api_con;
+	   auto gapi = &api;
 
+	   auto con = api_con.lock();
+	   FC_ASSERT(con, "not connected");
+
+	   auto api_result = gapi->call_generic(f, args.begin(), args.end());
+	   return variant(con->register_api(api_result));
+   }
+#endif
    template<typename Interface, typename Adaptor, typename ... Args>
    std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic( 
                                                const std::function<fc::api<Interface,Adaptor>(Args...)>& f )const
    {
       auto api_con = _api_con;
       auto gapi = &api;
-      return [=]( const variants& args ) { 
+
+      return [=]( const variants& args ) {
+#if defined( _MSC_VER )
+         return lambda1_body<Interface, Adaptor, Args...>(args, f);
+#else
          auto con = api_con.lock();
          FC_ASSERT( con, "not connected" );
 
          auto api_result = gapi->call_generic( f, args.begin(), args.end() ); 
          return con->register_api( api_result );
+#endif
       };
    }
+#if defined( _MSC_VER )
+   template<typename Interface, typename Adaptor, typename ... Args>
+   variant generic_api::api_visitor::lambda2_body(const fc::variants& args,
+	   const std::function<fc::api<Interface, Adaptor>(Args...)>& f)
+   {
+	   auto api_con = _api_con;
+	   auto gapi = &api;
+
+	   auto con = api_con.lock();
+	   FC_ASSERT(con, "not connected");
+
+	   auto api_result = gapi->call_generic(f, args.begin(), args.end());
+	   if (api_result)
+		   return variant(con->register_api(*api_result));
+	   return variant();
+   }
+#endif
    template<typename Interface, typename Adaptor, typename ... Args>
    std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic( 
                                                const std::function<fc::optional<fc::api<Interface,Adaptor>>(Args...)>& f )const
    {
       auto api_con = _api_con;
       auto gapi = &api;
+	  
       return [=]( const variants& args )-> fc::variant { 
+#if defined( _MSC_VER )
+         return lambda2_body<Interface, Adaptor, Args...>(args, f);
+#else
          auto con = api_con.lock();
          FC_ASSERT( con, "not connected" );
 
@@ -368,25 +417,36 @@ namespace fc {
          if( api_result )
             return con->register_api( *api_result );
          return variant();
+#endif
       };
    }
    template<typename R, typename ... Args>
    std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic( const std::function<R(Args...)>& f )const
    {
       generic_api* gapi = &api;
-      return [f,gapi]( const variants& args ) { 
-         return variant( gapi->call_generic( f, args.begin(), args.end() ) ); 
-      };
+	  
+	   return [f,gapi]( const variants& args ) {
+#if defined( _MSC_VER )
+         return variant(gapi->call_generic((const std::function<R()>&)f, args.begin(), args.end()));
+#else
+         return variant(gapi->call_generic(f, args.begin(), args.end()));
+#endif
+	  };
    }
 
    template<typename ... Args>
    std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic( const std::function<void(Args...)>& f )const
    {
       generic_api* gapi = &api;
+	  
       return [f,gapi]( const variants& args ) { 
-         gapi->call_generic( f, args.begin(), args.end() ); 
+#if defined( _MSC_VER )
+         gapi->call_generic((const std::function<void()>&)f, args.begin(), args.end());
+#else
+         gapi->call_generic( f, args.begin(), args.end() );
+#endif
          return variant();
-      };
+      };   
    }
 
    namespace detail {
