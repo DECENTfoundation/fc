@@ -118,7 +118,7 @@ namespace fc {
          {
             return f();
          }
-
+         /* original fc code
          template<typename R, typename Signature, typename ... Args>
          R call_generic( const std::function<R(std::function<Signature>,Args...)>& f, variants::const_iterator a0, variants::const_iterator e )
          {
@@ -132,6 +132,24 @@ namespace fc {
             FC_ASSERT( a0 != e, "too few arguments passed to method" );
             detail::callback_functor<Signature> arg0( get_connection(), a0->as<uint64_t>() );
             return  call_generic<R,Args...>( this->bind_first_arg<R,const std::function<Signature>&,Args...>( f, arg0 ), a0+1, e );
+         }*/
+
+         // fix by josef sevcik - build under vs2015
+         // above two members superseeded:
+         template<typename R, typename T, typename ... Args2, typename ... Args>
+         R call_generic(const std::function<R(std::function<T(Args2...)>, Args...)>& f, variants::const_iterator a0, variants::const_iterator e)
+         {
+            FC_ASSERT(a0 != e, "too few arguments passed to method");
+            detail::callback_functor<T(Args2...)> arg0(get_connection(), a0->as<uint64_t>());
+            return  call_generic<R, Args...>(this->bind_first_arg<R, std::function<T(Args2...)>, Args...>(f, std::function<T(Args2...)>(arg0)), a0 + 1, e);
+         }
+
+         template<typename R, typename T, typename ... Args2, typename ... Args>
+         R call_generic(const std::function<R(const std::function<T(Args2...)>&, Args...)>& f, variants::const_iterator a0, variants::const_iterator e)
+         {
+            FC_ASSERT(a0 != e, "too few arguments passed to method");
+            detail::callback_functor<T(Args2...)> arg0(get_connection(), a0->as<uint64_t>());
+            return  call_generic<R, Args...>(this->bind_first_arg<R, const std::function<T(Args2...)>&, Args...>(f, arg0), a0 + 1, e);
          }
 
          template<typename R, typename Arg0, typename ... Args>
@@ -145,15 +163,6 @@ namespace fc {
          {
             api_visitor( generic_api& a, const std::weak_ptr<fc::api_connection>& s ):api(a),_api_con(s){ }
 
-#if defined( _MSC_VER )
-			   template<typename Interface, typename Adaptor, typename ... Args>
-			   variant lambda1_body(const fc::variants& args,
-				   const std::function<fc::api<Interface, Adaptor>(Args...)>& f);
-
-			   template<typename Interface, typename Adaptor, typename ... Args>
-			   variant lambda2_body(const fc::variants& args,
-				   const std::function<fc::api<Interface, Adaptor>(Args...)>& f);
-#endif
             template<typename Interface, typename Adaptor, typename ... Args>
             std::function<variant(const fc::variants&)> to_generic( const std::function<api<Interface,Adaptor>(Args...)>& f )const;
 
@@ -348,21 +357,7 @@ namespace fc {
    {
       boost::any_cast<const Api&>(a)->visit( api_visitor( *this, c ) );
    }
-#if defined( _MSC_VER )
-   template<typename Interface, typename Adaptor, typename ... Args>
-   variant generic_api::api_visitor::lambda1_body(const fc::variants& args, 
-	   const std::function<fc::api<Interface, Adaptor>(Args...)>& f)
-   {
-	   auto api_con = _api_con;
-	   auto gapi = &api;
 
-	   auto con = api_con.lock();
-	   FC_ASSERT(con, "not connected");
-
-	   auto api_result = gapi->call_generic(f, args.begin(), args.end());
-	   return variant(con->register_api(api_result));
-   }
-#endif
    template<typename Interface, typename Adaptor, typename ... Args>
    std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic( 
                                                const std::function<fc::api<Interface,Adaptor>(Args...)>& f )const
@@ -371,34 +366,14 @@ namespace fc {
       auto gapi = &api;
 
       return [=]( const variants& args ) {
-#if defined( _MSC_VER )
-         return lambda1_body<Interface, Adaptor, Args...>(args, f);
-#else
+
          auto con = api_con.lock();
          FC_ASSERT( con, "not connected" );
 
          auto api_result = gapi->call_generic( f, args.begin(), args.end() ); 
          return con->register_api( api_result );
-#endif
       };
    }
-#if defined( _MSC_VER )
-   template<typename Interface, typename Adaptor, typename ... Args>
-   variant generic_api::api_visitor::lambda2_body(const fc::variants& args,
-	   const std::function<fc::api<Interface, Adaptor>(Args...)>& f)
-   {
-	   auto api_con = _api_con;
-	   auto gapi = &api;
-
-	   auto con = api_con.lock();
-	   FC_ASSERT(con, "not connected");
-
-	   auto api_result = gapi->call_generic(f, args.begin(), args.end());
-	   if (api_result)
-		   return variant(con->register_api(*api_result));
-	   return variant();
-   }
-#endif
    template<typename Interface, typename Adaptor, typename ... Args>
    std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic( 
                                                const std::function<fc::optional<fc::api<Interface,Adaptor>>(Args...)>& f )const
@@ -407,9 +382,7 @@ namespace fc {
       auto gapi = &api;
 	  
       return [=]( const variants& args )-> fc::variant { 
-#if defined( _MSC_VER )
-         return lambda2_body<Interface, Adaptor, Args...>(args, f);
-#else
+
          auto con = api_con.lock();
          FC_ASSERT( con, "not connected" );
 
@@ -417,7 +390,6 @@ namespace fc {
          if( api_result )
             return con->register_api( *api_result );
          return variant();
-#endif
       };
    }
    template<typename R, typename ... Args>
@@ -426,11 +398,7 @@ namespace fc {
       generic_api* gapi = &api;
 	  
 	   return [f,gapi]( const variants& args ) {
-#if defined( _MSC_VER )
-         return variant(gapi->call_generic((const std::function<R()>&)f, args.begin(), args.end()));
-#else
          return variant(gapi->call_generic(f, args.begin(), args.end()));
-#endif
 	  };
    }
 
@@ -440,11 +408,8 @@ namespace fc {
       generic_api* gapi = &api;
 	  
       return [f,gapi]( const variants& args ) { 
-#if defined( _MSC_VER )
-         gapi->call_generic((const std::function<void()>&)f, args.begin(), args.end());
-#else
+
          gapi->call_generic( f, args.begin(), args.end() );
-#endif
          return variant();
       };   
    }
