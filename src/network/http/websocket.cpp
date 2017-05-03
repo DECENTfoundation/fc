@@ -25,6 +25,9 @@
 #include <fc/asio.hpp>
 
 #include <thread>
+#if defined ( _MSC_VER )
+#include <atomic>
+#endif
 
 #ifdef DEFAULT_LOGGER
 # undef DEFAULT_LOGGER

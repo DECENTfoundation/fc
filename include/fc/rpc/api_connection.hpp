@@ -118,7 +118,7 @@ namespace fc {
          {
             return f();
          }
-
+         /* original fc code
          template<typename R, typename Signature, typename ... Args>
          R call_generic( const std::function<R(std::function<Signature>,Args...)>& f, variants::const_iterator a0, variants::const_iterator e )
          {
@@ -132,6 +132,24 @@ namespace fc {
             FC_ASSERT( a0 != e, "too few arguments passed to method" );
             detail::callback_functor<Signature> arg0( get_connection(), a0->as<uint64_t>() );
             return  call_generic<R,Args...>( this->bind_first_arg<R,const std::function<Signature>&,Args...>( f, arg0 ), a0+1, e );
+         }*/
+
+         // fix by josef sevcik - build under vs2015
+         // above two members superseeded:
+         template<typename R, typename T, typename ... Args2, typename ... Args>
+         R call_generic(const std::function<R(std::function<T(Args2...)>, Args...)>& f, variants::const_iterator a0, variants::const_iterator e)
+         {
+            FC_ASSERT(a0 != e, "too few arguments passed to method");
+            detail::callback_functor<T(Args2...)> arg0(get_connection(), a0->as<uint64_t>());
+            return  call_generic<R, Args...>(this->bind_first_arg<R, std::function<T(Args2...)>, Args...>(f, std::function<T(Args2...)>(arg0)), a0 + 1, e);
+         }
+
+         template<typename R, typename T, typename ... Args2, typename ... Args>
+         R call_generic(const std::function<R(const std::function<T(Args2...)>&, Args...)>& f, variants::const_iterator a0, variants::const_iterator e)
+         {
+            FC_ASSERT(a0 != e, "too few arguments passed to method");
+            detail::callback_functor<T(Args2...)> arg0(get_connection(), a0->as<uint64_t>());
+            return  call_generic<R, Args...>(this->bind_first_arg<R, const std::function<T(Args2...)>&, Args...>(f, arg0), a0 + 1, e);
          }
 
          template<typename R, typename Arg0, typename ... Args>
@@ -346,7 +364,9 @@ namespace fc {
    {
       auto api_con = _api_con;
       auto gapi = &api;
-      return [=]( const variants& args ) { 
+
+      return [=]( const variants& args ) {
+
          auto con = api_con.lock();
          FC_ASSERT( con, "not connected" );
 
@@ -360,7 +380,9 @@ namespace fc {
    {
       auto api_con = _api_con;
       auto gapi = &api;
+	  
       return [=]( const variants& args )-> fc::variant { 
+
          auto con = api_con.lock();
          FC_ASSERT( con, "not connected" );
 
@@ -374,19 +396,22 @@ namespace fc {
    std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic( const std::function<R(Args...)>& f )const
    {
       generic_api* gapi = &api;
-      return [f,gapi]( const variants& args ) { 
-         return variant( gapi->call_generic( f, args.begin(), args.end() ) ); 
-      };
+	  
+	   return [f,gapi]( const variants& args ) {
+         return variant(gapi->call_generic(f, args.begin(), args.end()));
+	  };
    }
 
    template<typename ... Args>
    std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic( const std::function<void(Args...)>& f )const
    {
       generic_api* gapi = &api;
+	  
       return [f,gapi]( const variants& args ) { 
-         gapi->call_generic( f, args.begin(), args.end() ); 
+
+         gapi->call_generic( f, args.begin(), args.end() );
          return variant();
-      };
+      };   
    }
 
    namespace detail {
