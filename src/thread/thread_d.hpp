@@ -17,6 +17,11 @@ namespace fc {
     };
     class thread_d {
 
+        struct transfer_data{
+           context* calling;
+           void* data;
+        };
+
         public:
            thread_d(fc::thread& s)
             :self(s), boost_thread(0),
@@ -395,10 +400,17 @@ namespace fc {
                   current->prio = priority::_internal__priority_for_short_sleeps();
                   add_context_to_ready_list(prev, true);
                 }
-                // slog( "jump to %p from %p", next, prev );
-                // fc_dlog( logger::get("fc_context"), "from ${from} to ${to}", ( "from", int64_t(prev) )( "to", int64_t(next) ) ); 
+                //slog( "jump to %p from %p", next, prev );
+                 //std::cerr << "jump1 to "<< int64_t(next)<<" "<< int64_t(next->my_context) << " from " <<int64_t(prev)<<" "<< int64_t(prev->my_context) << "\n";
+                //fc_dlog( logger::get("fc_context"), "from ${from} to ${to}", ( "from", int64_t(prev) )( "to", int64_t(next) ) );
 #if BOOST_VERSION >= 106100
-                prev->my_context = bc::detail::jump_fcontext( next->my_context, 0 ).fctx;
+                transfer_data * t = new transfer_data;
+                t->calling = prev;
+                t->data = nullptr;
+                auto res = bc::detail::jump_fcontext( next->my_context, (void*)t );
+                ((transfer_data*)res.data)->calling->my_context = res.fctx;
+                delete res.data;
+
 #elif BOOST_VERSION >= 105600
                 bc::jump_fcontext( &prev->my_context, next->my_context, 0 );
 #elif BOOST_VERSION >= 105300
@@ -439,10 +451,16 @@ namespace fc {
                   add_context_to_ready_list(prev, true);
                 }
 
-                // slog( "jump to %p from %p", next, prev );
-                // fc_dlog( logger::get("fc_context"), "from ${from} to ${to}", ( "from", int64_t(prev) )( "to", int64_t(next) ) );
+                //slog( "jump to %p from %p", next, prev );
+                 //std::cerr << "jump2 to "<< int64_t(next)<<" "<< int64_t(next->my_context) << " from " <<int64_t(prev)<<" "<< int64_t(prev->my_context) << "\n";
+                 //fc_dlog( logger::get("fc_context"), "from ${from} to ${to}", ( "from", int64_t(prev) )( "to", int64_t(next) ) );
 #if BOOST_VERSION >= 106100
-                prev->my_context = bc::detail::jump_fcontext( next->my_context, this ).fctx;
+                 transfer_data * t = new transfer_data;
+                 t->calling = prev;
+                 t->data = this;
+                 auto res = bc::detail::jump_fcontext( next->my_context, (void*)t );
+                 ((transfer_data*)res.data)->calling->my_context = res.fctx;
+                 delete res.data;
 #elif BOOST_VERSION >= 105600
                 bc::jump_fcontext( &prev->my_context, next->my_context, (intptr_t)this );
 #elif BOOST_VERSION >= 105300
@@ -471,13 +489,14 @@ namespace fc {
               return true;
            }
 
+           static void start_process_tasks( fc::context::fiber_arg my )
+           {
 #if BOOST_VERSION >= 106100
-           static void start_process_tasks( bc::detail::transfer_t my )
-           {
-              thread_d* self = (thread_d*)my.data;
+              transfer_data * in = (transfer_data*)my.data;
+              thread_d* self = (thread_d*)in->data;
+              in->calling->my_context = my.fctx;
+              delete in;
 #else
-           static void start_process_tasks( intptr_t my ) 
-           {
               thread_d* self = (thread_d*)my;
 #endif
               try 

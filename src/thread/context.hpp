@@ -48,11 +48,16 @@ namespace fc {
 #endif
 
 
+
+
 #if BOOST_VERSION >= 106100
-    context( void (*sf)(bc::detail::transfer_t), stack_allocator& alloc, fc::thread* t )
+     using fiber_arg = boost::context::detail::transfer_t;
 #else
-    context( void (*sf)(intptr_t), stack_allocator& alloc, fc::thread* t )
+     using fiber_arg = intptr_t;
+
 #endif
+
+    context( void (*sf)(fiber_arg), stack_allocator& alloc, fc::thread* t )
     : caller_context(0),
       stack_alloc(&alloc),
       next_blocked(0), 
@@ -92,7 +97,9 @@ namespace fc {
     }
 
     context( fc::thread* t) :
-#if BOOST_VERSION >= 105600
+#if BOOST_VERSION >= 106100
+     my_context(nullptr),
+#elif BOOST_VERSION >= 105600
      my_context(nullptr),
 #elif BOOST_VERSION >= 105300
      my_context(new bc::fcontext_t),
@@ -110,7 +117,8 @@ namespace fc {
      complete(false),
      cur_task(0),
      context_posted_num(0)
-    {}
+    {
+    }
 
     ~context() {
 #if BOOST_VERSION >= 105600
