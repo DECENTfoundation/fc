@@ -41,6 +41,8 @@ namespace fc {
 
    void configure_logging( const fc::path& log_config );
    bool configure_logging( const logging_config& l );
+   void write_default_logging_config_to_stream( std::ostream& out );
+   fc::optional<fc::logging_config> load_logging_config_from_ini_file( const fc::path& config_ini_filename );
 }
 
 #include <fc/reflect/reflect.hpp>
