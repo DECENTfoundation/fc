@@ -281,15 +281,29 @@ namespace fc {
                if (file_name.is_relative())
                   file_name = fc::absolute(config_ini_filename).parent_path() / file_name;
 
+               std::string rotate = "true";   //default value
+               if (section_tree.find("rotate") != section_tree.not_found()) {
+                  rotate = section_tree.get<std::string>("rotate");
+               }
+
+               std::string rotation_interval = std::to_string( fc::hours(1).to_seconds() );  //default value
+               if (section_tree.find("rotation_interval") != section_tree.not_found()) {
+                  rotation_interval = section_tree.get<std::string>("rotation_interval");
+               }
+
+               std::string rotation_limit = std::to_string( fc::days(1).to_seconds() );  //default value
+               if (section_tree.find("rotation_limit") != section_tree.not_found()) {
+                  rotation_limit = section_tree.get<std::string>("rotation_limit");
+               }
 
                // construct a default file appender config here
                // filename will be taken from ini file, everything else hard-coded here
                fc::file_appender::config file_appender_config;
                file_appender_config.filename = file_name;
                file_appender_config.flush = true;
-               file_appender_config.rotate = true;
-               file_appender_config.rotation_interval = fc::hours(1);
-               file_appender_config.rotation_limit = fc::days(1);
+               file_appender_config.rotate = fc::variant(rotate).as<bool>();
+               file_appender_config.rotation_interval = fc::seconds( fc::variant(rotation_interval).as<int64_t>() );
+               file_appender_config.rotation_limit = fc::seconds( fc::variant(rotation_limit).as<int64_t>() );
                logging_config.appenders.push_back(fc::appender_config(file_appender_name, "file", fc::variant(file_appender_config)));
                found_logging_config = true;
             }
