@@ -105,19 +105,29 @@ namespace fc {
       out << "# declare an appender named \"stderr\" that writes messages to the console\n"
          "[log.console_appender.stderr]\n"
          "stream=std_error\n\n"
+         "# declare an appender named \"default\" that writes messages to decentd.log\n"
+         "[log.file_appender.default]\n"
+         "filename=logs/decentd.log\n"
+         "# filename can be absolute or relative to this config file\n"
+         "rotation_interval=86400\n"    //One day
+         "rotation_limit=864000\n\n"    //10 days
          "# declare an appender named \"p2p\" that writes messages to p2p.log\n"
          "[log.file_appender.p2p]\n"
          "filename=logs/p2p/p2p.log\n"
-         "# filename can be absolute or relative to this config file\n\n"
+         "# filename can be absolute or relative to this config file\n"
+         "rotation_interval=86400\n"    //One day
+         "rotation_limit=864000\n\n"    //10 days
          "# declare an appender named \"transfer\" that writes messages to transfer.log\n"
          "[log.file_appender.transfer]\n"
          "filename=logs/transfer.log\n"
-         "# filename can be absolute or relative to this config file\n\n"
-         "# route any messages logged to the default logger to the \"stderr\" logger we\n"
+         "# filename can be absolute or relative to this config file\n"
+         "rotation_interval=86400\n"    //One day
+         "rotation_limit=864000\n\n"    //10 days
+         "# route any messages logged to the default logger to the \"default\" logger we\n"
          "# declared above, if they are info level are higher\n"
          "[logger.default]\n"
          "level=info\n"
-         "appenders=stderr\n\n"
+         "appenders=default\n\n"
          "# route messages sent to the \"p2p\" logger to the p2p appender declared above\n"
          "[logger.p2p]\n"
          "level=error\n"
