@@ -142,7 +142,9 @@ namespace fc {
    {
       try
       {
-         fc::create_directories(my->cfg.filename.parent_path());
+         if(!fc::exists(my->cfg.filename.parent_path())) {
+            fc::create_directories(my->cfg.filename.parent_path());
+         }
 
          if(!my->cfg.rotate)
             my->out.open( my->cfg.filename, std::ios_base::out | std::ios_base::app);
