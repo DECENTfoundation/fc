@@ -4,7 +4,7 @@
 #include <fc/asio.hpp>
 #include <fc/filesystem.hpp>
 #include <fc/log/logger.hpp>
-#include <boost/process/all.hpp>
+#include <fc-boost/process/all.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <cstdlib>
 
