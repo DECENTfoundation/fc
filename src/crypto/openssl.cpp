@@ -30,11 +30,22 @@ namespace  fc
 #endif
           }
 
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+          if (CONF_modules_load(NULL, NULL, CONF_MFLAGS_IGNORE_ERRORS| CONF_MFLAGS_IGNORE_MISSING_FILE) < 0) {
+             ERR_print_errors_fp(stderr);
+             exit(1);
+          }
+#else
           OPENSSL_config(nullptr);
+#endif
        }
 
        ~openssl_scope()
        {
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+          CONF_modules_free();
+#endif
+
           EVP_cleanup();
           ERR_free_strings();
        }
