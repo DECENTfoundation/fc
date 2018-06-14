@@ -74,12 +74,16 @@ namespace fc {
 
     protected:
       void _wait( const microseconds& timeout_us );
+      void _wait_with_reset(const microseconds& timeout_us);
       void _wait_until( const time_point& timeout_us );
+      void _wait_until_with_reset(const time_point& timeout_us);
       void _enqueue_thread();
       void _dequeue_thread();
       void _notify();
+      void _notify_and_reset();
       void _set_timeout();
       void _set_value(const void* v);
+      void _set_value_and_reset();
 
       void _on_complete( detail::completion_handler* c );
       ~promise_base();
@@ -151,12 +155,18 @@ namespace fc {
       void wait(const microseconds& timeout = microseconds::maximum() ){
         this->_wait( timeout );
       }
+
+      void wait_with_reset(const microseconds& timeout = microseconds::maximum()) {
+         this->_wait_with_reset(timeout);
+      }
+
       void wait_until(const time_point& tp ) {
         this->_wait_until( tp );
       }
 
       void set_value(){ this->_set_value(nullptr); }
       void set_value( const void_t&  ) { this->_set_value(nullptr); }
+      void set_value_and_reset() { this->_set_value_and_reset(); }
 
       template<typename CompletionHandler>
       void on_complete( CompletionHandler&& c ) {
