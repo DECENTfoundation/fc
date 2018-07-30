@@ -62,6 +62,7 @@ namespace fc
    template<typename... T> void from_variant( const variant& v, static_variant<T...>& s );
 
    void to_variant( const uint8_t& var,  variant& vo );
+   void to_variant(const bool& var, variant& vo);
    void from_variant( const variant& var,  uint8_t& vo );
    void to_variant( const int8_t& var,  variant& vo );
    void from_variant( const variant& var,  int8_t& vo );
