@@ -442,6 +442,7 @@ namespace fc { namespace http {
                           std::string response = current_con->on_http(request_body);
                           con->set_body( response );
                           con->set_status( websocketpp::http::status_code::ok );
+                          con->append_header("Access-Control-Allow-Origin", "*");
                           con->send_http_response();
                           current_con->closed();
                        }, "call on_http");

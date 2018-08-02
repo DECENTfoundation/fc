@@ -48,6 +48,8 @@ namespace fc { namespace http {
       void listen( const fc::ip::endpoint& p );
       fc::ip::endpoint get_local_endpoint() const;
 
+      void set_cors_domains(const fc::string& cors);
+
       /**
        *  Set the callback to be called for every http request made.
        */
