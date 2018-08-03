@@ -366,6 +366,8 @@ namespace fc { namespace http {
             virtual void listen( uint16_t port ) = 0;
             virtual void listen( const fc::ip::endpoint& ep ) = 0;
             virtual void start_accept() = 0;
+
+            virtual void add_headers(const fc::string& name, const fc::string& value) = 0;
       };
 
       template <typename config>
@@ -434,7 +436,7 @@ namespace fc { namespace http {
                        std::string request_body = con->get_request_body();
                        //wdump(("server")(request_body));
 
-                       fc::async([current_con, request_body, con, shutdown_locker_wraith] {
+                       fc::async([&, current_con, request_body, con, shutdown_locker_wraith] {
                           shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
                           const shutdown_preventing_task_scoped_maybe_lock lock(spt);
                           if (shutdown_locker_wraith->is_shutting_down()) return;
@@ -442,7 +444,14 @@ namespace fc { namespace http {
                           std::string response = current_con->on_http(request_body);
                           con->set_body( response );
                           con->set_status( websocketpp::http::status_code::ok );
-                          con->append_header("Access-Control-Allow-Origin", "*");
+
+                          if (!this->_additional_headers.empty()) {
+                             for(const auto& item : this->_additional_headers) {
+                                con->append_header(item.first, item.second);
+                             }
+                          }
+
+//                          con->append_header("Access-Control-Allow-Origin", "*");
                           con->send_http_response();
                           current_con->closed();
                        }, "call on_http");
@@ -540,6 +549,11 @@ namespace fc { namespace http {
                _server.start_accept();
             }
 
+            void add_headers(const fc::string& name, const fc::string& value) override
+            {
+                _additional_headers.insert( { name, value } );
+            }
+
             typedef std::map<connection_hdl, websocket_connection_ptr,std::owner_less<connection_hdl> > con_map;
 
             std::shared_ptr<shutdown_locker>   _shutdown_locker;
@@ -549,6 +563,7 @@ namespace fc { namespace http {
             on_connection_handler              _on_connection;
             fc::promise<void>::ptr             _closed;
             uint32_t                           _pending_messages = 0;
+            std::map<fc::string, fc::string>   _additional_headers;
       };
 
       template <typename config>
@@ -834,8 +849,9 @@ namespace fc { namespace http {
       my->start_accept();
    }
 
-
-
+   void websocket_server::add_headers(const fc::string& name, const fc::string& value) {
+      my->add_headers(name, value);
+   }
 
    websocket_tls_server::websocket_tls_server(const string& server_pem, 
                                               const string& ssl_password, 
@@ -873,6 +889,9 @@ namespace fc { namespace http {
       my->start_accept();
    }
 
+   void websocket_tls_server::add_headers(const fc::string& name, const fc::string& value) {
+      my->add_headers(name, value);
+   }
 
    websocket_client::websocket_client():my( new detail::websocket_client_impl() ),smy(new detail::websocket_tls_client_impl()) {}
    websocket_client::~websocket_client(){ }

@@ -49,6 +49,8 @@ namespace fc { namespace http {
          void listen( const fc::ip::endpoint& ep );
          void start_accept();
 
+         void add_headers(const fc::string& name, const fc::string& value);
+
       private:
          std::unique_ptr<detail::abstract_websocket_server> my;
    };
@@ -66,6 +68,8 @@ namespace fc { namespace http {
          void listen( uint16_t port );
          void listen( const fc::ip::endpoint& ep );
          void start_accept();
+
+         void add_headers(const fc::string& name, const fc::string& value);
 
       private:
          std::unique_ptr<detail::abstract_websocket_server> my;
