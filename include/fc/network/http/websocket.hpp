@@ -59,7 +59,9 @@ namespace fc { namespace http {
    class websocket_tls_server
    {
       public:
-         websocket_tls_server(const std::string& server_pem = std::string(),
+         websocket_tls_server(const std::string& server_cert_file = std::string(),
+                              const std::string& server_cert_key_file = std::string(),
+                              const std::string& server_cert_chain_file = std::string(),
                               const std::string& ssl_password = std::string(),
                               bool enable_permessage_deflate = false);
          ~websocket_tls_server();
