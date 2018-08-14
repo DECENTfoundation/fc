@@ -570,7 +570,10 @@ namespace fc { namespace http {
       class websocket_tls_server_impl : public websocket_server_impl<config>
       {
          public:
-            websocket_tls_server_impl( const string& server_pem, const string& ssl_password )
+            websocket_tls_server_impl( const string& server_cert_file,
+                                       const string& server_cert_key_file,
+                                       const string& server_cert_chain_file,
+                                       const string& ssl_password )
             {
                this->_server.set_tls_init_handler( [=]( websocketpp::connection_hdl hdl ) -> context_ptr {
                      context_ptr ctx = websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv1);
@@ -580,8 +583,9 @@ namespace fc { namespace http {
                         boost::asio::ssl::context::no_sslv3 |
                         boost::asio::ssl::context::single_dh_use);
                         ctx->set_password_callback([=](std::size_t max_length, boost::asio::ssl::context::password_purpose){ return ssl_password;});
-                        ctx->use_certificate_chain_file(server_pem);
-                        ctx->use_private_key_file(server_pem, boost::asio::ssl::context::pem);
+                        ctx->use_certificate_file(server_cert_file, boost::asio::ssl::context::pem);
+                        ctx->use_private_key_file(server_cert_key_file, boost::asio::ssl::context::pem);
+                        ctx->use_certificate_chain_file(server_cert_chain_file);
                      } catch (std::exception& e) {
                         std::cout << e.what() << std::endl;
                      }
@@ -853,15 +857,23 @@ namespace fc { namespace http {
       my->add_headers(name, value);
    }
 
-   websocket_tls_server::websocket_tls_server(const string& server_pem, 
-                                              const string& ssl_password, 
+   websocket_tls_server::websocket_tls_server(const std::string& server_cert_file,
+                                              const std::string& server_cert_key_file,
+                                              const std::string& server_cert_chain_file,
+                                              const string& ssl_password,
                                               bool enable_permessage_deflate /* = true */) :
       my(
 #ifdef ENABLE_WEBSOCKET_PERMESSAGE_DEFLATE
           enable_permessage_deflate ? 
-            (detail::abstract_websocket_server*)new detail::websocket_tls_server_impl<detail::asio_tls_stub_log_and_deflate>(server_pem, ssl_password) : 
+            (detail::abstract_websocket_server*)new detail::websocket_tls_server_impl<detail::asio_tls_stub_log_and_deflate>(server_cert_file,
+                                                                                                                             server_cert_key_file,
+                                                                                                                             server_cert_chain_file,
+                                                                                                                             ssl_password) :
 #endif
-            (detail::abstract_websocket_server*)new detail::websocket_tls_server_impl<detail::asio_tls_stub_log>(server_pem, ssl_password) ) 
+            (detail::abstract_websocket_server*)new detail::websocket_tls_server_impl<detail::asio_tls_stub_log>(server_cert_file,
+                                                                                                                 server_cert_key_file,
+                                                                                                                 server_cert_chain_file,
+                                                                                                                 ssl_password) )
    {
 #ifndef ENABLE_WEBSOCKET_PERMESSAGE_DEFLATE
      if (enable_permessage_deflate)
