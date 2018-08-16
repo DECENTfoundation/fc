@@ -366,6 +366,8 @@ namespace fc { namespace http {
             virtual void listen( uint16_t port ) = 0;
             virtual void listen( const fc::ip::endpoint& ep ) = 0;
             virtual void start_accept() = 0;
+
+            virtual void add_headers(const fc::string& name, const fc::string& value) = 0;
       };
 
       template <typename config>
@@ -434,7 +436,7 @@ namespace fc { namespace http {
                        std::string request_body = con->get_request_body();
                        //wdump(("server")(request_body));
 
-                       fc::async([current_con, request_body, con, shutdown_locker_wraith] {
+                       fc::async([&, current_con, request_body, con, shutdown_locker_wraith] {
                           shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
                           const shutdown_preventing_task_scoped_maybe_lock lock(spt);
                           if (shutdown_locker_wraith->is_shutting_down()) return;
@@ -442,6 +444,14 @@ namespace fc { namespace http {
                           std::string response = current_con->on_http(request_body);
                           con->set_body( response );
                           con->set_status( websocketpp::http::status_code::ok );
+
+                          if (!this->_additional_headers.empty()) {
+                             for(const auto& item : this->_additional_headers) {
+                                con->append_header(item.first, item.second);
+                             }
+                          }
+
+//                          con->append_header("Access-Control-Allow-Origin", "*");
                           con->send_http_response();
                           current_con->closed();
                        }, "call on_http");
@@ -539,6 +549,11 @@ namespace fc { namespace http {
                _server.start_accept();
             }
 
+            void add_headers(const fc::string& name, const fc::string& value) override
+            {
+                _additional_headers.insert( { name, value } );
+            }
+
             typedef std::map<connection_hdl, websocket_connection_ptr,std::owner_less<connection_hdl> > con_map;
 
             std::shared_ptr<shutdown_locker>   _shutdown_locker;
@@ -548,13 +563,17 @@ namespace fc { namespace http {
             on_connection_handler              _on_connection;
             fc::promise<void>::ptr             _closed;
             uint32_t                           _pending_messages = 0;
+            std::map<fc::string, fc::string>   _additional_headers;
       };
 
       template <typename config>
       class websocket_tls_server_impl : public websocket_server_impl<config>
       {
          public:
-            websocket_tls_server_impl( const string& server_pem, const string& ssl_password )
+            websocket_tls_server_impl( const string& server_cert_file,
+                                       const string& server_cert_key_file,
+                                       const string& server_cert_chain_file,
+                                       const string& ssl_password )
             {
                this->_server.set_tls_init_handler( [=]( websocketpp::connection_hdl hdl ) -> context_ptr {
                      context_ptr ctx = websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv1);
@@ -564,8 +583,9 @@ namespace fc { namespace http {
                         boost::asio::ssl::context::no_sslv3 |
                         boost::asio::ssl::context::single_dh_use);
                         ctx->set_password_callback([=](std::size_t max_length, boost::asio::ssl::context::password_purpose){ return ssl_password;});
-                        ctx->use_certificate_chain_file(server_pem);
-                        ctx->use_private_key_file(server_pem, boost::asio::ssl::context::pem);
+                        ctx->use_certificate_file(server_cert_file, boost::asio::ssl::context::pem);
+                        ctx->use_private_key_file(server_cert_key_file, boost::asio::ssl::context::pem);
+                        ctx->use_certificate_chain_file(server_cert_chain_file);
                      } catch (std::exception& e) {
                         std::cout << e.what() << std::endl;
                      }
@@ -833,18 +853,27 @@ namespace fc { namespace http {
       my->start_accept();
    }
 
+   void websocket_server::add_headers(const fc::string& name, const fc::string& value) {
+      my->add_headers(name, value);
+   }
 
-
-
-   websocket_tls_server::websocket_tls_server(const string& server_pem, 
-                                              const string& ssl_password, 
+   websocket_tls_server::websocket_tls_server(const std::string& server_cert_file,
+                                              const std::string& server_cert_key_file,
+                                              const std::string& server_cert_chain_file,
+                                              const string& ssl_password,
                                               bool enable_permessage_deflate /* = true */) :
       my(
 #ifdef ENABLE_WEBSOCKET_PERMESSAGE_DEFLATE
           enable_permessage_deflate ? 
-            (detail::abstract_websocket_server*)new detail::websocket_tls_server_impl<detail::asio_tls_stub_log_and_deflate>(server_pem, ssl_password) : 
+            (detail::abstract_websocket_server*)new detail::websocket_tls_server_impl<detail::asio_tls_stub_log_and_deflate>(server_cert_file,
+                                                                                                                             server_cert_key_file,
+                                                                                                                             server_cert_chain_file,
+                                                                                                                             ssl_password) :
 #endif
-            (detail::abstract_websocket_server*)new detail::websocket_tls_server_impl<detail::asio_tls_stub_log>(server_pem, ssl_password) ) 
+            (detail::abstract_websocket_server*)new detail::websocket_tls_server_impl<detail::asio_tls_stub_log>(server_cert_file,
+                                                                                                                 server_cert_key_file,
+                                                                                                                 server_cert_chain_file,
+                                                                                                                 ssl_password) )
    {
 #ifndef ENABLE_WEBSOCKET_PERMESSAGE_DEFLATE
      if (enable_permessage_deflate)
@@ -872,6 +901,9 @@ namespace fc { namespace http {
       my->start_accept();
    }
 
+   void websocket_tls_server::add_headers(const fc::string& name, const fc::string& value) {
+      my->add_headers(name, value);
+   }
 
    websocket_client::websocket_client():my( new detail::websocket_client_impl() ),smy(new detail::websocket_tls_client_impl()) {}
    websocket_client::~websocket_client(){ }

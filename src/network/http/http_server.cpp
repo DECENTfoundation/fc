@@ -113,6 +113,9 @@ namespace fc { namespace http {
         try 
         {
           http::server::response rep( fc::shared_ptr<response::impl>( new response::impl(c) ) );
+          if (!cors_domains.empty())
+            rep.add_header("Access-Control-Allow-Origin", cors_domains);
+
           request req = c->read_request();
           if( do_on_req ) 
             do_on_req( req, rep );
@@ -125,10 +128,16 @@ namespace fc { namespace http {
         //wlog( "done handle connection" );
       }
 
+      void set_cors_domains(const fc::string& cors)
+      {
+          cors_domains = cors;
+      }
+
       fc::future<void>                                                      accept_complete;
       std::function<void(const http::request&, const server::response& s)>  on_req;
       std::vector<fc::future<void> >                                        requests_in_progress;
       fc::tcp_server                                                        tcp_serv;
+      fc::string                                                            cors_domains;
   };
 
 
@@ -195,6 +204,11 @@ namespace fc { namespace http {
   }
 
   server::response::~response(){}
+
+  void server::set_cors_domains(const fc::string& cors)
+  {
+      my->set_cors_domains(cors);
+  }
 
   void server::on_request( const std::function<void(const http::request&, const server::response& s )>& cb )
   { 
