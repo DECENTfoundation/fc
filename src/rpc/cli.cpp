@@ -101,6 +101,8 @@ void cli::run()
          {
             break;
          }
+         if (line == "quit" || line == "exit")
+            break;
          std::cout << line << "\n";
          line += char(EOF);
          fc::variants args = fc::json::variants_from_string(line);;
