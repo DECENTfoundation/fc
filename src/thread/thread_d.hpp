@@ -408,8 +408,9 @@ namespace fc {
                 t->calling = prev;
                 t->data = nullptr;
                 auto res = bc::detail::jump_fcontext( next->my_context, (void*)t );
-                ((transfer_data*)res.data)->calling->my_context = res.fctx;
-                delete res.data;
+                transfer_data* t1 = (transfer_data*)res.data;
+                t1->calling->my_context = res.fctx;
+                delete t1;
 
 #elif BOOST_VERSION >= 105600
                 bc::jump_fcontext( &prev->my_context, next->my_context, 0 );
@@ -459,8 +460,9 @@ namespace fc {
                  t->calling = prev;
                  t->data = this;
                  auto res = bc::detail::jump_fcontext( next->my_context, (void*)t );
-                 ((transfer_data*)res.data)->calling->my_context = res.fctx;
-                 delete res.data;
+                 transfer_data* t1 = (transfer_data*)res.data;
+                 t1->calling->my_context = res.fctx;
+                 delete t1;
 #elif BOOST_VERSION >= 105600
                 bc::jump_fcontext( &prev->my_context, next->my_context, (intptr_t)this );
 #elif BOOST_VERSION >= 105300
