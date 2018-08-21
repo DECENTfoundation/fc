@@ -20,8 +20,8 @@
 #ifndef BOOST_PROCESS_WINDOWS_HELPERS_HPP
 #define BOOST_PROCESS_WINDOWS_HELPERS_HPP
 
-#include <boost/process/config.hpp>
-#include <boost/process/environment.hpp>
+#include <fc-boost/process/config.hpp>
+#include <fc-boost/process/environment.hpp>
 #include <boost/shared_array.hpp>
 #include <string>
 #include <vector>

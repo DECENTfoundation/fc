@@ -29,7 +29,7 @@
 #   include <sys/wait.h>
 #   include <errno.h>
 #elif defined(BOOST_WINDOWS_API)
-#   include <boost/process/handle.hpp>
+#   include <fc-boost/process/handle.hpp>
 #   include <cstdlib>
 #   include <windows.h>
 #else
