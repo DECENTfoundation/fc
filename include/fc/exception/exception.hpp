@@ -221,7 +221,7 @@ namespace fc
     BOOST_PP_SEQ_FOR_EACH( FC_REGISTER_EXCEPTION, v, SEQ )  \
       return true; \
    }();  \
-
+   
 
 #define FC_DECLARE_DERIVED_EXCEPTION( TYPE, BASE, CODE, WHAT ) \
    class TYPE : public BASE  \

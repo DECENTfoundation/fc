@@ -30,6 +30,7 @@ struct aes_encoder::impl
 aes_encoder::aes_encoder()
 {
   static int init = init_openssl();
+  (void)init;
 }
 
 aes_encoder::~aes_encoder()

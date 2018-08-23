@@ -2261,7 +2261,12 @@ static int tdefl_flush_block(tdefl_compressor *d, int flush)
 }
 
 #if MINIZ_USE_UNALIGNED_LOADS_AND_STORES
-#define TDEFL_READ_UNALIGNED_WORD(p) *(const mz_uint16*)(p)
+//#define TDEFL_READ_UNALIGNED_WORD(p) *(const mz_uint16*)(p)
+inline mz_uint16 TDEFL_READ_UNALIGNED_WORD(const void* p) // avoiding warning
+{
+    mz_uint16 *res = (mz_uint16*)p;
+    return *res;
+}
 static MZ_FORCEINLINE void tdefl_find_match(tdefl_compressor *d, mz_uint lookahead_pos, mz_uint max_dist, mz_uint max_match_len, mz_uint *pMatch_dist, mz_uint *pMatch_len)
 {
   mz_uint dist, pos = lookahead_pos & TDEFL_LZ_DICT_SIZE_MASK, match_len = *pMatch_len, probe_pos = pos, next_probe_pos, probe_len;

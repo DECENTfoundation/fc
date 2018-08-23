@@ -2466,11 +2466,13 @@ int CUDT::listen(sockaddr* addr, CPacket& packet)
    stringstream cookiestr;
    cookiestr << clienthost << ":" << clientport << ":" << timestamp;
    unsigned char cookie[16];
+   int32_t cookie_first_bytes = 0;
    CMD5::compute(cookiestr.str().c_str(), cookie);
+   memcpy(&cookie_first_bytes, cookie, sizeof(int32_t));
 
    if (1 == hs.m_iReqType)
    {
-      hs.m_iCookie = *(int*)cookie;
+      hs.m_iCookie = cookie_first_bytes;
       packet.m_iID = hs.m_iID;
       int size = packet.getLength();
       hs.serialize(packet.m_pcData, size);
@@ -2479,13 +2481,13 @@ int CUDT::listen(sockaddr* addr, CPacket& packet)
    }
    else
    {
-      if (hs.m_iCookie != *(int*)cookie)
+      if (hs.m_iCookie != cookie_first_bytes)
       {
          timestamp --;
          cookiestr << clienthost << ":" << clientport << ":" << timestamp;
          CMD5::compute(cookiestr.str().c_str(), cookie);
 
-         if (hs.m_iCookie != *(int*)cookie)
+         if (hs.m_iCookie != cookie_first_bytes)
             return -1;
       }
    }
