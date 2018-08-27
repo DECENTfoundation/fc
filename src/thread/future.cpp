@@ -53,6 +53,14 @@ namespace fc {
      else 
        _wait_until( time_point::now() + timeout_us );
   }
+
+  void promise_base::_wait_with_reset(const microseconds& timeout_us) {
+     if (timeout_us == microseconds::maximum())
+        _wait_until_with_reset(time_point::maximum());
+     else
+        _wait_until_with_reset(time_point::now() + timeout_us);
+  }
+
   void promise_base::_wait_until( const time_point& timeout_us ){
     { synchronized(_spin_yield) 
       if( _ready ) {
@@ -95,12 +103,57 @@ namespace fc {
     if( e ) std::rethrow_exception(e);
 
     if( _ready )
-    {
+   {
        if( _exceptp )
          _exceptp->dynamic_rethrow_exception();
        return;
     }
     FC_THROW_EXCEPTION( timeout_exception, "" );
+  }
+  void promise_base::_wait_until_with_reset(const time_point& timeout_us) {
+     { synchronized(_spin_yield)
+        if (_ready) {
+           if (_exceptp)
+              _exceptp->dynamic_rethrow_exception();
+           return;
+        }
+     _enqueue_thread();
+     }
+     std::exception_ptr e;
+
+     //
+     // Create shared_ptr to take ownership of this; i.e. this will
+     // be deleted when p_this goes out of scope.  Consequently,
+     // it would be Very Bad to let p_this go out of scope
+     // before we're done reading/writing instance variables!
+     // See https://github.com/cryptonomex/graphene/issues/597
+     //
+
+     ptr p_this = ptr(this, true);
+
+     try
+     {
+        //
+        // We clone p_this here because the wait_until() API requires us
+        // to use std::move().  I.e. wait_until() takes ownership of any
+        // pointer passed to it.  Since we want to keep ownership ourselves,
+        // we need to have two shared_ptr's to this:
+        //
+        // - p_this to keep this alive until the end of the current function
+        // - p_this2 to be owned by wait_until() as the wait_until() API requires
+        //
+        ptr p_this2 = p_this;
+        thread::current().wait_until(std::move(p_this2), timeout_us);
+        _ready = false;
+     }
+     catch (...) { e = std::current_exception(); }
+
+     _dequeue_thread();
+
+     if (e) std::rethrow_exception(e);
+
+     if (_exceptp)
+        _exceptp->dynamic_rethrow_exception();
   }
   void promise_base::_enqueue_thread(){
      ++_blocked_fiber_count;
@@ -125,6 +178,17 @@ namespace fc {
     if( blocked_thread ) 
       blocked_thread->notify(ptr(this,true));
   }
+  void promise_base::_notify_and_reset() {
+     // copy _blocked_thread into a local so that if the thread unblocks (e.g., 
+     // because of a timeout) before we get a chance to notify it, we won't be
+     // calling notify on a null pointer
+     thread* blocked_thread;
+     { synchronized(_spin_yield)
+        blocked_thread = _blocked_thread;
+     }
+     if (blocked_thread)
+        blocked_thread->notify_and_reset(ptr(this, true));
+  }
   promise_base::~promise_base() { }
   void promise_base::_set_timeout(){
     if( _ready ) 
@@ -144,6 +208,18 @@ namespace fc {
       _compl->on_complete(s,_exceptp);
     }
   }
+
+  void promise_base::_set_value_and_reset() {
+     //   slog( "%p == %d", &_ready, int(_ready));
+     //    BOOST_ASSERT( !_ready );
+     { synchronized(_spin_yield)
+        if (_ready) //don't allow promise to be set more than once
+           return;
+     _ready = true;
+     }
+     _notify_and_reset();
+  }
+
   void promise_base::_on_complete( detail::completion_handler* c ) {
     { synchronized(_spin_yield) 
         delete _compl; 

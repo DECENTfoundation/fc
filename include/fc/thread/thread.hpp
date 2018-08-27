@@ -150,6 +150,7 @@ namespace fc {
       friend int wait_any_until( std::vector<promise_base::ptr>&& v, const time_point& tp );
       void wait_until( promise_base::ptr && v, const time_point& tp );
       void notify( const promise_base::ptr& v );
+      void notify_and_reset(const promise_base::ptr& v);
 
       void yield(bool reschedule=true);
       void sleep_until( const time_point& t );

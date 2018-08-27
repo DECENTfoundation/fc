@@ -588,6 +588,7 @@ void from_variant( const variant& var,  variants& vo )
 void from_variant( const variant& var,  variant& vo ) { vo = var; }
 
 void to_variant( const uint8_t& var,  variant& vo )  { vo = uint64_t(var); }
+void to_variant(const bool& var, variant& vo) { vo = bool(var); }
 // TODO: warn on overflow?
 void from_variant( const variant& var,  uint8_t& vo ){ vo = static_cast<uint8_t>(var.as_uint64()); }
 

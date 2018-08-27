@@ -418,7 +418,9 @@ namespace fc {
       BOOST_ASSERT(p->ready());
       if( !is_current() ) 
       {
-        this->async( [=](){ notify(p); }, "notify", priority::max() );
+        this->async( [=](){ 
+           notify(p); 
+        }, "notify", priority::max() );
         return;
       }
       // TODO: store a list of blocked contexts with the promise 
@@ -468,6 +470,68 @@ namespace fc {
           cur_blocked   = cur_blocked->next_blocked;
         }
       }
+    }
+
+    void thread::notify_and_reset(const promise_base::ptr& p)
+    {
+       //slog( "this %p  my %p", this, my );
+       
+       //BOOST_ASSERT(p->ready());
+       
+       if (!is_current())
+       {
+          this->async([=]() {
+             notify_and_reset(p);
+          }, "notify", priority::max());
+          return;
+       }
+       // TODO: store a list of blocked contexts with the promise 
+       //  to accelerate the lookup.... unless it introduces contention...
+
+       // iterate over all blocked contexts
+
+       fc::context* cur_blocked = my->blocked;
+       fc::context* prev_blocked = 0;
+       while (cur_blocked)
+       {
+          // if the blocked context is waiting on this promise 
+          if (cur_blocked->try_unblock(p.get()))
+          {
+             // remove it from the blocked list.
+
+             // remove this context from the sleep queue...
+             for (uint32_t i = 0; i < my->sleep_pqueue.size(); ++i)
+             {
+                if (my->sleep_pqueue[i] == cur_blocked)
+                {
+                   my->sleep_pqueue[i]->blocking_prom.clear();
+                   my->sleep_pqueue[i] = my->sleep_pqueue.back();
+                   my->sleep_pqueue.pop_back();
+                   std::make_heap(my->sleep_pqueue.begin(), my->sleep_pqueue.end(), sleep_priority_less());
+                   break;
+                }
+             }
+             auto cur = cur_blocked;
+             if (prev_blocked)
+             {
+                prev_blocked->next_blocked = cur_blocked->next_blocked;
+                cur_blocked = prev_blocked->next_blocked;
+             }
+             else
+             {
+                my->blocked = cur_blocked->next_blocked;
+                cur_blocked = my->blocked;
+             }
+             cur->next_blocked = 0;
+             my->add_context_to_ready_list(cur);
+          }
+          else
+          { // goto the next blocked task
+             prev_blocked = cur_blocked;
+             cur_blocked = cur_blocked->next_blocked;
+          }
+       }
+       
     }
     
     bool thread::is_current()const 
