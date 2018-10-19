@@ -5,6 +5,7 @@
 
 #ifndef WIN32
 #include <unistd.h>
+#include <termios.h>
 #endif
 
 #ifdef HAVE_READLINE
@@ -103,9 +104,42 @@ void cli::run()
          }
          if (line == "quit" || line == "exit")
             break;
-         std::cout << line << "\n";
-         line += char(EOF);
-         fc::variants args = fc::json::variants_from_string(line);;
+
+         if (line == "unlock" || line == "set_password")
+         {
+#ifndef WIN32
+            struct termios _old, _new;
+            int input_file_desc = fileno(rl_instream == NULL ? stdin : rl_instream);
+            /* Turn echoing off and fail if we can’t. */
+            if (tcgetattr(input_file_desc, &_old) != 0)
+                FC_THROW("Can't get terminal attributes");
+            _new = _old;
+            _new.c_lflag &= ~ECHO;
+            if (tcsetattr(input_file_desc, TCSAFLUSH, &_new) != 0)
+                FC_THROW("Can't set terminal attributes");
+#endif
+
+            try
+            {
+                std::string passwd;
+                getline( "Password: ", passwd );
+                std::cout << "\n";
+                if (!passwd.empty())
+                    line.append(1, ' ').append(passwd);
+            }
+            catch ( const fc::eof_exception& e )
+            {
+                break;
+            }
+
+#ifndef WIN32
+            /* Restore terminal. */
+            if (tcsetattr(input_file_desc, TCSAFLUSH, &_old) != 0)
+                FC_THROW("Can't revert terminal attributes");
+#endif
+         }
+
+         fc::variants args = fc::json::variants_from_string(line + char(EOF));
          if( args.size() == 0 )
             continue;
 
