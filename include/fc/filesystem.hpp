@@ -228,14 +228,6 @@ namespace fc {
      temp_directory(const fc::path& tempFolder = fc::temp_directory_path());
   };
 
-
-#if !defined(__APPLE__)
-  // this code is known to work on linux and windows.  It may work correctly on mac, 
-  // or it may need slight tweaks or extra includes.  It's disabled now to avoid giving
-  // a false sense of security.
-# define FC_HAS_SIMPLE_FILE_LOCK
-#endif
-#ifdef FC_HAS_SIMPLE_FILE_LOCK  
   /** simple class which only allows one process to open any given file. 
    * approximate usage:
    * int main() {
@@ -258,7 +250,4 @@ namespace fc {
     class impl;
     std::unique_ptr<impl> my;
   };
-#endif // FC_HAS_SIMPLE_FILE_LOCK
-
 }
-
