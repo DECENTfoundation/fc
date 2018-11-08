@@ -22,6 +22,9 @@ namespace fc { namespace rpc {
          virtual variant send_callback( uint64_t callback_id, variants args = variants() );
          virtual void    send_notice( uint64_t callback_id, variants args = variants() );
 
+         // sets the CLI to non-interactive mode: commands will be loaded from command_file
+         void set_command_file( const string& command_file );
+
          void start();
          void stop();
          void wait();
@@ -37,5 +40,8 @@ namespace fc { namespace rpc {
          std::string _prompt = ">>>";
          std::map<string,std::function<string(variant,const variants&)> > _result_formatters;
          fc::future<void> _run_complete;
+
+         std::vector<std::string> commands;
+         bool non_interactive = false;
    };
 } } 
