@@ -6,6 +6,8 @@
 #ifndef WIN32
 #include <unistd.h>
 #include <termios.h>
+#else
+#include <Windows.h>
 #endif
 
 #ifdef HAVE_READLINE
@@ -117,6 +119,11 @@ void cli::run()
             _new.c_lflag &= ~ECHO;
             if (tcsetattr(input_file_desc, TCSAFLUSH, &_new) != 0)
                 FC_THROW("Can't set terminal attributes");
+#else
+            DWORD mode = 0;
+            GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &mode);
+            mode &= ~ENABLE_ECHO_INPUT;
+            BOOL res = SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), mode);
 #endif
 
             try
@@ -136,6 +143,10 @@ void cli::run()
             /* Restore terminal. */
             if (tcsetattr(input_file_desc, TCSAFLUSH, &_old) != 0)
                 FC_THROW("Can't revert terminal attributes");
+#else
+            GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &mode);
+            mode |= ENABLE_ECHO_INPUT;
+            res = SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), mode);
 #endif
          }
 
@@ -249,7 +260,12 @@ void cli::getline( const fc::string& prompt, fc::string& line)
    {
       std::cout << prompt;
       // sync_call( cin_thread, [&](){ std::getline( *input_stream, line ); }, "getline");
-      fc::getline( fc::cin, line );
+      //fc::getline( fc::cin, line );
+      std::getline(std::cin, line);
+      bool is_eof = std::cin.eof();// after pressing Ctrl-C
+      if (is_eof)
+         throw fc::eof_exception();
+
       return;
    }
 }
