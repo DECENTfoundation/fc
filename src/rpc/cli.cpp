@@ -98,7 +98,7 @@ void cli::run()
          std::string line;
          try
          {
-            getline( _prompt.c_str(), line );
+            get_line( _prompt.c_str(), line, true );
          }
          catch ( const fc::eof_exception& e )
          {
@@ -111,7 +111,11 @@ void cli::run()
          {
 #ifndef WIN32
             struct termios _old, _new;
-            int input_file_desc = fileno(rl_instream == NULL ? stdin : rl_instream);
+            int input_file_desc = fileno(
+#ifdef HAVE_READLINE
+                     rl_instream != NULL ? rl_instream :
+#endif
+                     stdin);
             /* Turn echoing off and fail if we can’t. */
             if (tcgetattr(input_file_desc, &_old) != 0)
                 FC_THROW("Can't get terminal attributes");
@@ -129,7 +133,7 @@ void cli::run()
             try
             {
                 std::string passwd;
-                getline( "Password: ", passwd );
+                get_line( "Password: ", passwd, false );
                 std::cout << "\n";
                 if (!passwd.empty())
                     line.append(1, ' ').append(passwd);
@@ -223,7 +227,7 @@ static char** cli_completion( const char * text , int start, int end)
 }
 
 
-void cli::getline( const fc::string& prompt, fc::string& line)
+void cli::get_line( const fc::string& prompt, fc::string& line, bool allow_history) const
 {
    // getting file descriptor for C++ streams is near impossible
    // so we just assume it's the same as the C stream...
@@ -249,7 +253,7 @@ void cli::getline( const fc::string& prompt, fc::string& line)
          if( line_read == nullptr )
             FC_THROW_EXCEPTION( fc::eof_exception, "" );
          rl_bind_key( '\t', rl_complete );
-         if( *line_read )
+         if( allow_history && *line_read )
             add_history(line_read);
          line = line_read;
          free(line_read);
@@ -265,8 +269,6 @@ void cli::getline( const fc::string& prompt, fc::string& line)
       bool is_eof = std::cin.eof();// after pressing Ctrl-C
       if (is_eof)
          throw fc::eof_exception();
-
-      return;
    }
 }
 

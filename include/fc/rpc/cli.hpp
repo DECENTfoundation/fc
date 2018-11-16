@@ -27,7 +27,7 @@ namespace fc { namespace rpc {
          void wait();
          void format_result( const string& method, std::function<string(variant,const variants&)> formatter);
 
-         virtual void getline( const fc::string& prompt, fc::string& line );
+         void get_line( const fc::string& prompt, fc::string& line, bool allow_history ) const;
 
          void set_prompt( const string& prompt );
 
