@@ -1,11 +1,25 @@
 #
 # Defines fc library target.
 
-PROJECT( fc )
-CMAKE_MINIMUM_REQUIRED( VERSION 2.8.12 )
+if (POLICY CMP0025)
+    # Compiler id for Apple Clang is now AppleClang
+    cmake_policy(SET CMP0025 NEW)
+endif()
+
+if (POLICY CMP0048)
+    # The ``project()`` command manages VERSION variables.
+    cmake_policy(SET CMP0048 NEW)
+endif()
+
+CMAKE_MINIMUM_REQUIRED( VERSION 3.1.0 )
+PROJECT( fc LANGUAGES CXX C )
 
 MESSAGE(STATUS "Configuring project fc located in: ${CMAKE_CURRENT_SOURCE_DIR}")
 SET( CMAKE_AUTOMOC OFF )
+
+# Compile in C++11 mode
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Setup module path to make visible used CMake extensions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/GitVersionGen")
@@ -34,7 +48,7 @@ endif()
 SET (ORIGINAL_LIB_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
 
 SET(BOOST_COMPONENTS)
-LIST(APPEND BOOST_COMPONENTS thread date_time system filesystem program_options signals serialization chrono unit_test_framework context locale iostreams)
+LIST(APPEND BOOST_COMPONENTS thread date_time system filesystem program_options signals serialization chrono unit_test_framework context coroutine locale iostreams)
 SET( Boost_USE_STATIC_LIBS ON CACHE STRING "ON or OFF" )
 
 IF( ECC_IMPL STREQUAL openssl )
@@ -101,24 +115,11 @@ IF( WIN32 )
   set(Boost_USE_MULTITHREADED ON)
   set(BOOST_ALL_DYN_LINK OFF) # force dynamic linking for all libraries
 
-  FIND_PACKAGE(Boost 1.53 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
-  # For Boost 1.53 on windows, coroutine was not in BOOST_LIBRARYDIR and do not need it to build,  but if boost versin >= 1.54, find coroutine otherwise will cause link errors
-  IF(NOT "${Boost_VERSION}" MATCHES "1.53(.*)")
-    SET(BOOST_LIBRARIES_TEMP ${Boost_LIBRARIES})
-    FIND_PACKAGE(Boost 1.54 REQUIRED COMPONENTS coroutine)
-    LIST(APPEND BOOST_COMPONENTS coroutine)
-    SET(Boost_LIBRARIES ${BOOST_LIBRARIES_TEMP} ${Boost_LIBRARIES})
-  ENDIF()
-
   set( PLATFORM_SPECIFIC_LIBS WS2_32.lib Userenv.lib)
   # iphlpapi.lib
 
 ELSE(WIN32)
   MESSAGE(STATUS "Configuring fc to build on Unix/Apple")
-
-  LIST(APPEND BOOST_COMPONENTS coroutine)
-
-  FIND_PACKAGE(Boost 1.53 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 
   SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 
@@ -129,8 +130,6 @@ ELSE(WIN32)
   ENDIF(NOT APPLE)
 ENDIF(WIN32)
 
-
-
 IF(NOT "$ENV{OPENSSL_ROOT_DIR}" STREQUAL "")
   set(OPENSSL_ROOT_DIR $ENV{OPENSSL_ROOT_DIR} )
   set(OPENSSL_INCLUDE_DIR ${OPENSSL_ROOT_DIR}/include)
@@ -138,7 +137,15 @@ IF(NOT "$ENV{OPENSSL_ROOT_DIR}" STREQUAL "")
 ENDIF()
 
 
-find_package(OpenSSL REQUIRED)
+find_package(OpenSSL 1.0 REQUIRED)
+message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
+
+set(Boost_SELECT_VERSION 1.60)
+if (NOT OPENSSL_VERSION VERSION_LESS 1.1)
+    set(Boost_SELECT_VERSION 1.63)
+endif()
+
+find_package(Boost ${Boost_SELECT_VERSION} REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 
 set( CMAKE_FIND_LIBRARY_SUFFIXES ${ORIGINAL_LIB_SUFFIXES} )
 
@@ -290,12 +297,12 @@ ELSE()
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -Wall")
 
   IF(APPLE)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -Wall")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -Wall")
   ELSE()
-    if( NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
-      target_compile_options(fc PUBLIC -std=c++11 -Wall -fnon-call-exceptions)
+    if( NOT CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" )
+      target_compile_options(fc PUBLIC -Wall -fnon-call-exceptions)
     endif()
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -fnon-call-exceptions")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fnon-call-exceptions")
   ENDIF()
 ENDIF()
 
