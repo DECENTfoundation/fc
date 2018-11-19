@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#ifndef WIN32
+#ifndef _WIN32
 #include <unistd.h>
 #include <termios.h>
 #else
@@ -109,7 +109,7 @@ void cli::run()
 
          if (line == "unlock" || line == "set_password")
          {
-#ifndef WIN32
+#ifndef _WIN32
             struct termios _old, _new;
             int input_file_desc = fileno(
 #ifdef HAVE_READLINE
@@ -127,7 +127,30 @@ void cli::run()
             DWORD mode = 0;
             GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &mode);
             mode &= ~ENABLE_ECHO_INPUT;
+             
+            DWORD bytesWritten = 0;
+            INPUT_RECORD ir[4];
+            memset(&ir, 0, sizeof(ir));
+
+            ir[0].EventType = KEY_EVENT;
+            ir[0].Event.KeyEvent.bKeyDown = TRUE;
+            ir[0].Event.KeyEvent.wVirtualKeyCode = VK_RETURN;
+            ir[0].Event.KeyEvent.uChar.AsciiChar = 13;
+            ir[0].Event.KeyEvent.wRepeatCount = 1;
+
+            ir[1].EventType = KEY_EVENT;
+            ir[1].Event.KeyEvent.bKeyDown = FALSE;
+            ir[1].Event.KeyEvent.wVirtualKeyCode = VK_RETURN;
+            ir[1].Event.KeyEvent.uChar.AsciiChar = 13;
+            ir[1].Event.KeyEvent.wRepeatCount = 1;
+            
             BOOL res = SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), mode);
+            res = WriteConsoleInput(GetStdHandle(STD_INPUT_HANDLE), ir, 2, &bytesWritten);
+            bytesWritten = 0;
+
+            fc::string redudant_line;
+            fc::getline(fc::cin, redudant_line);        
+
 #endif
 
             try
@@ -143,7 +166,7 @@ void cli::run()
                 break;
             }
 
-#ifndef WIN32
+#ifndef _WIN32
             /* Restore terminal. */
             if (tcsetattr(input_file_desc, TCSAFLUSH, &_old) != 0)
                 FC_THROW("Can't revert terminal attributes");
@@ -151,6 +174,24 @@ void cli::run()
             GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &mode);
             mode |= ENABLE_ECHO_INPUT;
             res = SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), mode);
+
+            bytesWritten = 0;           
+            memset(&ir, 0, sizeof(ir));
+
+            ir[0].EventType = KEY_EVENT;
+            ir[0].Event.KeyEvent.bKeyDown = TRUE;
+            ir[0].Event.KeyEvent.wVirtualKeyCode = VK_RETURN;
+            ir[0].Event.KeyEvent.uChar.AsciiChar = 13;
+            ir[0].Event.KeyEvent.wRepeatCount = 1;
+
+            ir[1].EventType = KEY_EVENT;
+            ir[1].Event.KeyEvent.bKeyDown = FALSE;
+            ir[1].Event.KeyEvent.wVirtualKeyCode = VK_RETURN;
+            ir[1].Event.KeyEvent.uChar.AsciiChar = 13;
+            ir[1].Event.KeyEvent.wRepeatCount = 1;
+
+            res = WriteConsoleInput(GetStdHandle(STD_INPUT_HANDLE), ir, 2, &bytesWritten);
+            fc::getline(fc::cin, redudant_line);
 #endif
          }
 
@@ -264,11 +305,7 @@ void cli::get_line( const fc::string& prompt, fc::string& line, bool allow_histo
    {
       std::cout << prompt;
       // sync_call( cin_thread, [&](){ std::getline( *input_stream, line ); }, "getline");
-      //fc::getline( fc::cin, line );
-      std::getline(std::cin, line);
-      bool is_eof = std::cin.eof();// after pressing Ctrl-C
-      if (is_eof)
-         throw fc::eof_exception();
+      fc::getline(fc::cin, line);
    }
 }
 
