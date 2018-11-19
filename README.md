@@ -11,4 +11,3 @@ for the development of asynchronous libraries.  Some of the highlights include:
  - Cryptographic Primitives for a variaty of hashes and encryption algorithms
  - Logging Infrastructure 
  - Wraps many Boost APIs, such as boost::filesystem, boost::thread, and boost::exception to acceleate compiles
- - Support for unofficial Boost.Process library.
