@@ -2,6 +2,7 @@
 #include <fc/thread/thread.hpp>
 
 #include <iostream>
+#include <fstream>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -89,20 +90,52 @@ void cli::set_prompt( const string& prompt )
    _prompt = prompt;
 }
 
+void cli::set_command_file( const string& command_file )
+{
+    non_interactive = true;
+
+    std::ifstream cf_in(command_file);
+    std::string current_line;
+
+    if (! cf_in.good())
+    {
+        std::cout << "File not found or an I/O error.\n";
+        return;
+    }
+
+    while (std::getline(cf_in, current_line))
+    {
+        if (current_line.size() > 0)
+        {
+            commands.emplace_back(current_line);
+        }
+    }
+}
+
 void cli::run()
 {
+   uint current_line_index = 0;
    while( !_run_complete.canceled() )
    {
       try
       {
          std::string line;
-         try
+         if (non_interactive)
          {
-            get_line( _prompt.c_str(), line, true );
+             if (current_line_index >= commands.size())
+                 break;
+             line = commands[current_line_index++];
          }
-         catch ( const fc::eof_exception& e )
+         else
          {
-            break;
+             try
+             {
+                 get_line( _prompt.c_str(), line, true );
+             }
+             catch ( const fc::eof_exception& e )
+             {
+                break;
+             }
          }
          if (line == "quit" || line == "exit")
             break;
