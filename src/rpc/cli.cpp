@@ -114,7 +114,7 @@ void cli::set_command_file( const string& command_file )
 
 void cli::run()
 {
-   uint current_line_index = 0;
+   unsigned int current_line_index = 0;
    while( !_run_complete.canceled() )
    {
       try

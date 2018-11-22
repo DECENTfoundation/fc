@@ -2,6 +2,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+
 #include <fc/any.hpp>
 #include <fc/network/ip.hpp>
 #include <fc/signals.hpp>
@@ -13,7 +14,7 @@ namespace fc { namespace http {
       class websocket_tls_client_impl;
    } // namespace detail;
 
-   class websocket_connection
+   class websocket_connection 
    {
       public:
          virtual ~websocket_connection(){}
@@ -29,6 +30,7 @@ namespace fc { namespace http {
          fc::any& get_session_data() { return _session_data; }
 
          fc::signal<void()> closed;
+         bool is_tls;
       private:
          fc::any                                   _session_data;
          std::function<void(const std::string&)>   _on_message;
@@ -36,7 +38,7 @@ namespace fc { namespace http {
    };
    typedef std::shared_ptr<websocket_connection> websocket_connection_ptr;
 
-   typedef std::function<void(const websocket_connection_ptr&)> on_connection_handler;
+   typedef std::function<void(const websocket_connection_ptr&, bool& is_tls)> on_connection_handler;
 
    class websocket_server
    {

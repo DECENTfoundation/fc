@@ -17,6 +17,8 @@
 #include <websocketpp/client.hpp>
 #include <websocketpp/logger/stub.hpp>
 
+#include "../../../libraries/monitoring/include/decent/monitoring/monitoring.hpp"
+
 #include <fc/optional.hpp>
 #include <fc/variant.hpp>
 #include <fc/thread/scoped_lock.hpp>
@@ -355,7 +357,20 @@ namespace fc { namespace http {
             T _ws_connection;
       };
 
+
       typedef websocketpp::lib::shared_ptr<boost::asio::ssl::context> context_ptr;
+
+      MONITORING_COUNTERS_BEGIN(abstract_websocket_server_monitoring_helper)
+      MONITORING_DEFINE_TRANSIENT_COUNTER(connections_rpc_active)
+      MONITORING_DEFINE_COUNTER(connections_rpc_active_max)
+      MONITORING_DEFINE_TRANSIENT_COUNTER(connections_http_active)
+      MONITORING_DEFINE_COUNTER(connections_http_active_max)
+      MONITORING_COUNTERS_END()
+
+      class abstract_websocket_server_monitoring_helper PUBLIC_DERIVATION_FROM_ONLY_MONITORING_CLASS(abstract_websocket_server_monitoring_helper)
+      {
+      public:
+      };
 
       class abstract_websocket_server
       {
@@ -368,10 +383,13 @@ namespace fc { namespace http {
             virtual void start_accept() = 0;
 
             virtual void add_headers(const fc::string& name, const fc::string& value) = 0;
+            static abstract_websocket_server_monitoring_helper _counters_helper;
       };
 
+      abstract_websocket_server_monitoring_helper abstract_websocket_server::_counters_helper;
+
       template <typename config>
-      class websocket_server_impl : public abstract_websocket_server
+      class websocket_server_impl : public abstract_websocket_server 
       {
          public:
             websocket_server_impl()
@@ -391,7 +409,12 @@ namespace fc { namespace http {
                        if (shutdown_locker_wraith->is_shutting_down()) return;
 
                        websocket_connection_ptr new_con = std::make_shared<websocket_connection_impl<typename websocketpp::server<config>::connection_ptr>>( _server.get_con_from_hdl(hdl) );
-                       _on_connection( _connections[hdl] = new_con );
+                       _on_connection( _connections[hdl] = new_con, new_con->is_tls );
+                       _counters_helper.MONITORING_COUNTER_VALUE(connections_rpc_active)++;
+                       
+                       if (_counters_helper.MONITORING_COUNTER_VALUE(connections_rpc_active_max) < _counters_helper.MONITORING_COUNTER_VALUE(connections_rpc_active))
+                          _counters_helper.MONITORING_COUNTER_VALUE(connections_rpc_active_max) = _counters_helper.MONITORING_COUNTER_VALUE(connections_rpc_active);
+                          
                     }).wait();
                });
 
@@ -428,8 +451,11 @@ namespace fc { namespace http {
                        const shutdown_preventing_task_scoped_maybe_lock lock(spt);
                        if (shutdown_locker_wraith->is_shutting_down()) return;
 
-                       auto current_con = std::make_shared<websocket_connection_impl<typename websocketpp::server<config>::connection_ptr>>( _server.get_con_from_hdl(hdl) );
-                       _on_connection( current_con );
+                       auto current_con = std::make_shared<websocket_connection_impl<typename websocketpp::server<config>::connection_ptr>>( _server.get_con_from_hdl(hdl) );                 
+                       _on_connection( current_con, current_con->is_tls );
+                       _counters_helper.MONITORING_COUNTER_VALUE(connections_http_active)++;
+                       if (_counters_helper.MONITORING_COUNTER_VALUE(connections_http_active_max) < _counters_helper.MONITORING_COUNTER_VALUE(connections_http_active))
+                          _counters_helper.MONITORING_COUNTER_VALUE(connections_http_active_max) = _counters_helper.MONITORING_COUNTER_VALUE(connections_http_active);
 
                        auto con = _server.get_con_from_hdl(hdl);
                        con->defer_http_response();
@@ -454,6 +480,7 @@ namespace fc { namespace http {
 //                          con->append_header("Access-Control-Allow-Origin", "*");
                           con->send_http_response();
                           current_con->closed();
+                          _counters_helper.MONITORING_COUNTER_VALUE(connections_http_active)--;
                        }, "call on_http");
                     }).wait();
                });
@@ -472,6 +499,7 @@ namespace fc { namespace http {
                        {
                           _connections[hdl]->closed();
                           _connections.erase( hdl );
+                          _counters_helper.MONITORING_COUNTER_VALUE(connections_rpc_active)--;
                        }
                        else
                        {
@@ -498,6 +526,7 @@ namespace fc { namespace http {
                           {
                              _connections[hdl]->closed();
                              _connections.erase( hdl );
+                             _counters_helper.MONITORING_COUNTER_VALUE(connections_rpc_active)--;
                           }
                           else
                           {
@@ -565,9 +594,9 @@ namespace fc { namespace http {
             uint32_t                           _pending_messages = 0;
             std::map<fc::string, fc::string>   _additional_headers;
       };
-
+     
       template <typename config>
-      class websocket_tls_server_impl : public websocket_server_impl<config>
+      class websocket_tls_server_impl : public websocket_server_impl<config> 
       {
          public:
             websocket_tls_server_impl( const string& server_cert_file,

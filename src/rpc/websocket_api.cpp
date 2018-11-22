@@ -40,7 +40,9 @@ websocket_api_connection::websocket_api_connection( fc::http::websocket_connecti
 
    _connection.on_message_handler( [&]( const std::string& msg ){ on_message(msg,true); } );
    _connection.on_http_handler( [&]( const std::string& msg ){ return on_message(msg,false); } );
-   _connection.closed.connect( [this](){ closed(); } );
+   _connection.closed.connect( [this](){ 
+      closed(); 
+   } );
 }
 
 variant websocket_api_connection::send_call(
