@@ -379,7 +379,7 @@ namespace fc { namespace http {
             abstract_websocket_server()
             {
                if(_counters_refcount == 0) // we dont need synchronization because there are only two instances of this class constructed/destructed in sequence
-                  _counters_helper = std::make_unique<abstract_websocket_server_monitoring_helper>();
+                  _counters_helper = std::unique_ptr<abstract_websocket_server_monitoring_helper>(new abstract_websocket_server_monitoring_helper());
                _counters_refcount++;
                FC_ASSERT(_counters_helper);
             }
