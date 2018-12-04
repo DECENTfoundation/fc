@@ -365,7 +365,10 @@ namespace fc { namespace http {
       MONITORING_DEFINE_COUNTER(connections_rpc_active_max)
       MONITORING_DEFINE_TRANSIENT_COUNTER(connections_http_active)
       MONITORING_DEFINE_COUNTER(connections_http_active_max)
-      MONITORING_COUNTERS_END()
+      MONITORING_COUNTERS_DEPENDENCIES
+      MONITORING_COUNTER_DEPENDENCY(connections_http_active_max, connections_http_active)
+      MONITORING_COUNTER_DEPENDENCY(connections_rpc_active_max, connections_rpc_active)
+      MONITORING_COUNTERS_END
       
       
       class abstract_websocket_server_monitoring_helper PUBLIC_DERIVATION_FROM_ONLY_MONITORING_CLASS(abstract_websocket_server_monitoring_helper)
