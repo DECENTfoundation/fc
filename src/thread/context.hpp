@@ -1,10 +1,9 @@
 #pragma once
 #include <fc/thread/thread.hpp>
-#include <boost/context/all.hpp>
 #include <fc/exception/exception.hpp>
 #include <vector>
 
-#include <boost/version.hpp>
+#include <boost/context/execution_context.hpp>
 
 #if BOOST_VERSION >= 105400
 # include <boost/coroutine/stack_context.hpp>
