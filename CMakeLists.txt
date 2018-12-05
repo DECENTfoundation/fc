@@ -47,10 +47,6 @@ endif()
 
 SET (ORIGINAL_LIB_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
 
-SET(BOOST_COMPONENTS)
-LIST(APPEND BOOST_COMPONENTS thread date_time system filesystem program_options signals serialization chrono unit_test_framework context coroutine locale iostreams)
-SET( Boost_USE_STATIC_LIBS ON CACHE STRING "ON or OFF" )
-
 IF( ECC_IMPL STREQUAL openssl )
   SET( ECC_REST src/crypto/elliptic_impl_pub.cpp )
 ELSE( ECC_IMPL STREQUAL openssl )
@@ -140,12 +136,10 @@ ENDIF()
 find_package(OpenSSL 1.0 REQUIRED)
 message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
 
-set(Boost_SELECT_VERSION 1.60)
-if (NOT OPENSSL_VERSION VERSION_LESS 1.1)
-    set(Boost_SELECT_VERSION 1.63)
-endif()
+SET(BOOST_COMPONENTS thread date_time system filesystem program_options signals serialization chrono unit_test_framework context coroutine locale iostreams)
+SET(Boost_USE_STATIC_LIBS ON CACHE STRING "ON or OFF")
 
-find_package(Boost ${Boost_SELECT_VERSION} REQUIRED COMPONENTS ${BOOST_COMPONENTS})
+find_package(Boost 1.65.1 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 
 set( CMAKE_FIND_LIBRARY_SUFFIXES ${ORIGINAL_LIB_SUFFIXES} )
 
