@@ -121,7 +121,6 @@ ELSE(WIN32)
   IF(NOT APPLE)
     # Linux or other unix
     SET(rt_library rt )
-    SET(pthread_library pthread)
   ENDIF(NOT APPLE)
 ENDIF(WIN32)
 
@@ -135,7 +134,7 @@ ENDIF()
 find_package(OpenSSL 1.0 REQUIRED)
 message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
 
-SET(BOOST_COMPONENTS thread filesystem program_options serialization unit_test_framework coroutine locale iostreams)
+SET(BOOST_COMPONENTS thread filesystem program_options serialization unit_test_framework coroutine iostreams)
 SET(Boost_USE_STATIC_LIBS ON CACHE STRING "ON or OFF")
 
 find_package(Boost 1.65.1 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
@@ -319,11 +318,7 @@ target_include_directories(fc
     ${ZLIB_INCLUDE_DIR}
   )
 
-#target_link_libraries( fc PUBLIC udt ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES} ${PLATFORM_SPECIFIC_LIBS} ${RPCRT4} ${CMAKE_DL_LIBS} ${rt_library} ${ECC_LIB} )
-IF(NOT WIN32)
-  set(LINK_USR_LOCAL_LIB -L/usr/local/lib)
-ENDIF()
-target_link_libraries( fc PUBLIC ${LINK_USR_LOCAL_LIB} udt ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES} ${PLATFORM_SPECIFIC_LIBS} ${RPCRT4} ${CMAKE_DL_LIBS} ${rt_library} ${readline_libraries} ${ECC_LIB} )
+target_link_libraries( fc PUBLIC udt Boost::thread Boost::filesystem Boost::program_options Boost::serialization Boost::coroutine Boost::iostreams ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES} ${PLATFORM_SPECIFIC_LIBS} ${RPCRT4} ${CMAKE_DL_LIBS} ${rt_library} ${readline_libraries} ${ECC_LIB} )
 
 if(MSVC)
   set_source_files_properties( src/network/http/websocket.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
