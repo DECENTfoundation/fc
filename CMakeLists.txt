@@ -104,12 +104,6 @@ IF( WIN32 )
   MESSAGE(STATUS "Configuring fc to build on Win32")
 
   set( RPCRT4 Rpcrt4 )
-
-  #boost
-#  set(Boost_USE_DEBUG_PYTHON ON)
-  set(Boost_USE_MULTITHREADED ON)
-  set(BOOST_ALL_DYN_LINK OFF) # force dynamic linking for all libraries
-
   set( PLATFORM_SPECIFIC_LIBS WS2_32.lib Userenv.lib)
   # iphlpapi.lib
 
@@ -267,24 +261,15 @@ if (READLINE_FOUND)
   endif()
   set(readline_includes ${Readline_INCLUDE_DIR})
 endif()
-if(WIN32)
-  target_compile_definitions( fc PRIVATE _CRT_NONSTDC_NO_DEPRECATE )
-endif(WIN32)
 # end readline stuff
 
 IF(WIN32)
-  target_compile_definitions(fc PUBLIC WIN32 NOMINMAX _WIN32_WINNT=0x0601 _CRT_SECURE_NO_WARNINGS
-    _SCL_SERCURE_NO_WARNINGS
-    # Needed to disable MSVC autolinking feature (#pragma comment)
-    BOOST_ALL_NO_LIB
+  target_compile_definitions(fc PRIVATE _CRT_NONSTDC_NO_DEPRECATE _CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS PUBLIC NOMINMAX
     # The current version of websockets doesn't correctly guess what 'chrono' implementation boost::asio uses
     # on the recommended build platform of VC++12/boost_1.58.  Force it here until websocket gets their
     # autodetecting code to do the right thing.
     _WEBSOCKETPP_CPP11_CHRONO_
   )
-  # Activate C++ exception handling, assume extern C calls don't throw
-  # Add /U options to be sure settings specific to dynamic boost link are ineffective
-  target_compile_options(fc PUBLIC /EHsc /UBOOST_ALL_DYN_LINK /UBOOST_LINKING_PYTHON /UBOOST_DEBUG_PYTHON)
 ELSE()
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -Wall")
 
@@ -318,7 +303,7 @@ target_include_directories(fc
     ${ZLIB_INCLUDE_DIR}
   )
 
-target_link_libraries( fc PUBLIC udt Boost::thread Boost::filesystem Boost::program_options Boost::serialization Boost::coroutine Boost::iostreams ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES} ${PLATFORM_SPECIFIC_LIBS} ${RPCRT4} ${CMAKE_DL_LIBS} ${rt_library} ${readline_libraries} ${ECC_LIB} )
+target_link_libraries( fc PUBLIC udt Boost::thread Boost::filesystem Boost::program_options Boost::serialization Boost::coroutine Boost::iostreams Boost::disable_autolinking ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES} ${PLATFORM_SPECIFIC_LIBS} ${RPCRT4} ${CMAKE_DL_LIBS} ${rt_library} ${readline_libraries} ${ECC_LIB} )
 
 if(MSVC)
   set_source_files_properties( src/network/http/websocket.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
