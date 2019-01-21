@@ -104,7 +104,7 @@ IF( WIN32 )
   MESSAGE(STATUS "Configuring fc to build on Win32")
 
   set( RPCRT4 Rpcrt4 )
-  set( PLATFORM_SPECIFIC_LIBS WS2_32.lib Userenv.lib)
+  set( PLATFORM_SPECIFIC_LIBS WS2_32.lib Userenv.lib crypt32.lib )
   # iphlpapi.lib
 
 ELSE(WIN32)
@@ -309,15 +309,6 @@ if(MSVC)
   set_source_files_properties( src/network/http/websocket.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
 endif(MSVC)
 
-
-IF(NOT Boost_UNIT_TEST_FRAMEWORK_LIBRARY MATCHES "\\.(a|lib)$")
-IF(WIN32)
-add_definitions(/DBOOST_TEST_DYN_LINK)
-ELSE(WIN32)
-add_definitions(-DBOOST_TEST_DYN_LINK)
-ENDIF(WIN32)
-ENDIF()
-
 add_executable( api tests/api.cpp )
 target_link_libraries( api fc )
 
@@ -325,8 +316,6 @@ if( ECC_IMPL STREQUAL secp256k1 )
     add_executable( blind tests/all_tests.cpp tests/crypto/blind.cpp )
     target_link_libraries( blind fc )
 endif()
-
-include_directories( vendor/websocketpp )
 
 add_executable( ntp_test tests/all_tests.cpp tests/network/ntp_test.cpp )
 target_link_libraries( ntp_test fc )
@@ -382,87 +371,5 @@ add_executable( all_tests tests/all_tests.cpp
                           tests/utf8_test.cpp
                           )
 target_link_libraries( all_tests fc )
-
-if(WIN32)
-   # add addtional import library on windows platform
-   target_link_libraries( fc PUBLIC crypt32.lib)
-
-   # now generate a list of the DLLs we're using to use during the install process
-   include (ParseLibraryList)
-   PARSE_LIBRARY_LIST(${Boost_LIBRARIES}
-                        FOUND parseOk
-                        DEBUG Boost_LIBRARIES_DEBUG
-                        OPT   Boost_LIBRARIES_RELEASE
-                        GENERAL Boost_LIBRARIES_GENERAL)
-
-   #Variable will hold list of .pdb files generated for libraries the 'fc' module is linked to
-   set(INTERFACE_LINK_PDB_RELEASE)
-
-   set(SHARED_LIBRARIES_RELEASE)
-   foreach(boost_import_lib ${Boost_LIBRARIES_RELEASE})
-      get_filename_component(import_lib_name_root ${boost_import_lib} NAME_WE)
-      get_filename_component(import_lib_path ${boost_import_lib} PATH)
-      set(boost_dll "${import_lib_path}/${import_lib_name_root}${CMAKE_SHARED_LIBRARY_SUFFIX}")
-      set(boost_lib_pdb "${import_lib_name_root}.pdb")
-
-      FILE(GLOB_RECURSE boost_pdb_paths "${import_lib_path}/../../bin.v2/*/${boost_lib_pdb}")
-
-      foreach(p ${boost_pdb_paths})
-        if(p MATCHES ".*/address-model-${platformBitness}/")
-          GP_APPEND_UNIQUE(INTERFACE_LINK_PDB_RELEASE ${p})
-        endif()
-      endforeach()
-
-      if(EXISTS "${boost_dll}")
-        set(SHARED_LIBRARIES_RELEASE ${SHARED_LIBRARIES_RELEASE} "${boost_dll}")
-      endif()
-
-   endforeach()
-
-   set(INTERFACE_LINK_PDB_DEBUG)
-   set(SHARED_LIBRARIES_DEBUG)
-   foreach(boost_import_lib ${Boost_LIBRARIES_DEBUG})
-      get_filename_component(import_lib_name_root ${boost_import_lib} NAME_WE)
-      get_filename_component(import_lib_path ${boost_import_lib} PATH)
-      set(boost_dll "${import_lib_path}/${import_lib_name_root}${CMAKE_SHARED_LIBRARY_SUFFIX}")
-      set(boost_lib_pdb "${import_lib_name_root}.pdb")
-
-      FILE(GLOB_RECURSE boost_pdb_paths "${import_lib_path}/../../bin.v2/*/${boost_lib_pdb}")
-
-      foreach(p ${boost_pdb_paths})
-        if(p MATCHES ".*/address-model-${platformBitness}/")
-          GP_APPEND_UNIQUE(INTERFACE_LINK_PDB_DEBUG ${p})
-        endif()
-      endforeach()
-      if(EXISTS "${boost_dll}")
-        set(SHARED_LIBRARIES_DEBUG ${SHARED_LIBRARIES_DEBUG} "${boost_dll}")
-      endif()
-   endforeach()
-
-   # message(STATUS "openssl_libraries=${OPENSSL_LIBRARIES}")
-   foreach(lib ${OPENSSL_LIBRARIES})
-      get_filename_component(lib_name ${lib} NAME_WE)
-      if (${lib_name} STREQUAL "libeay32")
-         get_filename_component(lib_dir ${lib} DIRECTORY)
-         get_filename_component(openssl_dir "${lib_dir}/.." REALPATH)
-         set( eaydll "${openssl_dir}/bin/${lib_name}${CMAKE_SHARED_LIBRARY_SUFFIX}")
-         set(eay_pdb "${openssl_dir}/bin/${lib_name}.pdb")
-         message(STATUS "eay=${eaydll}")
-         if(EXISTS ${eay_pdb})
-           GP_APPEND_UNIQUE(INTERFACE_LINK_PDB_RELEASE ${eay_pdb})
-           GP_APPEND_UNIQUE(INTERFACE_LINK_PDB_DEBUG ${eay_pdb})
-         endif()
-
-         set(SHARED_LIBRARIES_DEBUG   ${SHARED_LIBRARIES_DEBUG}   "${eaydll}")
-         set(SHARED_LIBRARIES_RELEASE ${SHARED_LIBRARIES_RELEASE} "${eaydll}")
-      endif()
-   endforeach()
-
-   set_property(TARGET fc PROPERTY INTERFACE_LINK_PDB_RELEASE ${INTERFACE_LINK_PDB_RELEASE})
-   set_property(TARGET fc PROPERTY INTERFACE_LINK_PDB_DEBUG ${INTERFACE_LINK_PDB_DEBUG})
-   set_property(TARGET fc PROPERTY SHARED_LIBRARIES_DEBUG ${SHARED_LIBRARIES_DEBUG})
-   set_property(TARGET fc PROPERTY SHARED_LIBRARIES_RELEASE ${SHARED_LIBRARIES_RELEASE})
-
-endif(WIN32)
 
 MESSAGE(STATUS "Finished fc module configuration...")
