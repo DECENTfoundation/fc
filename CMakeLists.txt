@@ -15,7 +15,6 @@ CMAKE_MINIMUM_REQUIRED( VERSION 3.10.2 )
 PROJECT( fc LANGUAGES CXX C )
 
 MESSAGE(STATUS "Configuring project fc located in: ${CMAKE_CURRENT_SOURCE_DIR}")
-SET( CMAKE_AUTOMOC OFF )
 
 # Compile in C++11 mode
 set(CMAKE_CXX_STANDARD 11)
@@ -39,11 +38,6 @@ SET( DEFAULT_EXECUTABLE_INSTALL_DIR bin/ )
 SET( CMAKE_DEBUG_POSTFIX _debug )
 SET( BUILD_SHARED_LIBS NO )
 SET( ECC_IMPL secp256k1 CACHE STRING "secp256k1 or openssl or mixed" )
-
-set(platformBitness 32)
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(platformBitness 64)
-endif()
 
 SET (ORIGINAL_LIB_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
 
@@ -146,8 +140,6 @@ set( CMAKE_FIND_LIBRARY_SUFFIXES ${ORIGINAL_LIB_SUFFIXES} )
 # repository.
 find_package( ZLIB REQUIRED )
 
-option( UNITY_BUILD OFF )
-
 set( fc_sources
      src/uint128.cpp
      src/real128.cpp
@@ -234,25 +226,20 @@ set( fc_sources
 
 file( GLOB_RECURSE fc_headers ${CMAKE_CURRENT_SOURCE_DIR} *.hpp *.h )
 
-set( sources
-  ${fc_sources}
-)
-
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/git_revision.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/git_revision.cpp" @ONLY)
-list(APPEND sources "${CMAKE_CURRENT_BINARY_DIR}/git_revision.cpp")
-list(APPEND sources ${fc_headers})
+list(APPEND fc_sources "${CMAKE_CURRENT_BINARY_DIR}/git_revision.cpp")
+list(APPEND fc_sources ${fc_headers})
 
 add_subdirectory( vendor/websocketpp EXCLUDE_FROM_ALL )
 add_subdirectory( vendor/udt4 )
 
-setup_library( fc SOURCES ${sources} LIBRARY_TYPE STATIC )
+set( UNITY_BUILD OFF )
+setup_library( fc SOURCES ${fc_sources} LIBRARY_TYPE STATIC )
 install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION include )
 
 # begin readline stuff
 find_package(Curses)
 find_package(Readline)
-
-file(GLOB HEADERS "include/bts/cli/*.hpp")
 
 if (READLINE_FOUND)
   target_compile_definitions (fc PRIVATE HAVE_READLINE)
