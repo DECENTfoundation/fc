@@ -30,6 +30,10 @@
 #include <condition_variable>
 #include <string>
 
+#include <fc/reflect/reflect.hpp>
+#include <fc/filesystem.hpp>
+#include <fc/time.hpp>
+
 namespace monitoring {
 
    struct counter_item
@@ -45,6 +49,15 @@ namespace monitoring {
       std::string name;
       std::string depends_on_name;
    };
+
+   struct counter_item_cli {
+      std::string name;
+      int64_t value;
+      fc::time_point_sec last_reset;
+      bool persistent;
+   };
+
+   void set_data_dir(const fc::path &data_dir);
 
    class monitoring_counters_base
    {
@@ -149,7 +162,5 @@ int get_counters_size() const override \
 
 #define MONITORING_COUNTER_DEPENDENCY(name,depends_on) monitoring::counter_item_dependency name = {COUNTER_NAME_STR(name), COUNTER_NAME_STR(depends_on)};
 
-
-
-
-
+FC_REFLECT(monitoring::counter_item, (name)(value)(last_reset)(persistent))
+FC_REFLECT(monitoring::counter_item_cli, (name)(value)(last_reset)(persistent))

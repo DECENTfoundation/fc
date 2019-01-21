@@ -153,6 +153,7 @@ set( fc_sources
      src/real128.cpp
      src/variant.cpp
      src/exception.cpp
+     src/monitoring.cpp
      src/variant_object.cpp
      src/thread/thread.cpp
      src/thread/thread_specific.cpp
@@ -293,7 +294,6 @@ target_include_directories(fc
     ${Boost_INCLUDE_DIR}
     ${OPENSSL_INCLUDE_DIR}
     "${readline_includes}"
-    "../../monitoring/include"
 
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/cyoencode-1.0.2/src

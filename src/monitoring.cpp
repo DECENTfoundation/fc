@@ -23,11 +23,12 @@
 * THE SOFTWARE.
 */
 
-#include <decent/monitoring/monitoring.hpp>
+#include <fc/monitoring.hpp>
+#include <fc/reflect/variant.hpp>
+#include <fc/io/json.hpp>
 
 #include <algorithm>
-
-
+#include <fstream>
 
 namespace monitoring {
 
@@ -41,6 +42,46 @@ namespace monitoring {
    bool monitoring_counters_base::_cache_is_loaded = false;
    std::vector<counter_item> monitoring_counters_base::_pending_save;
 
+   static fc::path monitoring_path;
+
+   void set_data_dir(const fc::path &data_dir)
+   {
+      monitoring_path = data_dir / "monitoring";
+      fc::create_directories(monitoring_path);
+      monitoring_path = monitoring_path / "counters.json";
+   }
+
+   void monitoring::monitoring_counters_base::save_to_disk(const std::vector<counter_item>& counters)
+   {
+      std::fstream fs;
+      fs.open(monitoring_path.string().c_str(), std::fstream::out);
+      if (fs.is_open()) {
+
+         fc::variant tmp;
+         fc::to_variant(counters, tmp);
+         std::string s = fc::json::to_string(tmp);
+
+         fs.write(s.c_str(), s.size());
+      }
+   }
+
+   void monitoring::monitoring_counters_base::read_from_disk(std::vector<counter_item>& counters)
+   {
+      std::fstream fs;
+      fs.open(monitoring_path.string().c_str(), std::fstream::in);
+      if (fs.is_open()) {
+
+         std::string s;
+         fs.seekg(0, std::ios::end);
+         s.reserve(fs.tellg());
+         fs.seekg(0, std::ios::beg);
+
+         s.assign((std::istreambuf_iterator<char>(fs)), std::istreambuf_iterator<char>());
+
+         fc::variant tmp = fc::json::from_string(s);
+         fc::from_variant(tmp, counters);
+      }
+   }
 
    void monitoring_counters_base::store_counters()
    {

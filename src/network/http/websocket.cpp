@@ -17,8 +17,7 @@
 #include <websocketpp/client.hpp>
 #include <websocketpp/logger/stub.hpp>
 
-#include <decent/monitoring/monitoring.hpp>
-
+#include <fc/monitoring.hpp>
 #include <fc/optional.hpp>
 #include <fc/variant.hpp>
 #include <fc/thread/scoped_lock.hpp>
