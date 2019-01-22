@@ -43,8 +43,6 @@ SET( CMAKE_DEBUG_POSTFIX _debug )
 SET( BUILD_SHARED_LIBS NO )
 SET( ECC_IMPL secp256k1 CACHE STRING "secp256k1 or openssl or mixed" )
 
-SET (ORIGINAL_LIB_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
-
 IF( ECC_IMPL STREQUAL openssl )
   SET( ECC_REST src/crypto/elliptic_impl_pub.cpp )
 ELSE( ECC_IMPL STREQUAL openssl )
@@ -107,8 +105,6 @@ IF( WIN32 )
 ELSE(WIN32)
   MESSAGE(STATUS "Configuring fc to build on Unix/Apple")
 
-  SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
-
 ENDIF(WIN32)
 
 IF(NOT "$ENV{OPENSSL_ROOT_DIR}" STREQUAL "")
@@ -117,7 +113,6 @@ IF(NOT "$ENV{OPENSSL_ROOT_DIR}" STREQUAL "")
   message(STATUS "Setting up OpenSSL root and include vars to ${OPENSSL_ROOT_DIR}, ${OPENSSL_INCLUDE_DIR}")
 ENDIF()
 
-
 find_package(OpenSSL 1.0 REQUIRED)
 message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
 
@@ -125,8 +120,6 @@ SET(BOOST_COMPONENTS thread filesystem program_options serialization unit_test_f
 SET(Boost_USE_STATIC_LIBS ON CACHE STRING "ON or OFF")
 
 find_package(Boost 1.65.1 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
-
-set( CMAKE_FIND_LIBRARY_SUFFIXES ${ORIGINAL_LIB_SUFFIXES} )
 
 # We are now building in support for deflate compression into our websockets layer by default,
 # which requires zlib.  Aside from that, all of fc compiles without zlib, so this could be
