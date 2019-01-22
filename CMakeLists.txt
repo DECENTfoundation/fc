@@ -20,6 +20,10 @@ MESSAGE(STATUS "Configuring project fc located in: ${CMAKE_CURRENT_SOURCE_DIR}")
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Compile in C99 mode
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
 # Setup module path to make visible used CMake extensions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/GitVersionGen")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
@@ -97,7 +101,6 @@ endif ( WIN32 )
 IF( WIN32 )
   MESSAGE(STATUS "Configuring fc to build on Win32")
 
-  set( RPCRT4 Rpcrt4 )
   set( PLATFORM_SPECIFIC_LIBS WS2_32.lib Userenv.lib crypt32.lib )
   # iphlpapi.lib
 
@@ -106,10 +109,6 @@ ELSE(WIN32)
 
   SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 
-  IF(NOT APPLE)
-    # Linux or other unix
-    SET(rt_library rt )
-  ENDIF(NOT APPLE)
 ENDIF(WIN32)
 
 IF(NOT "$ENV{OPENSSL_ROOT_DIR}" STREQUAL "")
@@ -248,6 +247,8 @@ if (READLINE_FOUND)
     list(APPEND readline_libraries ${CURSES_LIBRARY})
   endif()
   set(readline_includes ${Readline_INCLUDE_DIR})
+elseif (NOT WIN32)
+  message(FATAL_ERROR "Readline not found")
 endif()
 # end readline stuff
 
@@ -259,12 +260,12 @@ IF(WIN32)
     _WEBSOCKETPP_CPP11_CHRONO_
   )
 ELSE()
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -Wall")
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 
   IF(APPLE)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -Wall")
   ELSE()
-    if( NOT CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" )
+    if( NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
       target_compile_options(fc PUBLIC -Wall -fnon-call-exceptions)
     endif()
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fnon-call-exceptions")
@@ -290,7 +291,7 @@ target_include_directories(fc
     ${ZLIB_INCLUDE_DIR}
   )
 
-target_link_libraries( fc PUBLIC udt Boost::thread Boost::filesystem Boost::program_options Boost::serialization Boost::coroutine Boost::iostreams Boost::disable_autolinking ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES} ${PLATFORM_SPECIFIC_LIBS} ${RPCRT4} ${CMAKE_DL_LIBS} ${rt_library} ${readline_libraries} ${ECC_LIB} )
+target_link_libraries( fc PUBLIC udt Boost::thread Boost::filesystem Boost::program_options Boost::serialization Boost::coroutine Boost::iostreams Boost::disable_autolinking ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES} ${PLATFORM_SPECIFIC_LIBS} ${readline_libraries} ${ECC_LIB} )
 
 if(MSVC)
   set_source_files_properties( src/network/http/websocket.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
@@ -334,7 +335,7 @@ add_executable( ecc_test tests/crypto/ecc_test.cpp )
 target_link_libraries( ecc_test fc )
 
 #add_executable( test_aes tests/aes_test.cpp )
-#target_link_libraries( test_aes fc ${rt_library} ${pthread_library} )
+#target_link_libraries( test_aes fc )
 #add_executable( test_sleep tests/sleep.cpp )
 #target_link_libraries( test_sleep fc )
 #add_executable( test_rate_limiting tests/rate_limiting.cpp )
