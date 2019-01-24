@@ -13,6 +13,25 @@
 #endif
 
 namespace fc {
+
+   template<typename DerivedClass>
+   class api_base {
+      public:
+         static std::string get_api_name()
+         {
+            const std::string str = boost::typeindex::type_id<DerivedClass>().pretty_name();
+            // remove namespaces
+            size_t pos = str.find_last_of(":");
+            if( pos == std::string::npos )
+               pos = 0;
+            else
+               pos++;
+
+            return str.substr( pos );
+         }
+   };
+
+
   struct identity_member { 
        template<typename R, typename C, typename P, typename... Args>
        static std::function<R(Args...)> functor( P&& p, R (C::*mem_func)(Args...) );
@@ -65,6 +84,8 @@ namespace fc {
 
       vtable_type& operator*()const  { FC_ASSERT( _vtable ); return *_vtable; }
       vtable_type* operator->()const {  FC_ASSERT( _vtable ); return _vtable.get(); }
+
+      std::string get_api_name()const { return Interface::get_api_name(); }
 
     protected:
       std::shared_ptr<vtable_type>    _vtable;

@@ -216,7 +216,7 @@ namespace fc {
 
          variant receive_call( api_id_type api_id, const string& method_name, const variants& args = variants() )const
          {
-            FC_ASSERT( _local_apis.size() > api_id );
+            FC_ASSERT( _local_apis.size() > api_id, "api id is not registered" );
             return _local_apis[api_id]->call( method_name, args );
          }
          variant receive_callback( uint64_t callback_id,  const variants& args = variants() )const
@@ -239,6 +239,7 @@ namespace fc {
 
             _local_apis.push_back( std::unique_ptr<generic_api>( new generic_api(a, shared_from_this() ) ) );
             _handle_to_id[handle] = _local_apis.size() - 1;
+            _api_names.push_back( a.get_api_name() );
             return _local_apis.size() - 1;
          }
 
@@ -251,11 +252,19 @@ namespace fc {
 
          std::vector<std::string> get_method_names( api_id_type local_api_id = 0 )const { return _local_apis[local_api_id]->get_method_names(); }
 
+         api_id_type get_api_id_from_name( const string& name )const
+         {
+            api_id_type api_id = std::distance( _api_names.begin(), std::find( _api_names.begin(), _api_names.end(), name ) );
+            FC_ASSERT( api_id < _local_apis.size(), "api name is not registered" );
+            return api_id;
+         }
+
          fc::signal<void()> closed;
       private:
          std::vector< std::unique_ptr<generic_api> >             _local_apis;
          std::map< uint64_t, api_id_type >                       _handle_to_id;
          std::vector< std::function<variant(const variants&)>  > _local_callbacks;
+         std::vector<std::string>                                _api_names;
 
 
          struct api_visitor
