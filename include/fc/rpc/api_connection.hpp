@@ -239,6 +239,7 @@ namespace fc {
 
             _local_apis.push_back( std::unique_ptr<generic_api>( new generic_api(a, shared_from_this() ) ) );
             _handle_to_id[handle] = _local_apis.size() - 1;
+            _api_names.push_back( a.get_api_name() );
             return _local_apis.size() - 1;
          }
 
