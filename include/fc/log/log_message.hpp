@@ -35,7 +35,8 @@ namespace fc
              info, 
              warn, 
              error, 
-             off  
+             off,
+             number_of_levels
          };
          log_level( values v = off ):value(v){}
          explicit log_level( int v ):value( static_cast<values>(v)){}

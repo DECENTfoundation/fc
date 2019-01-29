@@ -51,7 +51,14 @@ namespace fc {
 
          for( auto a = cfg.loggers[i].appenders.begin(); a != cfg.loggers[i].appenders.end(); ++a ){
             auto ap = appender::get( *a );
-            if( ap ) { lgr.add_appender(ap); }
+            if( ap )  
+               lgr.add_appender(ap); 
+            else {
+               if((*a).size())
+                  FC_THROW_EXCEPTION(parse_error_exception, "Bad appender name: ${ba}\r\nin settings for logger : ${l}",("ba", *a)("l", cfg.loggers[i].name));
+               else
+                  FC_THROW_EXCEPTION(parse_error_exception, "Empty appender name in settings for logger : ${l}", ("l", cfg.loggers[i].name));
+            }
          }
       }
       return reg_console_appender || reg_file_appender;
