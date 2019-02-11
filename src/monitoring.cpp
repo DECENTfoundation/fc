@@ -43,12 +43,13 @@ namespace monitoring {
    std::vector<counter_item> monitoring_counters_base::_pending_save;
 
    static fc::path monitoring_path;
+   const char* COUNTERS_JSON_FILENAME = "counters.json";
 
    void set_data_dir(const fc::path &data_dir)
    {
       monitoring_path = data_dir / "monitoring";
       fc::create_directories(monitoring_path);
-      monitoring_path = monitoring_path / "counters.json";
+      monitoring_path = monitoring_path / COUNTERS_JSON_FILENAME;
    }
 
    void monitoring::monitoring_counters_base::save_to_disk(const std::vector<counter_item>& counters)
@@ -73,12 +74,21 @@ namespace monitoring {
 
          std::string s;
          fs.seekg(0, std::ios::end);
-         s.reserve(fs.tellg());
+         std::streampos file_size = fs.tellg();
+         s.reserve(file_size);
          fs.seekg(0, std::ios::beg);
+         if (file_size == (std::streampos)0) 
+            return;
 
          s.assign((std::istreambuf_iterator<char>(fs)), std::istreambuf_iterator<char>());
-
-         fc::variant tmp = fc::json::from_string(s);
+         fc::variant tmp;
+         try {
+            tmp = fc::json::from_string(s);
+         }
+         catch (...)
+         {
+            return;
+         }
          fc::from_variant(tmp, counters);
       }
    }
