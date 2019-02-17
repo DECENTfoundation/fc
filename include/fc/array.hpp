@@ -23,6 +23,7 @@ namespace fc {
     
     T*           begin()       {  return &data[0]; }
     const T*     begin()const  {  return &data[0]; }
+    T*           end()         {  return &data[N]; }
     const T*     end()const    {  return &data[N]; }
 
     size_t       size()const { return N; }
@@ -48,6 +49,7 @@ namespace fc {
     
     T*           begin()       {  return &data[0]; }
     const T*     begin()const  {  return &data[0]; }
+    T*           end()         {  return &data[N]; }
     const T*     end()const    {  return &data[N]; }
 
     size_t       size()const { return N; }
@@ -73,6 +75,7 @@ namespace fc {
     
     T*           begin()       {  return &data[0]; }
     const T*     begin()const  {  return &data[0]; }
+    T*           end()         {  return &data[N]; }
     const T*     end()const    {  return &data[N]; }
 
     size_t       size()const { return N; }
@@ -104,15 +107,29 @@ namespace fc {
   void from_variant( const variant& v, array<T,N>& bi )
   {
     std::vector<char> ve = v.as< std::vector<char> >();
-    if( ve.size() )
-    {
-        memcpy(&bi, ve.data(), fc::min<size_t>(ve.size(),sizeof(bi)) );
-    }
+    if( ve.empty() )
+        std::fill( bi.begin(), bi.end(), T(0) );
     else
-        memset( &bi, char(0), sizeof(bi) );
+        std::copy( ve.begin(), ve.begin() + fc::min<size_t>(ve.size(), bi.size()), bi.begin() );
   }
-
-
+  template<size_t N>
+  void from_variant( const variant& v, array<unsigned char,N>& bi )
+  {
+    std::vector<char> ve = v.as< std::vector<char> >();
+    if( ve.empty() )
+        memset( bi.data, 0, N );
+    else
+        memcpy( bi.data, ve.data(), fc::min<size_t>(ve.size(), N) );
+  }
+  template<size_t N>
+  void from_variant( const variant& v, array<char,N>& bi )
+  {
+    std::vector<char> ve = v.as< std::vector<char> >();
+    if( ve.empty() )
+        memset( bi.data, 0, N );
+    else
+        memcpy( bi.data, ve.data(), fc::min<size_t>(ve.size(), N) );
+  }
   template<typename T,size_t N> struct get_typename< fc::array<T,N> >  
   { 
      static const char* name()  

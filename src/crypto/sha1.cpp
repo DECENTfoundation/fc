@@ -90,12 +90,10 @@ bool operator == ( const sha1& h1, const sha1& h2 ) {
   void from_variant( const variant& v, sha1& bi )
   {
     std::vector<char> ve = v.as< std::vector<char> >();
-    if( ve.size() )
-    {
-        memcpy(&bi, ve.data(), fc::min<size_t>(ve.size(),sizeof(bi)) );
-    }
+    if( ve.empty() )
+        memset( &bi._hash, 0, sizeof(bi._hash) );
     else
-        memset( &bi, char(0), sizeof(bi) );
+        memcpy(&bi._hash, ve.data(), fc::min<size_t>(ve.size(), sizeof(bi._hash)) );
   }
   
 } // fc
