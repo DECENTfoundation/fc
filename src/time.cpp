@@ -41,7 +41,7 @@ namespace fc {
           pt = boost::date_time::parse_delimited_time<boost::posix_time::ptime>( s, 'T' );
       else
           pt = boost::posix_time::from_iso_string( s );
-      return fc::time_point_sec( (pt - epoch).total_seconds() );
+      return fc::time_point_sec(static_cast<uint32_t>((pt - epoch).total_seconds()) );
   } FC_RETHROW_EXCEPTIONS( warn, "unable to convert ISO-formatted string to fc::time_point_sec" ) }
 
   time_point::operator fc::string()const

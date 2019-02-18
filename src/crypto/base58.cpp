@@ -220,7 +220,7 @@ public:
         if (nSize >= 1) vch[4] = (nCompact >> 16) & 0xff;
         if (nSize >= 2) vch[5] = (nCompact >> 8) & 0xff;
         if (nSize >= 3) vch[6] = (nCompact >> 0) & 0xff;
-        BN_mpi2bn(&vch[0], vch.size(), bn);
+        BN_mpi2bn(&vch[0], static_cast<int>(vch.size()), bn);
         return *this;
     }
 
@@ -561,7 +561,7 @@ inline bool DecodeBase58(const char* psz, std::vector<unsigned char>& vchRet)
             }
             break;
         }
-        bnChar.setulong(p1 - pszBase58);
+        bnChar.setulong(static_cast<unsigned long>(p1 - pszBase58));
         if (!BN_mul(bn.to_bignum(), bn.to_bignum(), bn58.to_bignum(), pctx))
             throw bignum_error("DecodeBase58 : BN_mul failed");
         bn += bnChar;

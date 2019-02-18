@@ -535,9 +535,9 @@ uint32_t crc32cSlicingBy8(uint32_t crc, const void* data, size_t length) {
 #if !defined __SSE4_2__ || (defined __SSE4_2__ && !defined __x86_64__)
 
 
-uint64_t _mm_crc32_u64(uint64_t a, uint64_t b )
+uint64_t _mm_crc32_u64(uint32_t a, uint64_t b )
 {
-    return crc32cSlicingBy8(a, (unsigned char*)&b, sizeof(b)); 
+    return crc32cSlicingBy8(a, (unsigned char*)&b, sizeof(b));
 }
 /*
 //#include "citycrc.h"

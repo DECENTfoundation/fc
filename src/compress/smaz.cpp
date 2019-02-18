@@ -157,10 +157,10 @@ out:
             verblen = 0;
         }
     }
-    return out-_out;
+    return static_cast<uint32_t>(out-_out);
 }
 
-void smaz_decompress(const char *in, uint32_t inlen, std::stringstream& ss ) {
+void smaz_decompress(const char *in, size_t inlen, std::stringstream& ss ) {
     const unsigned char *c = (const unsigned char*) in;
 //    char *_out = out;
 //    int _outlen = outlen;
@@ -189,7 +189,7 @@ void smaz_decompress(const char *in, uint32_t inlen, std::stringstream& ss ) {
         } else {
             /* Codebook entry */
             const char *s = Smaz_rcb[*c];
-            int len = strlen(s);
+            size_t len = strlen(s);
 
             //if (outlen < len) return _outlen+1;
             //memcpy(out,s,len);
@@ -208,7 +208,7 @@ void smaz_decompress(const char *in, uint32_t inlen, std::stringstream& ss ) {
   {
     std::string out;
     out.resize(in.size());
-    auto out_len = smaz_compress( in.c_str(), in.size(), &out[0], out.size() );
+    auto out_len = smaz_compress( in.c_str(), static_cast<int>(in.size()), &out[0], static_cast<int>(out.size()) );
     FC_ASSERT( out_len <= out.size() );
     out.resize(out_len);
     return out;

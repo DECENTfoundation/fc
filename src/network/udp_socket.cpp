@@ -87,7 +87,7 @@ namespace fc {
     my->_sock.open( boost::asio::ip::udp::v4() );
     my->_sock.non_blocking(true);
   }
-  void udp_socket::set_receive_buffer_size( size_t s ) {
+  void udp_socket::set_receive_buffer_size( int s ) {
     my->_sock.set_option(boost::asio::socket_base::receive_buffer_size(s) );
   }
   void udp_socket::bind( const fc::ip::endpoint& e ) {
