@@ -19,7 +19,7 @@ class fc::http::connection::impl
    impl() {
    }
 
-   int read_until( char* buffer, char* end, char c = '\n' ) {
+   ptrdiff_t read_until( char* buffer, char* end, char c = '\n' ) {
       char* p = buffer;
      // try {
           while( p < end && 1 == sock.readsome(p,1) ) {
@@ -40,7 +40,7 @@ class fc::http::connection::impl
       fc::http::reply rep;
       try {
         std::vector<char> line(1024*8);
-        int s = read_until( line.data(), line.data()+line.size(), ' ' ); // HTTP/1.1
+        auto s = read_until( line.data(), line.data()+line.size(), ' ' ); // HTTP/1.1
         s = read_until( line.data(), line.data()+line.size(), ' ' ); // CODE
         rep.status = static_cast<int>(to_int64(fc::string(line.data())));
         s = read_until( line.data(), line.data()+line.size(), '\n' ); // DESCRIPTION
@@ -135,7 +135,7 @@ fc::tcp_socket& connection::get_socket()const {
 http::request    connection::read_request()const {
   http::request req;
   std::vector<char> line(1024*8);
-  int s = my->read_until( line.data(), line.data()+line.size(), ' ' ); // METHOD
+  auto s = my->read_until( line.data(), line.data()+line.size(), ' ' ); // METHOD
   req.method = line.data();
   s = my->read_until( line.data(), line.data()+line.size(), ' ' ); // PATH
   req.path = line.data();

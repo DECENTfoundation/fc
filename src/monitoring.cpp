@@ -139,7 +139,7 @@ namespace monitoring {
                   }
                }
                else {
-                  it->last_reset = std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count();
+                  it->last_reset = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count());
                }
 
                it++;
@@ -200,7 +200,7 @@ namespace monitoring {
       std::lock_guard<std::mutex> lock(monitoring_counters_base::registered_instances_mutex);
       std::set<monitoring_counters_base*>::iterator it;
       std::chrono::system_clock::time_point tp = std::chrono::system_clock::now();
-       uint32_t seconds = std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count();
+      uint32_t seconds = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count());
 
       for (it = registered_instances.begin(); it != registered_instances.end(); ++it)
       {
@@ -324,7 +324,7 @@ namespace monitoring {
             }
          }
          else {
-            it->last_reset = std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count();
+            it->last_reset = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count());
          }
          it++;
       }

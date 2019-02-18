@@ -279,7 +279,7 @@ namespace fc {
    int  thread::wait_any_until( std::vector<promise_base::ptr>&& p, const time_point& timeout) {
        for( size_t i = 0; i < p.size(); ++i )
          if( p[i]->ready() ) 
-           return i;
+           return static_cast<int>(i);
 
        if( timeout < time_point::now() ) 
        {

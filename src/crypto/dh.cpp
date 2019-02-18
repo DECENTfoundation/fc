@@ -42,7 +42,7 @@ namespace fc {
         const auto bn_g = BN_bin2bn( (unsigned char*)&g, 1, NULL );
         DH_set0_pqg(dh.obj, bn_p, NULL, bn_g);
 #else
-        dh->p = BN_bin2bn( (unsigned char*)&p.front(), p.size(), NULL );
+        dh->p = BN_bin2bn( (unsigned char*)&p.front(), static_cast<int>(p.size()), NULL );
         dh->g = BN_bin2bn( (unsigned char*)&g, 1, NULL );
 #endif
         return fc::validate( dh, valid );
@@ -58,7 +58,7 @@ namespace fc {
         const auto bn_g = BN_bin2bn( (unsigned char*)&g, 1, NULL );
         DH_set0_pqg(dh.obj, bn_p, NULL, bn_g);
 #else
-        dh->p = BN_bin2bn( (unsigned char*)&p.front(), p.size(), NULL );
+        dh->p = BN_bin2bn( (unsigned char*)&p.front(), static_cast<int>(p.size()), NULL );
         dh->g = BN_bin2bn( (unsigned char*)&g, 1, NULL );
 #endif
 
@@ -99,9 +99,9 @@ namespace fc {
         DH_set0_pqg(dh.obj, bn_p, NULL, bn_g);
         DH_set0_key(dh.obj, bn_pub_key, bn_priv_key);
 #else
-        dh->p = BN_bin2bn( (unsigned char*)&p.front(), p.size(), NULL );
-        dh->pub_key = BN_bin2bn( (unsigned char*)&pub_key.front(), pub_key.size(), NULL );
-        dh->priv_key = BN_bin2bn( (unsigned char*)&priv_key.front(), priv_key.size(), NULL );
+        dh->p = BN_bin2bn( (unsigned char*)&p.front(), static_cast<int>(p.size()), NULL );
+        dh->pub_key = BN_bin2bn( (unsigned char*)&pub_key.front(), static_cast<int>(pub_key.size()), NULL );
+        dh->priv_key = BN_bin2bn( (unsigned char*)&priv_key.front(), static_cast<int>(priv_key.size()), NULL );
         dh->g = BN_bin2bn( (unsigned char*)&g, 1, NULL );
 #endif
 
@@ -120,6 +120,6 @@ namespace fc {
         return true;
    }
    bool diffie_hellman::compute_shared_key( const std::vector<char>& pubk ) {
-      return compute_shared_key( &pubk.front(), pubk.size() );
+      return compute_shared_key( &pubk.front(), static_cast<uint32_t>(pubk.size()) );
    }
 }

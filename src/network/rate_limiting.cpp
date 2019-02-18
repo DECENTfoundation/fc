@@ -304,12 +304,12 @@ namespace fc
           _read_operations_in_progress.remove(&read_operation);
           throw;
         }
-        _unused_read_tokens += read_operation.permitted_length - bytes_read;
+        _unused_read_tokens += static_cast<uint32_t>(read_operation.permitted_length - bytes_read);
       }
       else
         bytes_read = asio::read_some(socket, buffer, length, offset);
       
-      _actual_download_rate.update(bytes_read);
+      _actual_download_rate.update(static_cast<uint32_t>(bytes_read));
       
       return bytes_read;
     }
@@ -350,12 +350,12 @@ namespace fc
           _write_operations_in_progress.remove(&write_operation);
           throw;
         }
-        _unused_write_tokens += write_operation.permitted_length - bytes_written;
+        _unused_write_tokens += static_cast<uint32_t>(write_operation.permitted_length - bytes_written);
       }
       else
         bytes_written = asio::write_some(socket, buffer, length, offset);
       
-      _actual_upload_rate.update(bytes_written);
+      _actual_upload_rate.update(static_cast<uint32_t>(bytes_written));
       
       return bytes_written;
     }
@@ -443,10 +443,10 @@ namespace fc
           uint32_t bytes_remaining_to_allocate = tokens;
           while (!operations_sorted_by_length.empty())
           {
-            uint32_t bytes_permitted_for_this_operation = bytes_remaining_to_allocate / operations_sorted_by_length.size();
-            uint32_t bytes_allocated_for_this_operation = std::min<size_t>(operations_sorted_by_length.back()->length, bytes_permitted_for_this_operation);
+            size_t bytes_permitted_for_this_operation = bytes_remaining_to_allocate / operations_sorted_by_length.size();
+            size_t bytes_allocated_for_this_operation = std::min(operations_sorted_by_length.back()->length, bytes_permitted_for_this_operation);
             operations_sorted_by_length.back()->permitted_length = bytes_allocated_for_this_operation;
-            bytes_remaining_to_allocate -= bytes_allocated_for_this_operation;
+            bytes_remaining_to_allocate -= static_cast<uint32_t>(bytes_allocated_for_this_operation);
             operations_sorted_by_length.pop_back();
           }
           tokens = bytes_remaining_to_allocate;

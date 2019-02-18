@@ -190,7 +190,7 @@ namespace fc {
             fc::string to_base58() const { return str(); }
             static extended_private_key from_base58( const fc::string& base58 );
             static extended_private_key generate_master( const fc::string& seed );
-            static extended_private_key generate_master( const char* seed, uint32_t seed_len );
+            static extended_private_key generate_master( const char* seed, size_t seed_len );
 
             // Oleg Andreev's blind signature scheme,
             // see http://blog.oleganza.com/post/77474860538/blind-signatures

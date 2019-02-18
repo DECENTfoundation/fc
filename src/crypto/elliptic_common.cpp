@@ -378,7 +378,7 @@ namespace fc { namespace ecc {
         return generate_master( seed.c_str(), seed.size() );
     }
 
-    extended_private_key extended_private_key::generate_master( const char* seed, uint32_t seed_len )
+    extended_private_key extended_private_key::generate_master( const char* seed, size_t seed_len )
     {
         hmac_sha512 mac;
         fc::sha512 hash = mac.digest( "Bitcoin seed", 12, seed, seed_len );

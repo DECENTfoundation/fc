@@ -227,7 +227,7 @@ namespace fc {
    /// @{
    size_t   udt_socket::readsome( char* buffer, size_t max )
    { try {
-      auto bytes_read = UDT::recv( _udt_socket_id, buffer, max, 0 );
+      int bytes_read = UDT::recv( _udt_socket_id, buffer, static_cast<int>(max), 0 );
       while( bytes_read == UDT::ERROR )
       {
          if( UDT::getlasterror().getErrorCode() == CUDTException::EASYNCRCV )
@@ -236,7 +236,7 @@ namespace fc {
             promise<void>::ptr p(new promise<void>("udt_socket::readsome"));
             default_epool_service().notify_read( _udt_socket_id, p );
             p->wait();
-            bytes_read = UDT::recv( _udt_socket_id, buffer, max, 0 );
+            bytes_read = UDT::recv( _udt_socket_id, buffer, static_cast<int>(max), 0 );
          }
          else
             check_udt_errors();
@@ -260,7 +260,7 @@ namespace fc {
    /// @{
    size_t   udt_socket::writesome( const char* buffer, size_t len )
    { try {
-      auto bytes_sent = UDT::send(_udt_socket_id, buffer, len, 0);
+      auto bytes_sent = UDT::send(_udt_socket_id, buffer, static_cast<int>(len), 0);
 
       while( UDT::ERROR == bytes_sent )
       {
@@ -270,7 +270,7 @@ namespace fc {
             promise<void>::ptr p(new promise<void>("udt_socket::writesome"));
             default_epool_service().notify_write( _udt_socket_id, p );
             p->wait();
-            bytes_sent = UDT::send(_udt_socket_id, buffer, len, 0);
+            bytes_sent = UDT::send(_udt_socket_id, buffer, static_cast<int>(len), 0);
             continue;
          }
          else

@@ -39,7 +39,7 @@
 #if defined(__SSE4_2__) && defined(__x86_64__)
 #include <nmmintrin.h>
 #else
-uint64_t _mm_crc32_u64(uint64_t a, uint64_t b );
+uint64_t _mm_crc32_u64(uint32_t a, uint64_t b );
 #endif
 
 namespace fc {
@@ -190,15 +190,15 @@ static uint32_t Hash32Len13to24(const char *s, size_t len) {
   uint32_t d = Fetch32(s + (len >> 1));
   uint32_t e = Fetch32(s);
   uint32_t f = Fetch32(s + len - 4);
-  uint32_t h = len;
+  uint32_t h = static_cast<uint32_t>(len);
 
   return fmix(Mur(f, Mur(e, Mur(d, Mur(c, Mur(b, Mur(a, h)))))));
 }
 
-static uint32_t Hash32Len0to4(const char *s, size_t len) {
+static uint32_t Hash32Len0to4(const char *s, uint32_t len) {
   uint32_t b = 0;
   uint32_t c = 9;
-  for (size_t i = 0; i < len; i++) {
+  for (uint32_t i = 0; i < len; i++) {
     signed char v = s[i];
     b = b * c1 + v;
     c ^= b;
@@ -206,7 +206,7 @@ static uint32_t Hash32Len0to4(const char *s, size_t len) {
   return fmix(Mur(b, Mur(len, c)));
 }
 
-static uint32_t Hash32Len5to12(const char *s, size_t len) {
+static uint32_t Hash32Len5to12(const char *s, uint32_t len) {
   uint32_t a = len, b = len * 5, c = 9, d = b;
   a += Fetch32(s);
   b += Fetch32(s + len - 4);
@@ -217,12 +217,12 @@ static uint32_t Hash32Len5to12(const char *s, size_t len) {
 uint32_t city_hash32(const char *s, size_t len) {
   if (len <= 24) {
     return len <= 12 ?
-        (len <= 4 ? Hash32Len0to4(s, len) : Hash32Len5to12(s, len)) :
+        (len <= 4 ? Hash32Len0to4(s, static_cast<uint32_t>(len)) : Hash32Len5to12(s, static_cast<uint32_t>(len))) :
         Hash32Len13to24(s, len);
   }
 
   // len > 24
-  uint32_t h = len, g = c1 * len, f = g;
+  uint32_t h = static_cast<uint32_t>(len), g = c1 * static_cast<uint32_t>(len), f = g;
   uint32_t a0 = Rotate32(Fetch32(s + len - 4) * c1, 17) * c2;
   uint32_t a1 = Rotate32(Fetch32(s + len - 8) * c1, 17) * c2;
   uint32_t a2 = Rotate32(Fetch32(s + len - 16) * c1, 17) * c2;
@@ -327,7 +327,7 @@ static uint64_t HashLen0to16(const char *s, size_t len) {
     uint8_t b = s[len >> 1];
     uint8_t c = s[len - 1];
     uint32_t y = static_cast<uint32_t>(a) + (static_cast<uint32_t>(b) << 8);
-    uint32_t z = len + (static_cast<uint32_t>(c) << 2);
+    uint32_t z = static_cast<uint32_t>(len) + (static_cast<uint32_t>(c) << 2);
     return ShiftMix(y * k2 ^ z * k0) * k2;
   }
   return k2;
@@ -445,7 +445,7 @@ static uint128 CityMurmur(const char *s, size_t len, uint128 seed) {
   uint64_t b = Uint128High64(seed);
   uint64_t c = 0;
   uint64_t d = 0;
-  signed long l = len - 16;
+  signed long l = static_cast<signed long>(len) - 16;
   if (l <= 0) {  // len <= 16
     a = ShiftMix(a * k1) * k1;
     c = b * k1 + HashLen0to16(s, len);
@@ -578,9 +578,9 @@ static void CityHashCrc256Long(const char *s, size_t len,
     g += e;                                     \
     e += z;                                     \
     g += x;                                     \
-    z = _mm_crc32_u64(z, b + g);                \
-    y = _mm_crc32_u64(y, e + h);                \
-    x = _mm_crc32_u64(x, f + a);                \
+    z = _mm_crc32_u64(static_cast<uint32_t>(z), b + g); \
+    y = _mm_crc32_u64(static_cast<uint32_t>(y), e + h); \
+    x = _mm_crc32_u64(static_cast<uint32_t>(x), f + a); \
     e = Rotate(e, r);                           \
     c += e;                                     \
     s += 40
