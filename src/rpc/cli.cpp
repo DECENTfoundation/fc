@@ -132,7 +132,7 @@ void cli::run()
              {
                  get_line( _prompt.c_str(), line, true );
              }
-             catch ( const fc::eof_exception& e )
+             catch ( const fc::eof_exception& )
              {
                 break;
              }
@@ -194,7 +194,7 @@ void cli::run()
                 if (!passwd.empty())
                     line.append(1, ' ').append(passwd);
             }
-            catch ( const fc::eof_exception& e )
+            catch ( const fc::eof_exception& )
             {
                 break;
             }
