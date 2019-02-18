@@ -127,7 +127,7 @@ namespace fc { namespace ecc {
         int pk_len = static_cast<int>(my->_key.size());
         memcpy( dat.begin(), my->_key.begin(), pk_len );
         FC_ASSERT( secp256k1_ec_pubkey_decompress( detail::_get_context(), (unsigned char *) dat.begin(), &pk_len ) );
-        FC_ASSERT( pk_len == dat.size() );
+        FC_ASSERT( pk_len == static_cast<int>(dat.size()) );
         return dat;
     }
 
