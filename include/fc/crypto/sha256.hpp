@@ -20,7 +20,7 @@ class sha256
     char*    data()const;
     size_t data_size()const { return 256 / 8; }
 
-    static sha256 hash( const char* d, uint32_t dlen );
+    static sha256 hash( const char* d, size_t dlen );
     static sha256 hash( const string& );
     static sha256 hash( const sha256& );
 
@@ -38,7 +38,7 @@ class sha256
         encoder();
         ~encoder();
 
-        void write( const char* d, uint32_t dlen );
+        void write( const char* d, size_t dlen );
         void put( char c ) { write( &c, 1 ); }
         void reset();
         sha256 result();

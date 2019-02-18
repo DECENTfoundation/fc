@@ -169,7 +169,7 @@ namespace fc
       uint64_t message_id = city_hash64(gelf_message_as_string.c_str(), gelf_message_as_string.size());
       const unsigned header_length = 2 /* magic */ + 8 /* msg id */ + 1 /* seq */ + 1 /* count */;
       const unsigned body_length = max_payload_size - header_length;
-      unsigned total_number_of_packets = (gelf_message_as_string.size() + body_length - 1) / body_length;
+      unsigned total_number_of_packets = static_cast<unsigned>((gelf_message_as_string.size() + body_length - 1) / body_length);
       unsigned bytes_sent = 0;
       unsigned number_of_packets_sent = 0;
       while (bytes_sent < gelf_message_as_string.size())

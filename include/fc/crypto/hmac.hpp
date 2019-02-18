@@ -20,7 +20,7 @@ namespace fc {
         public:
             hmac() {}
 
-            H digest( const char* c, uint32_t c_len, const char* d, uint32_t d_len )
+            H digest( const char* c, size_t c_len, const char* d, size_t d_len )
             {
                 encoder.reset();
                 add_key(c, c_len, 0x36);
@@ -34,7 +34,7 @@ namespace fc {
             }
 
         private:
-            void add_key( const char* c, const uint32_t c_len, char pad )
+            void add_key( const char* c, size_t c_len, char pad )
             {
                 if ( c_len > internal_block_size() )
                 {
@@ -60,4 +60,3 @@ namespace fc {
 }
 
 #endif	/* HMAC_HPP */
-

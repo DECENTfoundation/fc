@@ -5,7 +5,7 @@
 
 namespace fc {
     uint8_t from_hex( char c );
-    fc::string to_hex( const char* d, uint32_t s );
+    fc::string to_hex( const char* d, size_t s );
     std::string to_hex( const std::vector<char>& data );
 
     /**

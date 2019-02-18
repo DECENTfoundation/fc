@@ -119,21 +119,7 @@ public:
 
     unsigned long getulong() const
     {
-        return BN_get_word(bn);
-    }
-
-    unsigned int getuint() const
-    {
-        return BN_get_word(bn);
-    }
-
-    int getint() const
-    {
-        unsigned long n = BN_get_word(bn);
-        if (!BN_is_negative(bn))
-            return (n > (unsigned long)std::numeric_limits<int>::max() ? std::numeric_limits<int>::max() : n);
-        else
-            return (n > (unsigned long)std::numeric_limits<int>::max() ? std::numeric_limits<int>::min() : -(int)n);
+        return static_cast<unsigned long>(BN_get_word(bn));
     }
 
     void setint64(int64_t n)
@@ -163,12 +149,12 @@ public:
             }
             *p++ = c;
         }
-        unsigned int nSize = p - (pch + 4);
+        unsigned int nSize = static_cast<unsigned int>(p - (pch + 4));
         pch[0] = (nSize >> 24) & 0xff;
         pch[1] = (nSize >> 16) & 0xff;
         pch[2] = (nSize >> 8) & 0xff;
         pch[3] = (nSize) & 0xff;
-        BN_mpi2bn(pch, p - pch, bn);
+        BN_mpi2bn(pch, static_cast<int>(p - pch), bn);
     }
 
     void setuint64(uint64_t n)
@@ -190,19 +176,19 @@ public:
             }
             *p++ = c;
         }
-        unsigned int nSize = p - (pch + 4);
+        unsigned int nSize = static_cast<unsigned int>(p - (pch + 4));
         pch[0] = (nSize >> 24) & 0xff;
         pch[1] = (nSize >> 16) & 0xff;
         pch[2] = (nSize >> 8) & 0xff;
         pch[3] = (nSize) & 0xff;
-        BN_mpi2bn(pch, p - pch, bn);
+        BN_mpi2bn(pch, static_cast<int>(p - pch), bn);
     }
 
 
     void setvch(const std::vector<unsigned char>& vch)
     {
         std::vector<unsigned char> vch2(vch.size() + 4);
-        unsigned int nSize = vch.size();
+        unsigned int nSize = static_cast<unsigned int>(vch.size());
         // BIGNUM's byte stream format expects 4 bytes of
         // big endian size data info at the front
         vch2[0] = (nSize >> 24) & 0xff;
@@ -211,7 +197,7 @@ public:
         vch2[3] = (nSize >> 0) & 0xff;
         // swap data to big endian
         reverse_copy(vch.begin(), vch.end(), vch2.begin() + 4);
-        BN_mpi2bn(&vch2[0], vch2.size(), bn);
+        BN_mpi2bn(&vch2[0], static_cast<int>(vch2.size()), bn);
     }
 
     std::vector<unsigned char> getvch() const
@@ -298,7 +284,7 @@ public:
             if (!BN_div(dv.bn, rem.bn, bn.bn, bnBase.bn, pctx))
                 throw bignum_error("CBigNum::ToString() : BN_div failed");
             bn = dv;
-            unsigned int c = rem.getulong();
+            unsigned long c = rem.getulong();
             str += "0123456789abcdef"[c];
         }
         if (BN_is_negative(this->bn))
@@ -529,7 +515,7 @@ inline std::string EncodeBase58(const unsigned char* pbegin, const unsigned char
         if (!BN_div(dv.to_bignum(), rem.to_bignum(), bn.to_bignum(), bn58.to_bignum(), pctx))
             throw bignum_error("EncodeBase58 : BN_div failed");
         bn = dv;
-        unsigned int c = rem.getulong();
+        unsigned long c = rem.getulong();
         str += pszBase58[c];
     }
 

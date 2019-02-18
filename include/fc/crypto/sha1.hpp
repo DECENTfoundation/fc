@@ -16,7 +16,7 @@ class sha1
     char*    data()const;
     size_t data_size()const { return 20; }
 
-    static sha1 hash( const char* d, uint32_t dlen );
+    static sha1 hash( const char* d, size_t dlen );
     static sha1 hash( const string& );
 
     template<typename T>
@@ -33,7 +33,7 @@ class sha1
         encoder();
         ~encoder();
 
-        void write( const char* d, uint32_t dlen );
+        void write( const char* d, size_t dlen );
         void put( char c ) { write( &c, 1 ); }
         void reset();
         sha1 result();

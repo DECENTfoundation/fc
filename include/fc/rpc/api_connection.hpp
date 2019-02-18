@@ -12,8 +12,7 @@
 
 namespace fc {
    class api_connection;
-   
-   typedef uint32_t api_id_type;
+   typedef uint64_t api_id_type;
 
    namespace detail {
       template<typename Signature>
@@ -199,7 +198,6 @@ namespace fc {
       public:
          api_connection(){}
          virtual ~api_connection(){};
-
 
          template<typename T>
          api<T> get_remote_api( api_id_type api_id = 0 )

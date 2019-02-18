@@ -31,7 +31,7 @@ namespace fc {
       reset();
     }
 
-    sha512 sha512::hash( const char* d, uint32_t dlen ) {
+    sha512 sha512::hash( const char* d, size_t dlen ) {
       encoder e;
       e.write(d,dlen);
       return e.result();
@@ -40,7 +40,7 @@ namespace fc {
       return hash( s.c_str(), s.size() );
     }
 
-    void sha512::encoder::write( const char* d, uint32_t dlen ) {
+    void sha512::encoder::write( const char* d, size_t dlen ) {
       SHA512_Update( &my->ctx, d, dlen); 
     }
     sha512 sha512::encoder::result() {

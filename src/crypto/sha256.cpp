@@ -37,7 +37,7 @@ namespace fc {
       reset();
     }
 
-    sha256 sha256::hash( const char* d, uint32_t dlen ) {
+    sha256 sha256::hash( const char* d, size_t dlen ) {
       encoder e;
       e.write(d,dlen);
       return e.result();
@@ -52,7 +52,7 @@ namespace fc {
         return hash( s.data(), sizeof( s._hash ) );
     }
 
-    void sha256::encoder::write( const char* d, uint32_t dlen ) {
+    void sha256::encoder::write( const char* d, size_t dlen ) {
       SHA256_Update( &my->ctx, d, dlen); 
     }
     sha256 sha256::encoder::result() {
