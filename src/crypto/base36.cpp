@@ -10,7 +10,7 @@ namespace fc
        if( len == 0 ) return fc::string();
 
        const char* src = data;
-       int src_len = len;
+       uint32_t src_len = static_cast<uint32_t>(len);
        std::unique_ptr<char[]> buffer(new char[len+1]);
        if (*data & 0x80) {
            buffer[0] = 0;
@@ -22,7 +22,7 @@ namespace fc
 
        auto base36 = "0123456789abcdefghijklmnopqrstuvwxyz";
        std::vector<char> out( static_cast<size_t>(len * 1.6) + 2 );
-       int pos = out.size() - 1;
+       size_t pos = out.size() - 1;
        out[pos] = '\0';
        fc::bigint _36(36);
        do {
@@ -69,7 +69,7 @@ namespace fc
        }
 
        std::vector<char> bytes = value;
-       int leading_zeros = 0, len = bytes.size();
+       size_t leading_zeros = 0, len = bytes.size();
        const char *in = b36.c_str();
        while (*in++ == '0') { leading_zeros++; }
        char* first = bytes.data();

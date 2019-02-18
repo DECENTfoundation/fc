@@ -10,7 +10,7 @@ namespace fc {
   class bigint {
     public:
       bigint( const std::vector<char>& bige );
-      bigint( const char* bige, uint32_t l );
+      bigint( const char* bige, size_t l );
       bigint(uint64_t value);
       bigint( );
       bigint( const bigint& c );

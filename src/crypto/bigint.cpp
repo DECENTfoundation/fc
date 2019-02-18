@@ -8,12 +8,12 @@
 #include "../byteswap.hpp"
 
 namespace fc {
-      bigint::bigint( const char* bige, uint32_t l ) {
-        n = BN_bin2bn( (const unsigned char*)bige, l, NULL );
+      bigint::bigint( const char* bige, size_t l ) {
+        n = BN_bin2bn( (const unsigned char*)bige, static_cast<int>(l), NULL );
         FC_ASSERT( n != nullptr );
       }
       bigint::bigint( const std::vector<char>& bige ) {
-        n = BN_bin2bn( (const unsigned char*)bige.data(), bige.size(), NULL );
+        n = BN_bin2bn( (const unsigned char*)bige.data(), static_cast<int>(bige.size()), NULL );
         FC_ASSERT( n != nullptr );
       }
       bigint::bigint( BIGNUM* in )

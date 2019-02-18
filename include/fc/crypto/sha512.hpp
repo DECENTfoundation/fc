@@ -17,7 +17,7 @@ class sha512
     char*    data()const;
     size_t data_size()const { return 512 / 8; }
 
-    static sha512 hash( const char* d, uint32_t dlen );
+    static sha512 hash( const char* d, size_t dlen );
     static sha512 hash( const string& );
 
     template<typename T>
@@ -34,7 +34,7 @@ class sha512
         encoder();
         ~encoder();
 
-        void write( const char* d, uint32_t dlen );
+        void write( const char* d, size_t dlen );
         void put( char c ) { write( &c, 1 ); }
         void reset();
         sha512 result();

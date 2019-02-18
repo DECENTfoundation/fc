@@ -47,7 +47,7 @@ ripemd160 ripemd160::hash( const fc::sha256& h )
 {
   return hash( (const char*)&h, sizeof(h) );
 }
-ripemd160 ripemd160::hash( const char* d, uint32_t dlen ) {
+ripemd160 ripemd160::hash( const char* d, size_t dlen ) {
   encoder e;
   e.write(d,dlen);
   return e.result();
@@ -56,7 +56,7 @@ ripemd160 ripemd160::hash( const string& s ) {
   return hash( s.c_str(), s.size() );
 }
 
-void ripemd160::encoder::write( const char* d, uint32_t dlen ) {
+void ripemd160::encoder::write( const char* d, size_t dlen ) {
   RIPEMD160_Update( &my->ctx, d, dlen); 
 }
 ripemd160 ripemd160::encoder::result() {

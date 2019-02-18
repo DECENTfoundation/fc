@@ -2,7 +2,7 @@
 #include "_digest_common.hpp"
 
 namespace fc { namespace detail {
-    static void shift_l( const uint8_t* in, uint8_t* out, std::size_t n, unsigned int i) {
+    static void shift_l( const uint8_t* in, uint8_t* out, std::size_t n, std::size_t i) {
         if (i < n) {
             memcpy( out, in + i, n-i );
         } else {
@@ -11,7 +11,7 @@ namespace fc { namespace detail {
         memset( out + (n-i), 0, i );
     }
 
-    void shift_l( const char* in, char* out, std::size_t n, unsigned int i) {
+    void shift_l( const char* in, char* out, std::size_t n, std::size_t i) {
         const uint8_t* in8 = (uint8_t*) in;
         uint8_t* out8 = (uint8_t*) out;
 
@@ -26,7 +26,7 @@ namespace fc { namespace detail {
             out8[p] = (in8[p] << i) | (in8[p+1]>>(8-i));
         out8[p] = in8[p] << i;
     }
-    static void shift_r( const uint8_t* in, uint8_t* out, std::size_t n, unsigned int i) {
+    static void shift_r( const uint8_t* in, uint8_t* out, std::size_t n, std::size_t i) {
         if (i < n) {
             memcpy( out+i, in, n-i );
         } else {
@@ -35,7 +35,7 @@ namespace fc { namespace detail {
         memset( out, 0, i );
     }
 
-    void shift_r( const char* in, char* out, std::size_t n, unsigned int i) {
+    void shift_r( const char* in, char* out, std::size_t n, std::size_t i) {
         const uint8_t* in8 = (uint8_t*) in;
         uint8_t* out8 = (uint8_t*) out;
 

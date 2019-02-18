@@ -22,7 +22,7 @@ class ripemd160
 
     static ripemd160 hash( const fc::sha512& h );
     static ripemd160 hash( const fc::sha256& h );
-    static ripemd160 hash( const char* d, uint32_t dlen );
+    static ripemd160 hash( const char* d, size_t dlen );
     static ripemd160 hash( const string& );
 
     template<typename T>
@@ -39,7 +39,7 @@ class ripemd160
         encoder();
         ~encoder();
 
-        void write( const char* d, uint32_t dlen );
+        void write( const char* d, size_t dlen );
         void put( char c ) { write( &c, 1 ); }
         void reset();
         ripemd160 result();

@@ -64,7 +64,7 @@ namespace fc {
                    if( start_time <= _current_file_start_time )
                    {
                        _rotation_task = schedule( [this]() { rotate_files(); },
-                                                  _current_file_start_time + cfg.rotation_interval.to_seconds(),
+                                                  _current_file_start_time + uint32_t(cfg.rotation_interval.to_seconds()),
                                                   "rotate_files(2)" );
                        return;
                    }
@@ -116,7 +116,7 @@ namespace fc {
 
              _current_file_start_time = start_time;
              _rotation_task = schedule( [this]() { rotate_files(); },
-                                        _current_file_start_time + cfg.rotation_interval.to_seconds(),
+                                        _current_file_start_time + uint32_t(cfg.rotation_interval.to_seconds()),
                                         "rotate_files(3)" );
          }
    };
