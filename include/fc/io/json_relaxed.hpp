@@ -67,7 +67,7 @@ namespace fc { namespace json_relaxed
          }
          return token.str();
       }
-      catch( const fc::eof_exception& eof )
+      catch( const fc::eof_exception& )
       {
          return token.str();
       }

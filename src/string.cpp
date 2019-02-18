@@ -95,7 +95,7 @@ namespace fc  {
     {
       return boost::lexical_cast<int64_t>(i.c_str());
     }
-    catch( const boost::bad_lexical_cast& e )
+    catch( const boost::bad_lexical_cast& )
     {
       FC_THROW_EXCEPTION( parse_error_exception, "Couldn't parse int64_t" );
     }
@@ -108,7 +108,7 @@ namespace fc  {
     {
       return boost::lexical_cast<uint64_t>(i.c_str());
     }
-    catch( const boost::bad_lexical_cast& e )
+    catch( const boost::bad_lexical_cast& )
     {
       FC_THROW_EXCEPTION( parse_error_exception, "Couldn't parse uint64_t" );
     }
@@ -121,7 +121,7 @@ namespace fc  {
     {
       return boost::lexical_cast<double>(i.c_str());
     }
-    catch( const boost::bad_lexical_cast& e )
+    catch( const boost::bad_lexical_cast& )
     {
       FC_THROW_EXCEPTION( parse_error_exception, "Couldn't parse double" );
     }
@@ -173,5 +173,3 @@ namespace fc  {
   }
 
 } // namespace fc
-
-
