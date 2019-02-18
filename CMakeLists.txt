@@ -266,9 +266,7 @@ ELSE()
 ENDIF()
 
 # This will become unnecessary once we update to websocketpp which fixes upstream issue #395
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWEBSOCKETPP_STRICT_MASKING")
-
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_ASIO_HAS_STD_CHRONO")
+target_compile_definitions(fc PRIVATE WEBSOCKETPP_STRICT_MASKING BOOST_ASIO_HAS_STD_CHRONO BOOST_COROUTINES_NO_DEPRECATION_WARNING)
 
 target_include_directories(fc
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
