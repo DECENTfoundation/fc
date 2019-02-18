@@ -312,8 +312,8 @@ namespace fc
 } // namespace fc
 
 #if __APPLE__
-    #define LIKELY(x)    __builtin_expect((long)!!(x), 1L)
-    #define UNLIKELY(x)  __builtin_expect((long)!!(x), 0L)
+    #define LIKELY(x)    __builtin_expect(static_cast<long>(!!(x)), 1L)
+    #define UNLIKELY(x)  __builtin_expect(static_cast<long>(!!(x)), 0L)
 #else
     #define LIKELY(x)   (x)
     #define UNLIKELY(x) (x)
