@@ -152,15 +152,15 @@ namespace fc
 
 // takes a ... instead of a SEQ arg because it can be called with an empty SEQ 
 // from FC_CAPTURE_AND_THROW()
-#define FC_FORMAT_ARG_PARAMS( ... )\
-    BOOST_PP_SEQ_FOR_EACH( FC_FORMAT_ARGS, v, __VA_ARGS__ ) 
+#define FC_FORMAT_ARG_PARAMS( SEQ )\
+    BOOST_PP_SEQ_FOR_EACH( FC_FORMAT_ARGS, v, SEQ )
 
 #define idump( SEQ ) \
-    ilog( FC_FORMAT(SEQ), FC_FORMAT_ARG_PARAMS(SEQ) )  
+    ilog( FC_FORMAT(SEQ), FC_FORMAT_ARG_PARAMS(SEQ) )
 #define wdump( SEQ ) \
-    wlog( FC_FORMAT(SEQ), FC_FORMAT_ARG_PARAMS(SEQ) )  
+    wlog( FC_FORMAT(SEQ), FC_FORMAT_ARG_PARAMS(SEQ) )
 #define edump( SEQ ) \
-    elog( FC_FORMAT(SEQ), FC_FORMAT_ARG_PARAMS(SEQ) )  
+    elog( FC_FORMAT(SEQ), FC_FORMAT_ARG_PARAMS(SEQ) )
 
 // this disables all normal logging statements -- not something you'd normally want to do,
 // but it's useful if you're benchmarking something and suspect logging is causing

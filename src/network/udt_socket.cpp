@@ -177,7 +177,7 @@ namespace fc {
 
       if( UDT::ERROR == UDT::bind(_udt_socket_id, (sockaddr*)&local_addr, sizeof(local_addr)) )
          check_udt_errors();
-   } FC_CAPTURE_AND_RETHROW() }
+   } FC_RETHROW() }
 
    void udt_socket::connect_to( const ip::endpoint& remote_endpoint )
    { try {
@@ -211,7 +211,7 @@ namespace fc {
       if( error_code == UDT::ERROR )
           check_udt_errors();
       return ip::endpoint( ip::address( htonl( peer_addr.sin_addr.s_addr ) ), htons(peer_addr.sin_port) );
-   } FC_CAPTURE_AND_RETHROW() }
+   } FC_RETHROW() }
 
    ip::endpoint udt_socket::local_endpoint() const
    { try {
@@ -221,7 +221,7 @@ namespace fc {
       if( error_code == UDT::ERROR )
           check_udt_errors();
       return ip::endpoint( ip::address( htonl( sock_addr.sin_addr.s_addr ) ), htons(sock_addr.sin_port) );
-   } FC_CAPTURE_AND_RETHROW() }
+   } FC_RETHROW() }
 
 
    /// @{
@@ -299,7 +299,7 @@ namespace fc {
       {
          wlog( "already closed" );
       }
-   } FC_CAPTURE_AND_RETHROW() }
+   } FC_RETHROW() }
    /// @}
    
    void udt_socket::open()
@@ -352,7 +352,7 @@ namespace fc {
         default_epool_service().remove( _udt_socket_id );
         _udt_socket_id = UDT::INVALID_SOCK;
      }
-  } FC_CAPTURE_AND_RETHROW() }
+  } FC_RETHROW() }
 
   void udt_server::accept( udt_socket& s )
   { try {
@@ -375,7 +375,7 @@ namespace fc {
          else
             check_udt_errors();
       }
-  } FC_CAPTURE_AND_RETHROW() }
+  } FC_RETHROW() }
 
   void udt_server::listen( const ip::endpoint& ep )
   { try {
@@ -400,6 +400,6 @@ namespace fc {
      if( error_code == UDT::ERROR )
          check_udt_errors();
      return ip::endpoint( ip::address( htonl( sock_addr.sin_addr.s_addr ) ), htons(sock_addr.sin_port) );
-  } FC_CAPTURE_AND_RETHROW() }
+  } FC_RETHROW() }
 
-} 
+}

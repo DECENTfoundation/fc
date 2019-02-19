@@ -459,6 +459,21 @@ namespace fc
                 std::current_exception() ); \
    }
 
+#define FC_RETHROW() \
+   catch( fc::exception& er ) { \
+      FC_RETHROW_EXCEPTION( er, warn, "" ); \
+   } catch( const std::exception& e ) {  \
+      fc::exception fce( \
+                FC_LOG_MESSAGE( warn, "${what}: ", ("what",e.what())), \
+                fc::std_exception_code,\
+                typeid(e).name(), \
+                e.what() ) ; throw fce;\
+   } catch( ... ) {  \
+      throw fc::unhandled_exception( \
+                FC_LOG_MESSAGE( warn, "" ), \
+                std::current_exception() ); \
+   }
+
 #define FC_CAPTURE_AND_RETHROW( ... ) \
    catch( fc::exception& er ) { \
       FC_RETHROW_EXCEPTION( er, warn, "", FC_FORMAT_ARG_PARAMS(__VA_ARGS__) ); \
@@ -473,4 +488,3 @@ namespace fc
                 FC_LOG_MESSAGE( warn, "",FC_FORMAT_ARG_PARAMS(__VA_ARGS__)), \
                 std::current_exception() ); \
    }
-
