@@ -269,6 +269,12 @@ namespace fc {
         void operator()( const char* name )const {
           fc::raw::pack( s, c.*p );
         }
+
+        template<typename T, typename C>
+        void operator()( const char* name, std::function<T(const C&)> fnc )const {
+          fc::raw::pack( s, fnc(c) );
+        }
+
         private:
           const Class& c;
           Stream&      s;
@@ -284,6 +290,15 @@ namespace fc {
         { try {
           fc::raw::unpack( s, c.*p );
         } FC_RETHROW_EXCEPTIONS( warn, "Error unpacking field ${field}", ("field",name) ) }
+
+        template<typename T, typename C>
+        inline void operator()( const char* name, std::function<C(const T&)> fnc )const
+        { try {
+          T val;
+          fc::raw::unpack( s, val );
+          c = fnc(val);
+        } FC_RETHROW_EXCEPTIONS( warn, "Error unpacking field ${field}", ("field",name) ) }
+
         private:
           Class&  c;
           Stream& s;
