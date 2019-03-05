@@ -243,7 +243,6 @@ public:
        impl::storage_ops<0, Types...>::del(_tag, storage);
     }
 
-
     template<typename X>
     static_variant& operator=(const X& v) {
         static_assert(
@@ -365,7 +364,6 @@ struct visitor {
       }
    };
 
-
    template<typename... T> void to_variant( const fc::static_variant<T...>& s, fc::variant& v )
    {
       variant tmp;
@@ -374,11 +372,12 @@ struct visitor {
       s.visit( from_static_variant(vars[1]) );
       v = std::move(vars);
    }
+
    template<typename... T> void from_variant( const fc::variant& v, fc::static_variant<T...>& s )
    {
       auto ar = v.get_array();
       if( ar.size() < 2 ) return;
-      s.set_which( ar[0].as_uint64() );
+      s.set_which( static_cast<int>(ar[0].as_uint64()) );
       s.visit( to_static_variant(ar[1]) );
    }
 

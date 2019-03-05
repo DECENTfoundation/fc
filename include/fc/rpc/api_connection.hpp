@@ -264,13 +264,12 @@ namespace fc {
          std::vector< std::function<variant(const variants&)>  > _local_callbacks;
          std::vector<std::string>                                _api_names;
 
-
          struct api_visitor
          {
-            uint32_t                            _api_id;
+            api_id_type                         _api_id;
             std::shared_ptr<fc::api_connection> _connection;
 
-            api_visitor( uint32_t api_id, std::shared_ptr<fc::api_connection> con )
+            api_visitor( api_id_type api_id, std::shared_ptr<fc::api_connection> con )
             :_api_id(api_id),_connection(std::move(con))
             {
             }
