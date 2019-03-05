@@ -84,7 +84,7 @@ namespace fc {
             return call( itr->second, args );
          }
 
-         variant call( uint32_t method_id, const variants& args )
+         variant call( api_id_type method_id, const variants& args )
          {
             FC_ASSERT( method_id < _methods.size() );
             return _methods[method_id](args);
@@ -184,14 +184,11 @@ namespace fc {
             const std::weak_ptr<fc::api_connection>& _api_con;
          };
 
-
          std::weak_ptr<fc::api_connection>                       _api_connection;
          fc::any                                                 _api;
-         std::map< std::string, uint32_t >                       _by_name;
+         std::map< std::string, api_id_type >                    _by_name;
          std::vector< std::function<variant(const variants&)> >  _methods;
    }; // class generic_api
-
-
 
    class api_connection : public std::enable_shared_from_this<fc::api_connection>
    {
