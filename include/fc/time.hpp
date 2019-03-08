@@ -81,7 +81,7 @@ namespace fc {
         :utc_seconds(seconds){}
 
         time_point_sec( const time_point& t )
-        :utc_seconds( t.time_since_epoch().count() / 1000000ll ){}
+        :utc_seconds( static_cast<uint32_t>(t.time_since_epoch().count() / 1000000ll) ){}
 
         static time_point_sec maximum() { return time_point_sec(0xffffffff); }
         static time_point_sec min() { return time_point_sec(0); }
@@ -91,7 +91,7 @@ namespace fc {
 
         time_point_sec operator = ( const fc::time_point& t )
         {
-          utc_seconds = t.time_since_epoch().count() / 1000000ll;
+          utc_seconds = static_cast<uint32_t>(t.time_since_epoch().count() / 1000000ll);
           return *this;
         }
         friend bool      operator < ( const time_point_sec& a, const time_point_sec& b )  { return a.utc_seconds < b.utc_seconds; }
@@ -101,9 +101,9 @@ namespace fc {
         friend bool      operator == ( const time_point_sec& a, const time_point_sec& b ) { return a.utc_seconds == b.utc_seconds; }
         friend bool      operator != ( const time_point_sec& a, const time_point_sec& b ) { return a.utc_seconds != b.utc_seconds; }
         time_point_sec&  operator += ( uint32_t m ) { utc_seconds+=m; return *this; }
-        time_point_sec&  operator += ( microseconds m ) { utc_seconds+=m.to_seconds(); return *this; }
+        time_point_sec&  operator += ( microseconds m ) { utc_seconds+=static_cast<uint32_t>(m.to_seconds()); return *this; }
         time_point_sec&  operator -= ( uint32_t m ) { utc_seconds-=m; return *this; }
-        time_point_sec&  operator -= ( microseconds m ) { utc_seconds-=m.to_seconds(); return *this; }
+        time_point_sec&  operator -= ( microseconds m ) { utc_seconds-=static_cast<uint32_t>(m.to_seconds()); return *this; }
         time_point_sec   operator +( uint32_t offset )const { return time_point_sec(utc_seconds + offset); }
         time_point_sec   operator -( uint32_t offset )const { return time_point_sec(utc_seconds - offset); }
 

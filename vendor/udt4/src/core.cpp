@@ -1656,7 +1656,7 @@ void CUDT::CCUpdate()
 
    if (m_llMaxBW <= 0)
       return;
-   const double minSP = 1000000.0 / (double(m_llMaxBW) / m_iMSS) * m_ullCPUFrequency;
+   auto minSP = static_cast<uint64_t>(1000000.0 / (double(m_llMaxBW) / m_iMSS) * m_ullCPUFrequency);
    if (m_ullInterval < minSP)
        m_ullInterval = minSP;
 }
