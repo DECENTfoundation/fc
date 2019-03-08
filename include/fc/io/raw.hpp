@@ -1,4 +1,5 @@
 #pragma once
+#include <fc/uint48.hpp>
 #include <fc/io/raw_variant.hpp>
 #include <fc/reflect/reflect.hpp>
 #include <fc/io/datastream.hpp>
@@ -9,7 +10,6 @@
 #include <fc/array.hpp>
 #include <fc/time.hpp>
 #include <fc/filesystem.hpp>
-#include <fc/exception/exception.hpp>
 #include <fc/safe.hpp>
 #include <fc/io/raw_fwd.hpp>
 #include <map>
@@ -135,6 +135,29 @@ namespace fc {
       v = std::make_shared<T>();
       fc::raw::unpack( s, *v );
     } FC_RETHROW_EXCEPTIONS( warn, "std::shared_ptr<T>", ("type",fc::get_typename<T>::name()) ) }
+
+    template<typename Stream>
+    inline void pack( Stream& s, const uint48_t& v ) {
+        uint64_t val = v.value;
+        do {
+          uint8_t b = uint8_t(val) & 0x7f;
+          val >>= 7;
+          b |= ((val > 0) << 7);
+          s.write((char*)&b,1);//.put(b);
+        } while( val );
+    }
+
+    template<typename Stream>
+    inline void unpack( Stream& s, uint48_t& v ) {
+    try {
+        char b = 0; uint8_t by = 0;
+        v.value = 0;
+        do {
+          s.get(b);
+          v.value |= uint64_t(uint8_t(b) & 0x7f) << by;
+          by += 7;
+        } while( uint8_t(b) & 0x80 );
+    } FC_RETHROW_EXCEPTIONS( warn, "error unpacking uint48_t" ) }
 
     template<typename Stream> inline void pack( Stream& s, const signed_int& v ) {
       uint32_t val = (v.value<<1) ^ (v.value>>31);
@@ -648,4 +671,3 @@ namespace fc {
     }
 
 } } // namespace fc::raw
-
