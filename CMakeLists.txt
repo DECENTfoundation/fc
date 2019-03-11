@@ -246,6 +246,7 @@ endif()
 # end readline stuff
 
 IF(WIN32)
+  target_compile_options(fc PRIVATE /WX)
   target_compile_definitions(fc PRIVATE _CRT_NONSTDC_NO_DEPRECATE _CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS PUBLIC NOMINMAX
     # The current version of websockets doesn't correctly guess what 'chrono' implementation boost::asio uses
     # on the recommended build platform of VC++12/boost_1.58.  Force it here until websocket gets their

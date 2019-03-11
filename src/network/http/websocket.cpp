@@ -7,6 +7,10 @@
 # define ENABLE_WEBSOCKET_PERMESSAGE_DEFLATE
 #endif
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4267)
+#endif
 #include <websocketpp/config/asio_client.hpp>
 #include <websocketpp/config/asio.hpp>
 #include <websocketpp/server.hpp>
@@ -16,6 +20,9 @@
 #endif
 #include <websocketpp/client.hpp>
 #include <websocketpp/logger/stub.hpp>
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
 #include <fc/monitoring.hpp>
 #include <fc/optional.hpp>
