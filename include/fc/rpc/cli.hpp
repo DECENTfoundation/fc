@@ -41,7 +41,7 @@ namespace fc { namespace rpc {
          std::map<string,std::function<string(variant,const variants&)> > _result_formatters;
          fc::future<void> _run_complete;
 
-         std::vector<std::string> commands;
+         std::string command_file;
          bool non_interactive = false;
    };
 } } 

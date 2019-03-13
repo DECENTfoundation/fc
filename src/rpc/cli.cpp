@@ -93,50 +93,44 @@ void cli::set_prompt( const string& prompt )
 void cli::set_command_file( const string& command_file )
 {
     non_interactive = true;
-
-    std::ifstream cf_in(command_file);
-    std::string current_line;
-
-    if (! cf_in.good())
-    {
-        std::cout << "File not found or an I/O error.\n";
-        return;
-    }
-
-    while (std::getline(cf_in, current_line))
-    {
-        if (current_line.size() > 0)
-        {
-            commands.emplace_back(current_line);
-        }
-    }
+    this->command_file = command_file;
 }
 
 void cli::run()
 {
-   unsigned int current_line_index = 0;
+   if (non_interactive)
+   {
+       fc::variants args = fc::json::variants_from_string("from_command_file " + command_file + char(EOF));
+
+       const string& method = args[0].get_string();
+
+       auto result = receive_call( 0, method, variants( args.begin()+1,args.end() ) );
+       auto itr = _result_formatters.find( method );
+       if( itr == _result_formatters.end() )
+       {
+          std::cout << fc::json::to_pretty_string( result ) << "\n";
+       }
+       else
+          std::cout << itr->second( result, args ) << "\n";
+
+       return;
+   }
+
    while( !_run_complete.canceled() )
    {
       try
       {
          std::string line;
-         if (non_interactive)
+
+         try
          {
-             if (current_line_index >= commands.size())
-                 break;
-             line = commands[current_line_index++];
+             get_line( _prompt.c_str(), line, true );
          }
-         else
+         catch ( const fc::eof_exception& )
          {
-             try
-             {
-                 get_line( _prompt.c_str(), line, true );
-             }
-             catch ( const fc::eof_exception& )
-             {
-                break;
-             }
+            break;
          }
+
          if (line == "quit" || line == "exit")
             break;
 
