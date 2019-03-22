@@ -5,6 +5,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <boost/algorithm/string/trim.hpp>
+
 #ifdef HAVE_READLINE
 # include <readline/readline.h>
 # include <readline/history.h>
@@ -115,6 +117,7 @@ void cli::run()
       try
       {
          std::string line;
+         std::string trimmed_line;
 
          try
          {
@@ -125,12 +128,13 @@ void cli::run()
             break;
          }
 
-         if (line == "quit" || line == "exit")
+         trimmed_line = boost::algorithm::trim_right_copy(line);
+         if (trimmed_line == "quit" || trimmed_line == "exit")
             break;
 
-         if (line == "unlock" || line == "set_password")
+         if (trimmed_line == "unlock" || trimmed_line == "set_password")
          {
-             line = fc::get_password_hidden(line);
+             line = fc::get_password_hidden(trimmed_line);
          }
 
          fc::variants args = fc::json::variants_from_string(line + char(EOF));
