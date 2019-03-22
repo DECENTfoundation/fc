@@ -254,15 +254,12 @@ IF(WIN32)
     _WEBSOCKETPP_CPP11_CHRONO_
   )
 ELSE()
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+  target_compile_options(fc PUBLIC -fvisibility=hidden $<$<COMPILE_LANGUAGE:CXX>:-fvisibility-inlines-hidden> -Wall)
 
   IF(APPLE)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -Wall")
+    target_compile_options(fc PUBLIC -stdlib=libc++)
   ELSE()
-    if( NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
-      target_compile_options(fc PUBLIC -Wall -fnon-call-exceptions)
-    endif()
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fnon-call-exceptions")
+    target_compile_options(fc PUBLIC -fnon-call-exceptions)
   ENDIF()
 ENDIF()
 
