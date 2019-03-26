@@ -8,34 +8,36 @@
 
 namespace fc
 {
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ < 6)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 
-   FC_REGISTER_EXCEPTIONS( (timeout_exception)
-                           (file_not_found_exception)
-                           (parse_error_exception)
-                           (invalid_arg_exception)
-                           (invalid_operation_exception)
-                           (key_not_found_exception)
-                           (bad_cast_exception)
-                           (out_of_range_exception)
-                           (canceled_exception)
-                           (assert_exception)
-                           (eof_exception)
-                           (unknown_host_exception)
-                           (null_optional)
-                           (udt_exception)
-                           (aes_exception)
-                           (overflow_exception)
-                           (underflow_exception)
-                           (divide_by_zero_exception)
-                         )
+#define FC_REGISTER_EXCEPTION(r, unused, base) \
+   fc::exception_factory::instance().register_exception<base>();
 
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ < 6)
-#pragma GCC diagnostic pop
-#endif
+#define FC_REGISTER_EXCEPTIONS( SEQ ) \
+    BOOST_PP_SEQ_FOR_EACH( FC_REGISTER_EXCEPTION, v, SEQ )
+
+   struct exception_registrator {
+      exception_registrator() {
+         FC_REGISTER_EXCEPTIONS( (timeout_exception)
+                                 (file_not_found_exception)
+                                 (parse_error_exception)
+                                 (invalid_arg_exception)
+                                 (invalid_operation_exception)
+                                 (key_not_found_exception)
+                                 (bad_cast_exception)
+                                 (out_of_range_exception)
+                                 (canceled_exception)
+                                 (assert_exception)
+                                 (eof_exception)
+                                 (unknown_host_exception)
+                                 (null_optional)
+                                 (udt_exception)
+                                 (aes_exception)
+                                 (overflow_exception)
+                                 (underflow_exception)
+                                 (divide_by_zero_exception)
+                              )
+      }
+   } _ex_reg;
 
    namespace detail
    {

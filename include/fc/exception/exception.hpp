@@ -212,16 +212,6 @@ namespace fc
       private:
         std::unordered_map<int64_t,base_exception_builder*> _registered_exceptions;
    };
-#define FC_REGISTER_EXCEPTION(r, unused, base) \
-   fc::exception_factory::instance().register_exception<base>();
-
-#define FC_REGISTER_EXCEPTIONS( SEQ )\
-     \
-   static bool exception_init = []()->bool{ \
-    BOOST_PP_SEQ_FOR_EACH( FC_REGISTER_EXCEPTION, v, SEQ )  \
-      return true; \
-   }();  \
-   
 
 #define FC_DECLARE_DERIVED_EXCEPTION( TYPE, BASE, CODE, WHAT ) \
    class TYPE : public BASE  \
