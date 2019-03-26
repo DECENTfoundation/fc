@@ -43,7 +43,11 @@ namespace fc {
       get_appender_map()[name] = ap;
       return ap;
    }
-   
+
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ < 6)
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
+
    static const bool reg_console_appender = appender::register_appender<console_appender>( "console" );// const is used to avoid warning
    static const bool reg_file_appender = appender::register_appender<file_appender>( "file" );
    static bool reg_gelf_appender = appender::register_appender<gelf_appender>( "gelf" );

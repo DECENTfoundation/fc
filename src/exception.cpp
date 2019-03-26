@@ -8,6 +8,11 @@
 
 namespace fc
 {
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ < 6)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
+
    FC_REGISTER_EXCEPTIONS( (timeout_exception)
                            (file_not_found_exception)
                            (parse_error_exception)
@@ -27,6 +32,10 @@ namespace fc
                            (underflow_exception)
                            (divide_by_zero_exception)
                          )
+
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ < 6)
+#pragma GCC diagnostic pop
+#endif
 
    namespace detail
    {
