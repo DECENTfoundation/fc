@@ -254,7 +254,7 @@ IF(WIN32)
     _WEBSOCKETPP_CPP11_CHRONO_
   )
 ELSE()
-  target_compile_options(fc PUBLIC -fvisibility=hidden $<$<COMPILE_LANGUAGE:CXX>:-fvisibility-inlines-hidden> -Wall)
+  target_compile_options(fc PUBLIC -fvisibility=hidden $<$<COMPILE_LANGUAGE:CXX>:-fvisibility-inlines-hidden> -Wall PRIVATE -Werror)
 
   IF(APPLE)
     target_compile_options(fc PUBLIC -stdlib=libc++)

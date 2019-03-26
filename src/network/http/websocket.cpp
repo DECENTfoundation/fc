@@ -42,6 +42,10 @@
 #endif
 #define DEFAULT_LOGGER "rpc"
 
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ < 8)
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80947
+#pragma GCC diagnostic ignored "-Wattributes"
+#endif
 
 namespace {
 
