@@ -379,6 +379,7 @@ std::vector<char> aes_load( const fc::path& file, const fc::sha512& key )
    return aes_decrypt( key, cipher );
 } FC_RETHROW_EXCEPTIONS( warn, "", ("file",file) ) }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 /* This stuff has to go somewhere, I guess this is as good a place as any...
   OpenSSL isn't thread-safe unless you give it access to some mutexes,
   so the CRYPTO_set_id_callback() function needs to be called before there's any
@@ -388,6 +389,7 @@ struct openssl_thread_config
 {
   static boost::mutex* openssl_mutexes;
   static unsigned long get_thread_id();
+  static void threadid_callback(CRYPTO_THREADID *id);
   static void locking_callback(int mode, int type, const char *file, int line);
   openssl_thread_config();
   ~openssl_thread_config();
@@ -405,6 +407,11 @@ unsigned long openssl_thread_config::get_thread_id()
 #endif
 }
 
+void openssl_thread_config::threadid_callback(CRYPTO_THREADID *id)
+{
+  CRYPTO_THREADID_set_numeric(id, get_thread_id());
+}
+
 void openssl_thread_config::locking_callback(int mode, int type, const char *file, int line)
 {
   if (mode & CRYPTO_LOCK)
@@ -419,23 +426,22 @@ void openssl_thread_config::locking_callback(int mode, int type, const char *fil
 // each library that does this to make sure they will play nice.
 openssl_thread_config::openssl_thread_config()
 {
-  if (CRYPTO_get_id_callback() == NULL &&
-      CRYPTO_get_locking_callback() == NULL)
-  {
+  if (!CRYPTO_get_locking_callback()) {
     openssl_mutexes = new boost::mutex[CRYPTO_num_locks()];
-    CRYPTO_set_id_callback(&get_thread_id);
     CRYPTO_set_locking_callback(&locking_callback);
+    CRYPTO_THREADID_set_callback(&threadid_callback);
   }
 }
+
 openssl_thread_config::~openssl_thread_config()
 {
-  if (CRYPTO_get_id_callback() == &get_thread_id)
-  {
-    CRYPTO_set_id_callback(NULL);
+  if (CRYPTO_get_locking_callback() == &locking_callback) {
     CRYPTO_set_locking_callback(NULL);
+    CRYPTO_THREADID_set_callback(NULL);
     delete[] openssl_mutexes;
     openssl_mutexes = nullptr;
   }
 }
+#endif
 
 }  // namespace fc
