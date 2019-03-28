@@ -6,7 +6,6 @@
 
 namespace fc  
 {
-
    class appender;
 
    /**
@@ -98,12 +97,6 @@ namespace fc
       (LOGGER).log( FC_LOG_MESSAGE( error, FORMAT, __VA_ARGS__ ) ); \
   FC_MULTILINE_MACRO_END
 
-#define dlog( FORMAT, ... ) \
-  FC_MULTILINE_MACRO_BEGIN \
-   if( (fc::logger::get(DEFAULT_LOGGER)).is_enabled( fc::log_level::debug ) ) \
-      (fc::logger::get(DEFAULT_LOGGER)).log( FC_LOG_MESSAGE( debug, FORMAT, __VA_ARGS__ ) ); \
-  FC_MULTILINE_MACRO_END
-
 /**
  * Sends the log message to a special 'user' log stream designed for messages that
  * the end user may like to see.
@@ -114,6 +107,11 @@ namespace fc
       (fc::logger::get("user")).log( FC_LOG_MESSAGE( debug, FORMAT, __VA_ARGS__ ) ); \
   FC_MULTILINE_MACRO_END
 
+#define dlog( FORMAT, ... ) \
+  FC_MULTILINE_MACRO_BEGIN \
+   if( (fc::logger::get(DEFAULT_LOGGER)).is_enabled( fc::log_level::debug ) ) \
+      (fc::logger::get(DEFAULT_LOGGER)).log( FC_LOG_MESSAGE( debug, FORMAT, __VA_ARGS__ ) ); \
+  FC_MULTILINE_MACRO_END
 
 #define ilog( FORMAT, ... ) \
   FC_MULTILINE_MACRO_BEGIN \
@@ -140,7 +138,6 @@ namespace fc
 #include <boost/preprocessor/stringize.hpp>
 #include <boost/preprocessor/punctuation/paren.hpp>
 
-
 #define FC_FORMAT_ARG(r, unused, base) \
   BOOST_PP_STRINGIZE(base) ": ${" BOOST_PP_STRINGIZE( base ) "} "
 
@@ -155,6 +152,8 @@ namespace fc
 #define FC_FORMAT_ARG_PARAMS( SEQ )\
     BOOST_PP_SEQ_FOR_EACH( FC_FORMAT_ARGS, v, SEQ )
 
+#define ddump( SEQ ) \
+    dlog( FC_FORMAT(SEQ), FC_FORMAT_ARG_PARAMS(SEQ) )
 #define idump( SEQ ) \
     ilog( FC_FORMAT(SEQ), FC_FORMAT_ARG_PARAMS(SEQ) )
 #define wdump( SEQ ) \
