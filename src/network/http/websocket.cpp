@@ -502,6 +502,7 @@ namespace fc { namespace http {
                           std::string response = current_con->on_http(request_body);
                           con->set_body( response );
                           con->set_status( websocketpp::http::status_code::ok );
+                          con->replace_header( "Content-Type", "application/json" );
 
                           if (!this->_additional_headers.empty()) {
                              for(const auto& item : this->_additional_headers) {
