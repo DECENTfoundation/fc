@@ -110,29 +110,49 @@ namespace fc
         v = m.to_variant();
    }
 
+   void  to_string(log_level e, std::string& s)
+   {
+      switch(e)
+      {
+      case log_level::all:
+         s = "all";
+         return;
+      case log_level::debug:
+         s = "debug";
+         return;
+      case log_level::info:
+         s = "info";
+         return;
+      case log_level::warn:
+         s = "warn";
+         return;
+      case log_level::error:
+         s = "error";
+         return;
+      case log_level::off:
+         s = "off";
+         return;
+      default:
+         FC_ASSERT(false, "Add new case statement with log level string");
+         break;
+      }
+   }
+
+   void to_log_category_column(log_level e, std::string& s)
+   {
+      const int COL_WIDTH = 6;
+      to_string(e, s);
+      int num_of_spaces = COL_WIDTH - (int)s.size();
+      for(int i = 0; i < num_of_spaces; i++)
+         s += " ";
+   }
+
    void  to_variant( log_level e, variant& v )
    {
-      switch( e )
-      {
-        case log_level::all: 
-           v = "all";
-           return;
-        case log_level::debug:
-           v = "debug";
-           return;
-        case log_level::info:
-           v = "info";
-           return;
-        case log_level::warn:
-           v = "warn";
-           return;
-        case log_level::error:
-           v = "error";
-           return;
-        case log_level::off:
-           v = "off";
-           return;
-      }
+      std::string s;
+      to_string(e, s);
+
+      v = s;
    }
    void from_variant( const variant& v, log_level& e )
    {

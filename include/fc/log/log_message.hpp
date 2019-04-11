@@ -44,6 +44,8 @@ namespace fc
          values value;
    };
 
+   void to_string( log_level e, std::string& s);
+   void to_log_category_column(log_level e, std::string& s);
    void to_variant( log_level e, variant& v );
    void from_variant( const variant& e, log_level& ll );
 
