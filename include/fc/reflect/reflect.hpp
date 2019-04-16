@@ -62,8 +62,8 @@ struct reflector{
     #endif // DOXYGEN
 };
 
-void throw_bad_enum_cast( int64_t i, const char* e );
-void throw_bad_enum_cast( const char* k, const char* e );
+[[noreturn]] void throw_bad_enum_cast( int64_t i, const char* e );
+[[noreturn]] void throw_bad_enum_cast( const char* k, const char* e );
 } // namespace fc
 
 
@@ -129,10 +129,8 @@ template<> struct reflector<ENUM> { \
     static const char* to_string(ENUM elem) { \
       switch( elem ) { \
         BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_ENUM_TO_STRING, ENUM, FIELDS ) \
-        default: \
-           fc::throw_bad_enum_cast( fc::to_string(int64_t(elem)).c_str(), BOOST_PP_STRINGIZE(ENUM) ); \
-      }\
-      return nullptr; \
+      } \
+      fc::throw_bad_enum_cast( static_cast<int64_t>(elem), BOOST_PP_STRINGIZE(ENUM) ); \
     } \
     static const char* to_string(int64_t i) { \
       return to_string(ENUM(i)); \
@@ -148,7 +146,7 @@ template<> struct reflector<ENUM> { \
     } \
     static ENUM from_string( const char* s ) { \
         BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_ENUM_FROM_STRING, ENUM, FIELDS ) \
-        return ENUM(atoi(s));\
+        fc::throw_bad_enum_cast( s, BOOST_PP_STRINGIZE(ENUM) ); \
     } \
 };  \
 }
@@ -241,6 +239,3 @@ template<> struct reflector<TYPE> {\
 
 #define FC_REFLECT_IMPL( TYPE, MEMBERS ) \
     FC_REFLECT_DERIVED_IMPL_EXT( TYPE, BOOST_PP_SEQ_NIL, MEMBERS )
-
-
-
