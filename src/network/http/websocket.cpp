@@ -354,8 +354,7 @@ namespace fc { namespace http {
 
             virtual void send_message( const std::string& message )override
             {
-               idump((message));
-               //std::cerr<<"send: "<<message<<"\n";
+               ddump((message));
                auto ec = _ws_connection->send( message );
                FC_ASSERT( !ec, "websocket send failed: ${msg}", ("msg",ec.message() ) );
             }
@@ -459,7 +458,6 @@ namespace fc { namespace http {
                        auto current_con = _connections.find(hdl);
                        assert( current_con != _connections.end() );
                        //wdump(("server")(msg->get_payload()));
-                       //std::cerr<<"recv: "<<msg->get_payload()<<"\n";
                        auto payload = msg->get_payload();
                        std::shared_ptr<websocket_connection> con = current_con->second;
                        ++_pending_messages;
@@ -570,10 +568,12 @@ namespace fc { namespace http {
                        }).wait();
                     }
                });
+               ilog("Created websocket server");
             }
 
             ~websocket_server_impl()
             {
+               ilog("Shutting down websocket server");
                if( _server.is_listening() )
                    _server.stop_listening();
 
@@ -581,12 +581,16 @@ namespace fc { namespace http {
                    _closed = fc::promise<void>::ptr( new fc::promise<void>() );
 
                auto cpy_con = _connections;
+               dlog("Active connections: ${c}", ("c", cpy_con.size()));
                for( auto item : cpy_con )
                    _server.close( item.first, 0, "server exit" );
 
-               if( _closed )
+               if( _closed ) {
+                   dlog("Waiting to close connections");
                    _closed->wait();
+               }
 
+                dlog("Websocket server shutdown lock");
                 shutdown_locker::shutdown_task st(*_shutdown_locker);
                 const shutdown_task_scoped_lock lock(st);
             }
@@ -648,8 +652,8 @@ namespace fc { namespace http {
                         ctx->use_certificate_file(server_cert_file, boost::asio::ssl::context::pem);
                         ctx->use_private_key_file(server_cert_key_file, boost::asio::ssl::context::pem);
                         ctx->use_certificate_chain_file(server_cert_chain_file);
-                     } catch (std::exception& e) {
-                        std::cout << e.what() << std::endl;
+                     } catch (const std::exception& e) {
+                        elog(e.what());
                      }
                      return ctx;
                });
@@ -686,8 +690,7 @@ namespace fc { namespace http {
                         const shutdown_preventing_task_scoped_maybe_lock lock(spt);
                         if (shutdown_locker_wraith->is_shutting_down()) return;
 
-                        wdump((msg->get_payload()));
-                        //std::cerr<<"recv: "<<msg->get_payload()<<"\n";
+                        //wdump((msg->get_payload()));
                         auto received = msg->get_payload();
                         fc::async( [=](){
                            shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
@@ -784,7 +787,7 @@ namespace fc { namespace http {
                        const shutdown_preventing_task_scoped_maybe_lock lock(spt);
                        if (shutdown_locker_wraith->is_shutting_down()) return;
 
-                       wdump((msg->get_payload()));
+                       //wdump((msg->get_payload()));
                        _connection->on_message( msg->get_payload() );
                    }).wait();
                 });
@@ -802,7 +805,6 @@ namespace fc { namespace http {
                                  const shutdown_preventing_task_scoped_maybe_lock lock(spt);
                                  if (shutdown_locker_wraith->is_shutting_down()) return;
 
-                                 wlog(". ${p}", ("p",uint64_t(_connection.get())));
                                  if( !_closed && _connection )
                                      _connection->closed();
                                  _connection.reset();
@@ -822,9 +824,9 @@ namespace fc { namespace http {
                    const shutdown_preventing_task_scoped_maybe_lock lock(spt);
                    if (shutdown_locker_wraith->is_shutting_down()) return;
 
-                   elog( "." );
                    auto con = _client.get_con_from_hdl(hdl);
                    auto message = con->get_ec().message();
+                   elog( message );
                    if( _connection )
                        _client_thread.async( [&, shutdown_locker_wraith](){
                            shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
@@ -848,9 +850,8 @@ namespace fc { namespace http {
                       boost::asio::ssl::context::no_sslv2 |
                       boost::asio::ssl::context::no_sslv3 |
                       boost::asio::ssl::context::single_dh_use);
-                   } catch (std::exception& e) {
-                      edump((e.what()));
-                      std::cout << e.what() << std::endl;
+                   } catch (const std::exception& e) {
+                      elog(e.what());
                    }
                    return ctx;
                 });
@@ -861,7 +862,6 @@ namespace fc { namespace http {
             {
                if( _connection )
                {
-                  wlog(".");
                   _connection->close(0, "client closed");
                   if( _closed )
                       _closed->wait();
