@@ -66,6 +66,7 @@ namespace {
 
                 while(true) {
                     int curr = _users.load();
+                    dlog("Shutdown preventing task lock: ${u}", ("u", curr));
 
                     if (curr < 0) {
                         // lock could not be acquired at all: shutting down
@@ -96,6 +97,7 @@ namespace {
                         int curr = _users.load();
 
                         FC_ASSERT( curr > 0 );
+                        dlog("Shutdown preventing task unlock: ${u}", ("u", curr));
 
                         if (_users.compare_exchange_weak(curr, curr - 1)) {
                             _acquired = false;
@@ -124,6 +126,7 @@ namespace {
 
             void lock() {
                 FC_ASSERT( !_acquired );
+                dlog("Shutdown task lock: ${u}", ("u", _users.load()));
 
                 while(true) {
                     int curr = 0;
@@ -136,6 +139,7 @@ namespace {
                     }
 
                     FC_ASSERT( _users > 0 );
+                    dlog("Shutdown task lock: ${u}", ("u", curr));
 
                     std::this_thread::yield();
                 }
@@ -144,6 +148,7 @@ namespace {
             void unlock() {
                 FC_ASSERT( _acquired );
                 FC_ASSERT( _users == -1 );
+                dlog("Shutdown task unlock");
 
                 // keep _users == -1
                 // new users are not allowed after successful shutdown
@@ -434,6 +439,7 @@ namespace fc { namespace http {
                _server.set_reuse_addr(true);
 
                _server.set_open_handler( [&, shutdown_locker_wraith]( connection_hdl hdl ){
+                   dlog("Websocket server open handler");
                     _server_thread.async( [&, shutdown_locker_wraith](){
                        shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
                        const shutdown_preventing_task_scoped_maybe_lock lock(spt);
@@ -450,6 +456,7 @@ namespace fc { namespace http {
                });
 
                _server.set_message_handler( [&, shutdown_locker_wraith]( connection_hdl hdl, typename websocketpp::server<config>::message_ptr msg ){
+                   dlog("Websocket server message handler");
                     _server_thread.async( [&, shutdown_locker_wraith](){
                        shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
                        const shutdown_preventing_task_scoped_maybe_lock lock(spt);
@@ -476,6 +483,7 @@ namespace fc { namespace http {
                });
 
                _server.set_http_handler( [&, shutdown_locker_wraith]( connection_hdl hdl ){
+                   dlog("Websocket server http handler");
                     _server_thread.async( [&, shutdown_locker_wraith](){
                        shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
                        const shutdown_preventing_task_scoped_maybe_lock lock(spt);
@@ -517,6 +525,7 @@ namespace fc { namespace http {
                });
 
                _server.set_close_handler( [&, shutdown_locker_wraith]( connection_hdl hdl ){
+                    dlog("Websocket server close handler");
                     shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
                     const shutdown_preventing_task_scoped_maybe_lock lock(spt);
                     if (shutdown_locker_wraith->is_shutting_down()) return;
@@ -542,6 +551,7 @@ namespace fc { namespace http {
                });
 
                _server.set_fail_handler( [&, shutdown_locker_wraith]( connection_hdl hdl ){
+                    dlog("Websocket server fail handler");
                     shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
                     const shutdown_preventing_task_scoped_maybe_lock lock(spt);
                     if (shutdown_locker_wraith->is_shutting_down()) return;
@@ -590,7 +600,6 @@ namespace fc { namespace http {
                    _closed->wait();
                }
 
-                dlog("Websocket server shutdown lock");
                 shutdown_locker::shutdown_task st(*_shutdown_locker);
                 const shutdown_task_scoped_lock lock(st);
             }
