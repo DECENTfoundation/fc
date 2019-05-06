@@ -63,10 +63,10 @@ namespace {
             // this is rather maybe_lock()
             void lock() {
                 FC_ASSERT( !_acquired );
+                dlog("Shutdown preventing task lock: ${u}", ("u", _users.load()));
 
                 while(true) {
                     int curr = _users.load();
-                    dlog("Shutdown preventing task lock: ${u}", ("u", curr));
 
                     if (curr < 0) {
                         // lock could not be acquired at all: shutting down
@@ -93,11 +93,12 @@ namespace {
 
             void unlock() {
                 if (_acquired) {
+                    dlog("Shutdown preventing task unlock: ${u}", ("u", _users.load()));
+
                     while(true) {
                         int curr = _users.load();
 
                         FC_ASSERT( curr > 0 );
-                        dlog("Shutdown preventing task unlock: ${u}", ("u", curr));
 
                         if (_users.compare_exchange_weak(curr, curr - 1)) {
                             _acquired = false;
@@ -139,7 +140,6 @@ namespace {
                     }
 
                     FC_ASSERT( _users > 0 );
-                    dlog("Shutdown task lock: ${u}", ("u", curr));
 
                     std::this_thread::yield();
                 }
@@ -552,12 +552,13 @@ namespace fc { namespace http {
 
                _server.set_fail_handler( [&, shutdown_locker_wraith]( connection_hdl hdl ){
                     dlog("Websocket server fail handler");
-                    shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
-                    const shutdown_preventing_task_scoped_maybe_lock lock(spt);
-                    if (shutdown_locker_wraith->is_shutting_down()) return;
-
                     if( _server.is_listening() )
                     {
+                       wlog( "connection failure" );
+                       shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
+                       const shutdown_preventing_task_scoped_maybe_lock lock(spt);
+                       if (shutdown_locker_wraith->is_shutting_down()) return;
+
                        _server_thread.async( [&, shutdown_locker_wraith](){
                           shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
                           const shutdown_preventing_task_scoped_maybe_lock lock(spt);
@@ -584,8 +585,13 @@ namespace fc { namespace http {
             ~websocket_server_impl()
             {
                ilog("Shutting down websocket server");
-               if( _server.is_listening() )
-                   _server.stop_listening();
+               if( _server.is_listening() ) {
+                   try {
+                       _server.stop_listening();
+                   } catch( const websocketpp::exception &e ) {
+                       elog(e.what());
+                   }
+               }
 
                if( _connections.size() )
                    _closed = fc::promise<void>::ptr( new fc::promise<void>() );
