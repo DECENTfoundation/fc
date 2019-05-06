@@ -552,7 +552,7 @@ namespace fc { namespace http {
 
                _server.set_fail_handler( [&, shutdown_locker_wraith]( connection_hdl hdl ){
                     dlog("Websocket server fail handler");
-                    if( _server.is_listening() )
+                    if( ! _connections.empty() )
                     {
                        wlog( "connection failure" );
                        shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
