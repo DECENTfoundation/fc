@@ -13,6 +13,23 @@ namespace fc
 {
    namespace detail { class exception_impl; }
 
+   enum exception_code2
+   {
+      // Wallet
+      unspecified_code = 100,
+      account_does_not_exist_code,
+      public_key_not_found_in_wallet_code,
+      private_key_not_imported_code,
+      // input: parameters, method names, callbacks
+      too_few_arguments_code,
+      no_method_with_this_name_code,
+      api_id_is_not_registered_code,
+      callback_id_is_not_registered_code,
+      invalid_parameter_code,
+
+      // daemon api
+   };
+
    enum exception_code
    {
        /** for exceptions we threw that don't have an assigned code */
@@ -332,7 +349,6 @@ namespace fc
   FC_DECLARE_EXCEPTION(seeder_not_found_exception, seeder_not_found_code, "Seeder not found.");
   FC_DECLARE_EXCEPTION(account_in_wallet_not_on_blockchain_exception, account_in_wallet_not_on_blockchain_code, "Account present in the wallet but does not exist on the blockchain.");
   FC_DECLARE_EXCEPTION(account_name_or_id_cannot_be_empty_exception, account_name_or_id_cannot_be_empty_code, "Account name or id cannot be empty string");
-
 
   std::string except_str();
 
