@@ -138,10 +138,38 @@ namespace fc
       }
    }
 
+   void  to_log_string(log_level e, std::string& s)
+   {
+      switch(e)
+      {
+      case log_level::all:
+         s = "(A)";
+         return;
+      case log_level::debug:
+         s = "(D)";
+         return;
+      case log_level::info:
+         s = "(I)";
+         return;
+      case log_level::warn:
+         s = "(W)";
+         return;
+      case log_level::error:
+         s = "(E)";
+         return;
+      case log_level::off:
+         FC_ASSERT(false, "We cannot log event if logging is switched off");;
+         return;
+      default:
+         FC_ASSERT(false, "Add new case statement with log level string");
+         break;
+      }
+   }
+
    void to_log_category_column(log_level e, std::string& s)
    {
       const int COL_WIDTH = 6;
-      to_string(e, s);
+      to_log_string(e, s);
       int num_of_spaces = COL_WIDTH - (int)s.size();
       for(int i = 0; i < num_of_spaces; i++)
          s += " ";
