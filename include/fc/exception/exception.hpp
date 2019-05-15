@@ -26,6 +26,9 @@ namespace fc
       api_id_is_not_registered_code,
       callback_id_is_not_registered_code,
       invalid_parameter_code,
+      // database:
+      invalid_space_id_code = 200,
+      invalid_type_id_code,
 
       // daemon api
    };
@@ -333,11 +336,9 @@ namespace fc
   FC_DECLARE_EXCEPTION(api_id_is_not_registered_exception, api_id_is_not_registered_code, "Api id is not registered.");
   FC_DECLARE_EXCEPTION(callback_id_is_not_registered_exception, callback_id_is_not_registered_code, "Callback id is not registered.");
   FC_DECLARE_EXCEPTION(invalid_parameter_exception, invalid_parameter_code, "Invalid parameter.");
-  
   FC_DECLARE_EXCEPTION(account_does_not_exist_exception, account_does_not_exist_code, "Account does not exist.");
   FC_DECLARE_EXCEPTION(public_key_not_found_in_wallet_exception, public_key_not_found_in_wallet_code, "Public key not found in wallet.");
   FC_DECLARE_EXCEPTION(private_key_not_imported_exception, private_key_not_imported_code, "Private key not imported.");
-
   FC_DECLARE_EXCEPTION(invalid_space_id_exception, invalid_space_id_code, "Invalid space id in object identifier.");
   FC_DECLARE_EXCEPTION(invalid_type_id_exception, invalid_type_id_code, "Invalid type id in object identifier.");
   FC_DECLARE_EXCEPTION(block_not_found_exception, block_not_found_code, "Block not found.")
@@ -349,6 +350,7 @@ namespace fc
   FC_DECLARE_EXCEPTION(seeder_not_found_exception, seeder_not_found_code, "Seeder not found.");
   FC_DECLARE_EXCEPTION(account_in_wallet_not_on_blockchain_exception, account_in_wallet_not_on_blockchain_code, "Account present in the wallet but does not exist on the blockchain.");
   FC_DECLARE_EXCEPTION(account_name_or_id_cannot_be_empty_exception, account_name_or_id_cannot_be_empty_code, "Account name or id cannot be empty string");
+
 
   std::string except_str();
 
