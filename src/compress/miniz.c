@@ -161,6 +161,10 @@
 
 #include <stdlib.h>
 
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ < 5)
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
+
 // Defines to completely disable specific portions of miniz.c:
 // If all macros here are defined the only functionality remaining will be CRC-32, adler-32, tinfl, and tdefl.
 
