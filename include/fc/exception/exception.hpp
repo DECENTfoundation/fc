@@ -29,6 +29,13 @@ namespace fc
       // database:
       invalid_space_id_code = 200,
       invalid_type_id_code,
+      block_not_found_code,
+      block_does_not_contain_requested_trx_code,
+      limit_exceeded_code,
+      buying_object_does_not_exist_code,
+      content_object_does_not_exist_code,
+      decryption_of_key_particle_failed_code,
+      seeder_not_found_code,
 
       // daemon api
    };
