@@ -23,13 +23,13 @@ namespace fc {
    ofstream::ofstream()
    :my( new impl() ){}
 
-   ofstream::ofstream( const fc::path& file, int m )
-   :my( new impl() ) { this->open( file, m ); }
+   ofstream::ofstream( const fc::path& file, std::ios_base::openmode mode )
+   :my( new impl() ) { this->open( file, mode ); }
    ofstream::~ofstream(){}
 
-   void ofstream::open( const fc::path& file, int m ) {
+   void ofstream::open( const fc::path& file, std::ios_base::openmode mode ) {
      const boost::filesystem::path& bfp = file; 
-     my->ofs.open( bfp, std::ios::binary );
+     my->ofs.open( bfp, mode | std::ios::binary );
    }
    size_t ofstream::writesome( const char* buf, size_t len ) {
         my->ofs.write(buf,len);
@@ -52,16 +52,16 @@ namespace fc {
 
    ifstream::ifstream()
    :my(new impl()){}
-   ifstream::ifstream( const fc::path& file, int m )
+   ifstream::ifstream( const fc::path& file, std::ios_base::openmode mode )
    :my(new impl())
    {
-      this->open( file, m );
+      this->open( file, mode );
    }
    ifstream::~ifstream(){}
 
-   void ifstream::open( const fc::path& file, int m ) {
+   void ifstream::open( const fc::path& file, std::ios_base::openmode mode ) {
      const boost::filesystem::path& bfp = file; 
-      my->ifs.open( bfp, std::ios::binary );
+      my->ifs.open( bfp, mode | std::ios::binary );
    }
    size_t ifstream::readsome( char* buf, size_t len ) {
       auto s = size_t(my->ifs.readsome( buf, len ));

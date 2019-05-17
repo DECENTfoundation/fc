@@ -74,9 +74,9 @@ namespace fc {
                }
                remove_all(link_filename);  // on windows, you can't delete the link while the underlying file is opened for writing
                if( fc::exists( log_filename ) )
-                  out.open( log_filename, std::ios_base::app);
+                  out.open(log_filename, std::ios_base::app);
                else
-                  out.open( log_filename, std::ios_base::out | std::ios_base::app);
+                  out.open(log_filename);
 
                create_hard_link(log_filename, link_filename);
              }

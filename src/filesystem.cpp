@@ -366,7 +366,7 @@ namespace fc {
       }
       if (create)
       {
-         fc::ofstream ofs(*_path, fc::ofstream::out | fc::ofstream::binary);
+         fc::ofstream ofs(*_path);
          ofs.close();
       }
    }
