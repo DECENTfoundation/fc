@@ -21,7 +21,7 @@ namespace fc {
    class console_appender::impl {
    public:
      config                      cfg;
-     color::type                 lc[log_level::off+1];
+     color::type                 lc[log_level::number_of_levels];
 #ifdef WIN32
      HANDLE                      console_handle;
 #endif
@@ -55,7 +55,7 @@ namespace fc {
            my->console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
 #endif
 
-         for( int i = 0; i < log_level::off+1; ++i )
+         for( int i = 0; i < log_level::number_of_levels; ++i )
             my->lc[i] = color::console_default;
          for( auto itr = my->cfg.level_colors.begin(); itr != my->cfg.level_colors.end(); ++itr )
             my->lc[itr->level] = itr->color;
@@ -99,11 +99,9 @@ namespace fc {
 
       ///////////////
       std::stringstream line;
-      std::string ll;
-      to_log_category_column(m.get_context().get_log_level(), ll);
-      line << ll;
-      line << (m.get_context().get_timestamp().time_since_epoch().count() % (1000ll*1000ll*60ll*60))/1000 <<"ms ";
-      line << std::setw( 10 ) << std::left << m.get_context().get_thread_name().substr(0,9).c_str() <<" "<<std::setw(30)<< std::left <<file_line.str();
+      line << log_level::codes[m.get_context().get_log_level()] << ' ';
+      line << string(m.get_context().get_timestamp()) << ' ';
+      line << std::setw( 10 ) << std::left << m.get_context().get_thread_name().substr(0,9).c_str() << ' ' << std::setw(30) << std::left << file_line.str();
 
       auto me = m.get_context().get_method();
       // strip all leading scopes...

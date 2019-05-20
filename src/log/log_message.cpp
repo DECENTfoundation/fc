@@ -39,7 +39,7 @@ namespace fc
       };
    }
 
-
+   constexpr char log_level::codes[];
 
    log_context::log_context()
    :my( std::make_shared<detail::log_context_impl>() ){}
@@ -110,27 +110,27 @@ namespace fc
         v = m.to_variant();
    }
 
-   void  to_string(log_level e, std::string& s)
+   void to_variant( log_level e, variant& v )
    {
       switch(e)
       {
       case log_level::all:
-         s = "all";
+         v = "all";
          return;
       case log_level::debug:
-         s = "debug";
+         v = "debug";
          return;
       case log_level::info:
-         s = "info";
+         v = "info";
          return;
       case log_level::warn:
-         s = "warn";
+         v = "warn";
          return;
       case log_level::error:
-         s = "error";
+         v = "error";
          return;
       case log_level::off:
-         s = "off";
+         v = "off";
          return;
       default:
          FC_ASSERT(false, "Add new case statement with log level string");
@@ -138,22 +138,6 @@ namespace fc
       }
    }
 
-   void to_log_category_column(log_level e, std::string& s)
-   {
-      const int COL_WIDTH = 6;
-      to_string(e, s);
-      int num_of_spaces = COL_WIDTH - (int)s.size();
-      for(int i = 0; i < num_of_spaces; i++)
-         s += " ";
-   }
-
-   void  to_variant( log_level e, variant& v )
-   {
-      std::string s;
-      to_string(e, s);
-
-      v = s;
-   }
    void from_variant( const variant& v, log_level& e )
    {
       try 
@@ -236,4 +220,3 @@ namespace fc
 
 
 } // fc
-
