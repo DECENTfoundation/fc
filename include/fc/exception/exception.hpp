@@ -13,33 +13,6 @@ namespace fc
 {
    namespace detail { class exception_impl; }
 
-   enum exception_code2
-   {
-      // Wallet
-      unspecified_code = 100,
-      account_does_not_exist_code,
-      public_key_not_found_in_wallet_code,
-      private_key_not_imported_code,
-      // input: parameters, method names, callbacks
-      too_few_arguments_code,
-      no_method_with_this_name_code,
-      api_id_is_not_registered_code,
-      callback_id_is_not_registered_code,
-      invalid_parameter_code,
-      // database:
-      invalid_space_id_code = 200,
-      invalid_type_id_code,
-      block_not_found_code,
-      block_does_not_contain_requested_trx_code,
-      limit_exceeded_code,
-      buying_object_does_not_exist_code,
-      content_object_does_not_exist_code,
-      decryption_of_key_particle_failed_code,
-      seeder_not_found_code,
-
-      // daemon api
-   };
-
    enum exception_code
    {
        /** for exceptions we threw that don't have an assigned code */
@@ -342,7 +315,7 @@ namespace fc
   FC_DECLARE_EXCEPTION(no_method_with_this_name_exception, no_method_with_this_name_code, "No method with this name.");
   FC_DECLARE_EXCEPTION(api_id_is_not_registered_exception, api_id_is_not_registered_code, "Api id is not registered.");
   FC_DECLARE_EXCEPTION(callback_id_is_not_registered_exception, callback_id_is_not_registered_code, "Callback id is not registered.");
-  FC_DECLARE_EXCEPTION(invalid_parameter_exception, invalid_parameter_code, "Invalid parameter.");
+  FC_DECLARE_EXCEPTION(invalid_parameter_exception, invalid_parameter_code, "Invalid parameter.");  
   FC_DECLARE_EXCEPTION(account_does_not_exist_exception, account_does_not_exist_code, "Account does not exist.");
   FC_DECLARE_EXCEPTION(public_key_not_found_in_wallet_exception, public_key_not_found_in_wallet_code, "Public key not found in wallet.");
   FC_DECLARE_EXCEPTION(private_key_not_imported_exception, private_key_not_imported_code, "Private key not imported.");
