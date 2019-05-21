@@ -38,23 +38,23 @@ namespace fc {
          return [=]( Args... args ) { return f( a0, args... ); };
       }
       template<typename R>
-      R call_generic( const std::function<R()>& f, variants::const_iterator a0, variants::const_iterator e )
+      R call_generic( const std::function<R()>& f, variants::const_iterator a0, variants::const_iterator e, int param_idx)
       {
          return f();
       }
 
       template<typename R, typename Arg0, typename ... Args>
-      R call_generic( const std::function<R(Arg0,Args...)>& f, variants::const_iterator a0, variants::const_iterator e )
+      R call_generic( const std::function<R(Arg0,Args...)>& f, variants::const_iterator a0, variants::const_iterator e , int param_idx)
       {
          FC_ASSERT( a0 != e );
-         return  call_generic<R,Args...>( bind_first_arg<R,Arg0,Args...>( f, a0->as< typename std::decay<Arg0>::type >() ), a0+1, e );
+         return  call_generic<R,Args...>( bind_first_arg<R,Arg0,Args...>( f, a0->as< typename std::decay<Arg0>::type >() ), a0+1, e, param_idx );
       }
 
       template<typename R, typename ... Args>
       std::function<variant(const fc::variants&)> to_generic( const std::function<R(Args...)>& f )
       {
          return [=]( const variants& args ) { 
-            return variant( call_generic( f, args.begin(), args.end() ) ); 
+            return variant( call_generic( f, args.begin(), args.end(), 0 ) ); 
          };
       }
 
@@ -62,7 +62,7 @@ namespace fc {
       std::function<variant(const fc::variants&)> to_generic( const std::function<void(Args...)>& f )
       {
          return [=]( const variants& args ) { 
-            call_generic( f, args.begin(), args.end() ); 
+            call_generic( f, args.begin(), args.end(), 0 ); 
             return variant();
          };
       }
@@ -80,7 +80,8 @@ namespace fc {
          variant call( const string& name, const variants& args )
          {
             auto itr = _by_name.find(name);
-            FC_ASSERT( itr != _by_name.end(), "no method with name '${name}'", ("name",name)("api",_by_name) );
+            if(itr == _by_name.end())
+               FC_THROW_EXCEPTION(no_method_with_this_name_exception, "'${name}'", ("name", name)("api", _by_name));
             return call( itr->second, args );
          }
 
@@ -113,7 +114,7 @@ namespace fc {
          }
 
          template<typename R>
-         R call_generic( const std::function<R()>& f, variants::const_iterator a0, variants::const_iterator e )const
+         R call_generic( const std::function<R()>& f, variants::const_iterator a0, variants::const_iterator e, int param_idx )const
          {
             return f();
          }
@@ -136,26 +137,33 @@ namespace fc {
          // fix by josef sevcik - build under vs2015
          // above two members superseeded:
          template<typename R, typename T, typename ... Args2, typename ... Args>
-         R call_generic(const std::function<R(std::function<T(Args2...)>, Args...)>& f, variants::const_iterator a0, variants::const_iterator e)
+         R call_generic(const std::function<R(std::function<T(Args2...)>, Args...)>& f, variants::const_iterator a0, variants::const_iterator e, int param_idx)
          {
-            FC_ASSERT(a0 != e, "too few arguments passed to method");
+            if(a0 == e)
+               FC_THROW_EXCEPTION(too_few_arguments_exception, "");
             detail::callback_functor<T(Args2...)> arg0(get_connection(), a0->as<uint64_t>());
-            return  call_generic<R, Args...>(this->bind_first_arg<R, std::function<T(Args2...)>, Args...>(f, std::function<T(Args2...)>(arg0)), a0 + 1, e);
+            return  call_generic<R, Args...>(this->bind_first_arg<R, std::function<T(Args2...)>, Args...>(f, std::function<T(Args2...)>(arg0)), a0 + 1, e, param_idx + 1);
          }
 
          template<typename R, typename T, typename ... Args2, typename ... Args>
-         R call_generic(const std::function<R(const std::function<T(Args2...)>&, Args...)>& f, variants::const_iterator a0, variants::const_iterator e)
+         R call_generic(const std::function<R(const std::function<T(Args2...)>&, Args...)>& f, variants::const_iterator a0, variants::const_iterator e, int param_idx)
          {
-            FC_ASSERT(a0 != e, "too few arguments passed to method");
+            if(a0 == e)
+               FC_THROW_EXCEPTION(too_few_arguments_exception, "");
             detail::callback_functor<T(Args2...)> arg0(get_connection(), a0->as<uint64_t>());
-            return  call_generic<R, Args...>(this->bind_first_arg<R, const std::function<T(Args2...)>&, Args...>(f, arg0), a0 + 1, e);
+            return  call_generic<R, Args...>(this->bind_first_arg<R, const std::function<T(Args2...)>&, Args...>(f, arg0), a0 + 1, e, param_idx + 1);
          }
 
          template<typename R, typename Arg0, typename ... Args>
-         R call_generic( const std::function<R(Arg0,Args...)>& f, variants::const_iterator a0, variants::const_iterator e )
+         R call_generic( const std::function<R(Arg0,Args...)>& f, variants::const_iterator a0, variants::const_iterator e, int param_idx)
          {
-            FC_ASSERT( a0 != e, "too few arguments passed to method" );
-            return  call_generic<R,Args...>( this->bind_first_arg<R,Arg0,Args...>( f, a0->as< typename std::decay<Arg0>::type >() ), a0+1, e );
+            if(a0 == e) 
+               FC_THROW_EXCEPTION(too_few_arguments_exception, "");            
+            std::function<R(Args...)> bind_result;
+            try { 
+               bind_result = this->bind_first_arg<R, Arg0, Args...>(f, a0->as< typename std::decay<Arg0>::type >());
+            } FC_REWRAP_EXCEPTIONS(invalid_parameter_exception, error, "Zero based index of parameter ${index_of_parameter}", ("index_of_parameter", param_idx));
+            return  call_generic<R,Args...>( bind_result, a0+1, e, param_idx + 1);
          }
 
          struct api_visitor
@@ -211,17 +219,20 @@ namespace fc {
 
          variant receive_call( api_id_type api_id, const string& method_name, const variants& args = variants() )const
          {
-            FC_ASSERT( _local_apis.size() > api_id, "api id is not registered" );
+            if(_local_apis.size() <= api_id)
+               FC_THROW_EXCEPTION(api_id_is_not_registered_exception, "");
             return _local_apis[api_id]->call( method_name, args );
          }
          variant receive_callback( uint64_t callback_id,  const variants& args = variants() )const
          {
-            FC_ASSERT( _local_callbacks.size() > callback_id );
+            if(_local_callbacks.size() <= callback_id)
+               FC_THROW_EXCEPTION(callback_id_is_not_registered_exception, "");
             return _local_callbacks[callback_id]( args );
          }
          void receive_notice( uint64_t callback_id,  const variants& args = variants() )const
          {
-            FC_ASSERT( _local_callbacks.size() > callback_id );
+            if(_local_callbacks.size() <= callback_id)
+               FC_THROW_EXCEPTION(callback_id_is_not_registered_exception, "");
             _local_callbacks[callback_id]( args );
          }
 
@@ -373,7 +384,7 @@ namespace fc {
          auto con = api_con.lock();
          FC_ASSERT( con, "not connected" );
 
-         auto api_result = gapi->call_generic( f, args.begin(), args.end() ); 
+         auto api_result = gapi->call_generic( f, args.begin(), args.end() , 0); 
          return con->register_api( api_result );
       };
    }
@@ -389,7 +400,7 @@ namespace fc {
          auto con = api_con.lock();
          FC_ASSERT( con, "not connected" );
 
-         auto api_result = gapi->call_generic( f, args.begin(), args.end() ); 
+         auto api_result = gapi->call_generic( f, args.begin(), args.end(), 0 ); 
          if( api_result )
             return con->register_api( *api_result );
          return variant();
@@ -401,7 +412,7 @@ namespace fc {
       generic_api* gapi = &api;
 	  
 	   return [f,gapi]( const variants& args ) {
-         return variant(gapi->call_generic(f, args.begin(), args.end()));
+         return variant(gapi->call_generic(f, args.begin(), args.end(), 0));
 	  };
    }
 
@@ -412,7 +423,7 @@ namespace fc {
 	  
       return [f,gapi]( const variants& args ) { 
 
-         gapi->call_generic( f, args.begin(), args.end() );
+         gapi->call_generic( f, args.begin(), args.end(), 0 );
          return variant();
       };   
    }

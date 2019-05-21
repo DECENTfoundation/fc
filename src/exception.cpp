@@ -170,14 +170,16 @@ namespace fc
    string exception::to_detail_string( log_level ll  )const
    {
       fc::stringstream ss;
-      ss << variant(my->_code).as_string() <<" " << my->_name << ": " <<my->_what<<"\n";
+      ss << variant(my->_code).as_string() <<" " << my->_name << ": " <<my->_what<<" ";
+
       for( auto itr = my->_elog.begin(); itr != my->_elog.end();  )
-      {
-         ss << itr->get_message() <<"\n"; //fc::format_string( itr->get_format(), itr->get_data() ) <<"\n";
-         ss << "    " << json::to_string( itr->get_data() )<<"\n";
-         ss << "    " << itr->get_context().to_string();
+      {               
+         ss << itr->get_message(); //fc::format_string( itr->get_format(), itr->get_data() ) <<"\n";
+         //ss << "    " << json::to_string( itr->get_data() )<<"\n";
+         //ss << "    " << itr->get_context().to_string();
          ++itr;
-         if( itr != my->_elog.end() ) ss<<"\n";
+         //if( itr != my->_elog.end() ) ss<<"\n";
+         break;
       }
       return ss.str();
    }

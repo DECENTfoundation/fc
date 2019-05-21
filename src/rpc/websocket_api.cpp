@@ -110,7 +110,7 @@ std::string websocket_api_connection::on_message(
          }
          if( optexcept ) {
 
-               auto reply = fc::json::to_string( response( *call.id,  error_object{ 1, optexcept->to_detail_string(), fc::variant(*optexcept)}  ) );
+               auto reply = fc::json::to_string( response( *call.id,  error_object{ optexcept->code(), optexcept->to_detail_string(), fc::variant(*optexcept)}  ) );
                if( send_message )
                   _connection.send_message( reply );
 

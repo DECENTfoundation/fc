@@ -36,7 +36,27 @@ namespace fc
        aes_error_code                    = 18,
        overflow_code                     = 19,
        underflow_code                    = 20,
-       divide_by_zero_code               = 21
+       divide_by_zero_code               = 21,
+       //new codes
+       account_does_not_exist_code           = 100,
+       public_key_not_found_in_wallet_code   = 101,
+       private_key_not_imported_code         = 102,
+       too_few_arguments_code                = 103,
+       no_method_with_this_name_code         = 104,
+       api_id_is_not_registered_code         = 105,
+       callback_id_is_not_registered_code    = 106,
+       invalid_parameter_code                = 107,
+       invalid_space_id_code                 = 108,
+       invalid_type_id_code                  = 109,
+       block_not_found_code                  = 110,
+       block_does_not_contain_requested_trx_code = 111,
+       limit_exceeded_code                   = 112,
+       buying_object_does_not_exist_code     = 113,
+       content_object_does_not_exist_code    = 114,
+       decryption_of_key_particle_failed_code = 115,
+       seeder_not_found_code                 = 116,
+       account_in_wallet_not_on_blockchain_code = 117,
+       account_name_or_id_cannot_be_empty_code  = 118,
    };
 
    /**
@@ -290,6 +310,30 @@ namespace fc
   FC_DECLARE_EXCEPTION( underflow_exception, underflow_code, "Integer Underflow" );
   FC_DECLARE_EXCEPTION( divide_by_zero_exception, divide_by_zero_code, "Integer Divide By Zero" );
 
+  //new:
+  FC_DECLARE_EXCEPTION(too_few_arguments_exception, too_few_arguments_code, "Too few arguments passed to method.");
+  FC_DECLARE_EXCEPTION(no_method_with_this_name_exception, no_method_with_this_name_code, "No method with this name.");
+  FC_DECLARE_EXCEPTION(api_id_is_not_registered_exception, api_id_is_not_registered_code, "Api id is not registered.");
+  FC_DECLARE_EXCEPTION(callback_id_is_not_registered_exception, callback_id_is_not_registered_code, "Callback id is not registered.");
+  FC_DECLARE_EXCEPTION(invalid_parameter_exception, invalid_parameter_code, "Invalid parameter.");
+  
+  FC_DECLARE_EXCEPTION(account_does_not_exist_exception, account_does_not_exist_code, "Account does not exist.");
+  FC_DECLARE_EXCEPTION(public_key_not_found_in_wallet_exception, public_key_not_found_in_wallet_code, "Public key not found in wallet.");
+  FC_DECLARE_EXCEPTION(private_key_not_imported_exception, private_key_not_imported_code, "Private key not imported.");
+
+  FC_DECLARE_EXCEPTION(invalid_space_id_exception, invalid_space_id_code, "Invalid space id in object identifier.");
+  FC_DECLARE_EXCEPTION(invalid_type_id_exception, invalid_type_id_code, "Invalid type id in object identifier.");
+  FC_DECLARE_EXCEPTION(block_not_found_exception, block_not_found_code, "Block not found.")
+  FC_DECLARE_EXCEPTION(block_does_not_contain_requested_trx_exception, block_does_not_contain_requested_trx_code, "Block does not contain requested transaction.");
+  FC_DECLARE_EXCEPTION(limit_exceeded_exception, limit_exceeded_code, "Limit exceeded.");
+  FC_DECLARE_EXCEPTION(buying_object_does_not_exist_exception, buying_object_does_not_exist_code, "Buying object does not exist.");
+  FC_DECLARE_EXCEPTION(content_object_does_not_exist_exception, content_object_does_not_exist_code, "Content object does not exist.");
+  FC_DECLARE_EXCEPTION(decryption_of_key_particle_failed_exception, decryption_of_key_particle_failed_code, "Decryption of key particle failed.");
+  FC_DECLARE_EXCEPTION(seeder_not_found_exception, seeder_not_found_code, "Seeder not found.");
+  FC_DECLARE_EXCEPTION(account_in_wallet_not_on_blockchain_exception, account_in_wallet_not_on_blockchain_code, "Account present in the wallet but does not exist on the blockchain.");
+  FC_DECLARE_EXCEPTION(account_name_or_id_cannot_be_empty_exception, account_name_or_id_cannot_be_empty_code, "Account name or id cannot be empty string");
+
+
   std::string except_str();
 
   void record_assert_trip(
@@ -478,3 +522,29 @@ namespace fc
                 FC_LOG_MESSAGE( warn, "",FC_FORMAT_ARG_PARAMS(__VA_ARGS__)), \
                 std::current_exception() ); \
    }
+
+#define FC_REWRAP_EXCEPTION( EXCEPTION, FORMAT, ... ) \
+  FC_MULTILINE_MACRO_BEGIN \
+    fc::exception exc = EXCEPTION( FC_LOG_MESSAGE( error, FORMAT, __VA_ARGS__ ) ); \
+   const fc::log_messages& lm = er.get_log(); \
+   for(int i = 0; i < (int)lm.size(); i++) \
+      exc.append_log(lm[i]); \
+    throw exc; \
+  FC_MULTILINE_MACRO_END
+
+#define FC_REWRAP_EXCEPTIONS( EXCEPTION, LOG_LEVEL, FORMAT, ... ) \
+catch( fc::exception& er ) { \
+   FC_REWRAP_EXCEPTION( EXCEPTION, FORMAT, __VA_ARGS__ ); \
+} catch(const std::exception& e) { \
+      fc::exception fce( \
+         FC_LOG_MESSAGE(LOG_LEVEL, "${what}: " FORMAT, __VA_ARGS__("what", e.what())), \
+         fc::std_exception_code, \
+         typeid(e).name(), \
+         e.what()); throw fce; \
+} catch(...) { \
+         throw fc::unhandled_exception( \
+            FC_LOG_MESSAGE(LOG_LEVEL, FORMAT, __VA_ARGS__), \
+            std::current_exception()); \
+}
+
+
