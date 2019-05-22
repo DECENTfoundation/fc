@@ -44,8 +44,7 @@ namespace fc
          values value;
    };
 
-   void to_string( log_level e, std::string& s);
-   void to_log_category_column(log_level e, std::string& s);
+   std::string to_log_category(log_level e);
    void to_variant( log_level e, variant& v );
    void from_variant( const variant& e, log_level& ll );
 
@@ -162,4 +161,3 @@ FC_REFLECT_TYPENAME( fc::log_message );
  */
 #define FC_LOG_MESSAGE( LOG_LEVEL, FORMAT, ... ) \
    fc::log_message( FC_LOG_CONTEXT(LOG_LEVEL), FORMAT, fc::mutable_variant_object()__VA_ARGS__ )
-
