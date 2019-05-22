@@ -99,10 +99,8 @@ namespace fc {
 
       ///////////////
       std::stringstream line;
-      std::string ll;
-      to_log_category_column(m.get_context().get_log_level(), ll);
-      line << ll;
-      line << (m.get_context().get_timestamp().time_since_epoch().count() % (1000ll*1000ll*60ll*60))/1000 <<"ms ";
+      line << to_log_category(m.get_context().get_log_level()) << ' ';
+      line << string(m.get_context().get_timestamp()) << ' ';
       line << std::setw( 10 ) << std::left << m.get_context().get_thread_name().substr(0,9).c_str() <<" "<<std::setw(30)<< std::left <<file_line.str();
 
       auto me = m.get_context().get_method();

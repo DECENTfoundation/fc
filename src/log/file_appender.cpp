@@ -159,11 +159,8 @@ namespace fc {
    void file_appender::log( const log_message& m )
    {
       std::stringstream line;
-      //line << (m.get_context().get_timestamp().time_since_epoch().count() % (1000ll*1000ll*60ll*60))/1000 <<"ms ";
-      std::string ll; 
-      to_log_category_column(m.get_context().get_log_level(), ll);
-      line << ll;
-      line << string(m.get_context().get_timestamp()) << " ";
+      line << to_log_category(m.get_context().get_log_level()) << ' ';
+      line << string(m.get_context().get_timestamp()) << ' ';
       line << std::setw( 21 ) << (m.get_context().get_thread_name().substr(0,9) + string(":") + m.get_context().get_task_name()).c_str() << " ";
 
       string method_name = m.get_context().get_method();

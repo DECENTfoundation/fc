@@ -110,78 +110,56 @@ namespace fc
         v = m.to_variant();
    }
 
-   void  to_string(log_level e, std::string& s)
+   void to_variant( log_level e, variant& v )
    {
       switch(e)
       {
       case log_level::all:
-         s = "all";
+         v = "all";
          return;
       case log_level::debug:
-         s = "debug";
+         v = "debug";
          return;
       case log_level::info:
-         s = "info";
+         v = "info";
          return;
       case log_level::warn:
-         s = "warn";
+         v = "warn";
          return;
       case log_level::error:
-         s = "error";
+         v = "error";
          return;
       case log_level::off:
-         s = "off";
+         v = "off";
          return;
-      default:
-         FC_ASSERT(false, "Add new case statement with log level string");
-         break;
+      case log_level::number_of_levels:
+         FC_THROW_EXCEPTION(invalid_arg_exception, "Log level 'number_of_levels' cannot converted to variant");
       }
+      throw_bad_enum_cast(static_cast<int64_t>(e), "log_level");
    }
 
-   void  to_log_string(log_level e, std::string& s)
+   std::string to_log_category(log_level e)
    {
       switch(e)
       {
       case log_level::all:
-         s = "(A)";
-         return;
+         return "(A)";
       case log_level::debug:
-         s = "(D)";
-         return;
+         return "(D)";
       case log_level::info:
-         s = "(I)";
-         return;
+         return "(I)";
       case log_level::warn:
-         s = "(W)";
-         return;
+         return "(W)";
       case log_level::error:
-         s = "(E)";
-         return;
+         return "(E)";
       case log_level::off:
-         FC_ASSERT(false, "We cannot log event if logging is switched off");;
-         return;
-      default:
-         FC_ASSERT(false, "Add new case statement with log level string");
-         break;
+         FC_THROW_EXCEPTION(invalid_arg_exception, "Cannot log event if logging is switched off");
+      case log_level::number_of_levels:
+         FC_THROW_EXCEPTION(invalid_arg_exception, "Log level 'number_of_levels' cannot converted to category");
       }
+      throw_bad_enum_cast(static_cast<int64_t>(e), "log_level");
    }
 
-   void to_log_category_column(log_level e, std::string& s)
-   {
-      const int COL_WIDTH = 6;
-      to_log_string(e, s);
-      int num_of_spaces = COL_WIDTH - (int)s.size();
-      for(int i = 0; i < num_of_spaces; i++)
-         s += " ";
-   }
-
-   void  to_variant( log_level e, variant& v )
-   {
-      std::string s;
-      to_string(e, s);
-
-      v = s;
-   }
    void from_variant( const variant& v, log_level& e )
    {
       try 
@@ -264,4 +242,3 @@ namespace fc
 
 
 } // fc
-
