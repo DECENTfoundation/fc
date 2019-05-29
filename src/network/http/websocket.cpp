@@ -464,8 +464,8 @@ namespace fc { namespace http {
 
                        auto current_con = _connections.find(hdl);
                        assert( current_con != _connections.end() );
-                       //wdump(("server")(msg->get_payload()));
                        auto payload = msg->get_payload();
+                       idump((payload));
                        std::shared_ptr<websocket_connection> con = current_con->second;
                        ++_pending_messages;
                        auto f = fc::async([this, con, payload, shutdown_locker_wraith](){
@@ -498,7 +498,7 @@ namespace fc { namespace http {
                        auto con = _server.get_con_from_hdl(hdl);
                        con->defer_http_response();
                        std::string request_body = con->get_request_body();
-                       //wdump(("server")(request_body));
+                       idump((request_body));
 
                        fc::async([&, current_con, request_body, con, shutdown_locker_wraith] {
                           shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
@@ -705,15 +705,15 @@ namespace fc { namespace http {
                         const shutdown_preventing_task_scoped_maybe_lock lock(spt);
                         if (shutdown_locker_wraith->is_shutting_down()) return;
 
-                        //wdump((msg->get_payload()));
-                        auto received = msg->get_payload();
+                        auto payload = msg->get_payload();
+                        idump((payload));
                         fc::async( [=](){
                            shutdown_locker::shutdown_preventing_task spt(*shutdown_locker_wraith);
                            const shutdown_preventing_task_scoped_maybe_lock lock(spt);
                            if (shutdown_locker_wraith->is_shutting_down()) return;
 
                            if( _connection )
-                               _connection->on_message(received);
+                               _connection->on_message(payload);
                         });
                    }).wait();
                 });
@@ -802,8 +802,9 @@ namespace fc { namespace http {
                        const shutdown_preventing_task_scoped_maybe_lock lock(spt);
                        if (shutdown_locker_wraith->is_shutting_down()) return;
 
-                       //wdump((msg->get_payload()));
-                       _connection->on_message( msg->get_payload() );
+                       auto payload = msg->get_payload();
+                       idump((payload));
+                       _connection->on_message( payload );
                    }).wait();
                 });
 
