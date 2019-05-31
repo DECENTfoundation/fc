@@ -46,8 +46,8 @@ namespace fc {
         endpoint();
         endpoint( const address& i, uint16_t p = 0);
 
-        /** Converts "IP:PORT" to an endpoint */
-        static endpoint from_string( const string& s );
+        /** Converts "IP:PORT" to an endpoints */
+        static std::vector<endpoint> resolve_string( const string& s );
         /** returns "IP:PORT" */
         operator string()const;
 

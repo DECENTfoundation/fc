@@ -42,36 +42,7 @@ namespace fc
   {
     try
     {
-      try
-      {
-        // if it's a numeric address:port, this will parse it
-        my->gelf_endpoint = ip::endpoint::from_string(my->cfg.endpoint);
-      }
-      catch (...)
-      {
-      }
-      if (!my->gelf_endpoint)
-      {
-        // couldn't parse as a numeric ip address, try resolving as a DNS name.  
-        // This can yield, so don't do it in the catch block above
-        string::size_type colon_pos = my->cfg.endpoint.find(':');
-        try
-        {
-          uint16_t port = boost::lexical_cast<uint16_t>(my->cfg.endpoint.substr(colon_pos + 1, my->cfg.endpoint.size()));
-
-          string hostname = my->cfg.endpoint.substr( 0, colon_pos );
-          std::vector<ip::endpoint> endpoints = resolve(hostname, port);
-          if (endpoints.empty())
-              FC_THROW_EXCEPTION(unknown_host_exception, "The host name can not be resolved: ${hostname}", 
-                                 ("hostname", hostname));
-          my->gelf_endpoint = endpoints.back();
-        }
-        catch (const boost::bad_lexical_cast&)
-        {
-          FC_THROW("Bad port: ${port}", ("port", my->cfg.endpoint.substr(colon_pos + 1, my->cfg.endpoint.size())));
-        }
-      }
-
+      my->gelf_endpoint = ip::endpoint::resolve_string(my->cfg.endpoint).back();
       if (my->gelf_endpoint)
         my->gelf_socket.open();
     }

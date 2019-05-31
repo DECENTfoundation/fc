@@ -1,4 +1,5 @@
 #include <fc/network/ip.hpp>
+#include <fc/network/resolve.hpp>
 #include <fc/variant.hpp>
 #include <fc/exception/exception.hpp>
 #include <boost/asio.hpp>
@@ -71,15 +72,27 @@ namespace fc { namespace ip {
   uint16_t       endpoint::port()const    { return _port; }
   const address& endpoint::get_address()const { return _ip;   }
 
-  endpoint endpoint::from_string( const string& endpoint_string )
+  std::vector<endpoint> endpoint::resolve_string( const string& endpoint_string )
   {
+    string::size_type colon_pos = endpoint_string.find(':');
+    if (colon_pos == std::string::npos)
+        FC_THROW_EXCEPTION(invalid_arg_exception, "Missing required port number in endpoint string \"${endpoint_string}\"",
+                ("endpoint_string", endpoint_string));
+
+    std::string port_string = endpoint_string.substr(colon_pos + 1);
     try
     {
-      endpoint ep;
-      auto pos = endpoint_string.find(':');
-      ep._ip   = boost::asio::ip::address_v4::from_string(endpoint_string.substr( 0, pos ) ).to_ulong();
-      ep._port = boost::lexical_cast<uint16_t>( endpoint_string.substr( pos+1, endpoint_string.size() ) );
-      return ep;
+      uint16_t port = boost::lexical_cast<uint16_t>(port_string);
+
+      std::string hostname = endpoint_string.substr(0, colon_pos);
+      std::vector<fc::ip::endpoint> endpoints = fc::resolve(hostname, port);
+      if (endpoints.empty())
+        FC_THROW_EXCEPTION(unknown_host_exception, "The host name can not be resolved: ${hostname}", ("hostname", hostname));
+      return endpoints;
+    }
+    catch (const boost::bad_lexical_cast& e)
+    {
+        FC_THROW_EXCEPTION(parse_error_exception, "Bad port: \"${port}\", ${what}", ("port", port_string)("what", e.what()));
     }
     FC_RETHROW_EXCEPTIONS(warn, "error converting string to IP endpoint")
   }
@@ -143,7 +156,7 @@ namespace fc { namespace ip {
   }
   void from_variant( const variant& var,  ip::endpoint& vo )
   {
-     vo = ip::endpoint::from_string(var.as_string());
+     vo = ip::endpoint::resolve_string(var.as_string()).back();
   }
 
   void to_variant( const ip::address& var,  variant& vo )
