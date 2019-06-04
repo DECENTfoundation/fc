@@ -56,10 +56,24 @@ namespace fc {
       fc::path     parent_path()const;
       std::string   string()const;
       std::string   generic_string()const;
+      // Need to support non-ansi characters in path
+#ifdef _MSC_VER
+      std::wstring
+#else
+      std::string
+#endif
+      generic_string_multiplatform() const;
       /** On windows, returns a path where all path separators are '\' suitable for displaying
        * to users.  On other platforms, it does the same as generic_string()
        */
       std::string   preferred_string() const;
+      // Need to support non-ansi characters in path
+#ifdef _MSC_VER
+      std::wstring
+#else
+      std::string
+#endif
+      preferred_string_multiplatform() const;
 
       std::wstring wstring() const;
       std::wstring generic_wstring() const;

@@ -98,11 +98,28 @@ namespace fc {
    std::string path::generic_string()const {
     return _p->generic_string();
    }
-
+#ifdef _MSC_VER
+   std::wstring  path::generic_string_multiplatform() const {
+      return _p->generic_wstring();
+   }
+#else
+   std::string path::generic_string_multiplatform() const {
+      return _p->generic_string();
+   }
+#endif
    std::string path::preferred_string() const
    {
      return boost::filesystem::path(*_p).make_preferred().string();
    }
+#ifdef _MSC_VER
+   std::wstring  path::preferred_string_multiplatform() const {
+      return boost::filesystem::path(*_p).make_preferred().wstring();
+   }
+#else
+   std::string path::preferred_string_multiplatform() const {
+      return boost::filesystem::path(*_p).make_preferred().string();
+   }
+#endif
 
   std::wstring path::wstring() const
     {
@@ -212,9 +229,11 @@ namespace fc {
   bool exists( const path& p ) { return boost::filesystem::exists(p); }
   void create_directories( const path& p ) { 
     try {
-      boost::filesystem::create_directories(p); 
+        boost::filesystem::create_directories(p);
+    } catch (const std::exception& e) {
+        FC_THROW("Unable to create directories ${path} ${inner}", ("path", p)("inner", e.what()) );
     } catch ( ... ) {
-      FC_THROW( "Unable to create directories ${path}", ("path", p )("inner", fc::except_str() ) );
+        FC_THROW( "Unable to create directories ${path} ${inner}", ("path", p )("inner", fc::except_str() ) );
     }
   }
   bool is_directory( const path& p ) { return boost::filesystem::is_directory(p); }
