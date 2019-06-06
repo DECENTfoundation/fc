@@ -662,6 +662,8 @@ namespace fc { namespace http {
                         ctx->set_options(boost::asio::ssl::context::default_workarounds |
                         boost::asio::ssl::context::no_sslv2 |
                         boost::asio::ssl::context::no_sslv3 |
+                        boost::asio::ssl::context::no_tlsv1 |
+                        boost::asio::ssl::context::no_tlsv1_1 |
                         boost::asio::ssl::context::single_dh_use);
                         ctx->set_password_callback([=](std::size_t max_length, boost::asio::ssl::context::password_purpose){ return ssl_password;});
                         ctx->use_certificate_file(server_cert_file, boost::asio::ssl::context::pem);
@@ -865,6 +867,8 @@ namespace fc { namespace http {
                       ctx->set_options(boost::asio::ssl::context::default_workarounds |
                       boost::asio::ssl::context::no_sslv2 |
                       boost::asio::ssl::context::no_sslv3 |
+                      boost::asio::ssl::context::no_tlsv1 |
+                      boost::asio::ssl::context::no_tlsv1_1 |
                       boost::asio::ssl::context::single_dh_use);
                    } catch (const std::exception& e) {
                       elog(e.what());
