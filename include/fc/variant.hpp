@@ -202,7 +202,7 @@ namespace fc
         variant( double val );
         variant( bool val );
         variant( blob val );
-        variant( fc::string val );
+        variant( std::string val );
         variant( variant_object );
         variant( mutable_variant_object );
         variant( variants );
@@ -223,7 +223,7 @@ namespace fc
               virtual void handle( const uint64_t& v )const      = 0;
               virtual void handle( const double& v )const        = 0;
               virtual void handle( const bool& v )const          = 0;
-              virtual void handle( const string& v )const        = 0;
+              virtual void handle( const std::string& v )const        = 0;
               virtual void handle( const variant_object& v)const = 0;
               virtual void handle( const variants& v)const       = 0;
         };
@@ -262,10 +262,10 @@ namespace fc
         /** Convert's double, ints, bools, etc to a string
          * @throw if get_type() == array_type | get_type() == object_type 
          */
-        string                      as_string()const;
+        std::string                 as_string()const;
 
         /// @pre  get_type() == string_type
-        const string&               get_string()const;
+        const std::string&          get_string()const;
                                     
         /// @throw if get_type() != array_type | null_type
         variants&                   get_array();
@@ -335,7 +335,7 @@ namespace fc
    typedef optional<variant> ovariant;
   
    /** @ingroup Serializable */
-   void from_variant( const variant& var,  string& vo );
+   void from_variant( const variant& var,  std::string& vo );
    /** @ingroup Serializable */
    void from_variant( const variant& var,  variants& vo );
    void from_variant( const variant& var,  variant& vo );

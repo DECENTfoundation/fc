@@ -77,7 +77,7 @@ namespace fc {
 
          generic_api( const generic_api& cpy ) = delete;
 
-         variant call( const string& name, const variants& args )
+         variant call( const std::string& name, const variants& args )
          {
             auto itr = _by_name.find(name);
             if(itr == _by_name.end())
@@ -213,11 +213,11 @@ namespace fc {
          }
   
          /** makes calls to the remote server */
-         virtual variant send_call( api_id_type api_id, string method_name, variants args = variants() ) = 0;
+         virtual variant send_call( api_id_type api_id, std::string method_name, variants args = variants() ) = 0;
          virtual variant send_callback( uint64_t callback_id, variants args = variants() ) = 0;
          virtual void    send_notice( uint64_t callback_id, variants args = variants() ) = 0;
 
-         variant receive_call( api_id_type api_id, const string& method_name, const variants& args = variants() )const
+         variant receive_call( api_id_type api_id, const std::string& method_name, const variants& args = variants() )const
          {
             if(_local_apis.size() <= api_id)
                FC_THROW_EXCEPTION(api_id_is_not_registered_exception, "");
@@ -258,7 +258,7 @@ namespace fc {
 
          std::vector<std::string> get_method_names( api_id_type local_api_id = 0 )const { return _local_apis[local_api_id]->get_method_names(); }
 
-         api_id_type get_api_id_from_name( const string& name )const
+         api_id_type get_api_id_from_name( const std::string& name )const
          {
             api_id_type api_id = std::distance( _api_names.begin(), std::find( _api_names.begin(), _api_names.end(), name ) );
             FC_ASSERT( api_id < _local_apis.size(), "api name is not registered" );
@@ -337,7 +337,7 @@ namespace fc {
    {
       public:
          /** makes calls to the remote server */
-         virtual variant send_call( api_id_type api_id, string method_name, variants args = variants() ) override
+         virtual variant send_call( api_id_type api_id, std::string method_name, variants args = variants() ) override
          {
             FC_ASSERT( _remote_connection );
             return _remote_connection->receive_call( api_id, method_name, std::move(args) );

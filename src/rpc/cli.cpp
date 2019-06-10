@@ -44,7 +44,7 @@ cli::~cli()
    }
 }
 
-variant cli::send_call( api_id_type api_id, string method_name, variants args /* = variants() */ )
+variant cli::send_call( api_id_type api_id, std::string method_name, variants args /* = variants() */ )
 {
    FC_ASSERT(false);
 }
@@ -76,17 +76,17 @@ void cli::wait()
    _run_complete.wait();
 }
 
-void cli::format_result( const string& method, std::function<string(variant,const variants&)> formatter)
+void cli::format_result( const std::string& method, std::function<std::string(variant,const variants&)> formatter)
 {
    _result_formatters[method] = formatter;
 }
 
-void cli::set_prompt( const string& prompt )
+void cli::set_prompt( const std::string& prompt )
 {
    _prompt = prompt;
 }
 
-void cli::set_command_file( const string& command_file )
+void cli::set_command_file( const std::string& command_file )
 {
     non_interactive = true;
     this->command_file = command_file;
@@ -98,7 +98,7 @@ void cli::run()
    {
        fc::variants args = fc::json::variants_from_string("from_command_file " + command_file + char(EOF));
 
-       const string& method = args[0].get_string();
+       const std::string& method = args[0].get_string();
 
        auto result = receive_call( 0, method, variants( args.begin()+1,args.end() ) );
        auto itr = _result_formatters.find( method );
@@ -141,7 +141,7 @@ void cli::run()
          if( args.size() == 0 )
             continue;
 
-         const string& method = args[0].get_string();
+         const std::string& method = args[0].get_string();
 
          auto result = receive_call( 0, method, variants( args.begin()+1,args.end() ) );
          auto itr = _result_formatters.find( method );
@@ -210,7 +210,7 @@ static char** cli_completion( const char * text , int start, int end)
 }
 
 
-void cli::get_line( const fc::string& prompt, fc::string& line, bool allow_history) const
+void cli::get_line( const std::string& prompt, std::string& line, bool allow_history) const
 {
    // getting file descriptor for C++ streams is near impossible
    // so we just assume it's the same as the C stream...

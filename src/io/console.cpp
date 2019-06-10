@@ -33,7 +33,7 @@
 
 namespace fc {
 
-void get_line_password( const fc::string& prompt, fc::string& line, bool allow_history)
+void get_line_password( const std::string& prompt, std::string& line, bool allow_history)
 {
    // getting file descriptor for C++ streams is near impossible
    // so we just assume it's the same as the C stream...

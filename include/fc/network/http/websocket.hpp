@@ -21,7 +21,7 @@ namespace fc { namespace http {
          virtual void send_message( const std::string& message ) = 0;
          virtual void close( int64_t code, const std::string& reason  ){};
          void on_message( const std::string& message ) { _on_message(message); }
-         string on_http( const std::string& message ) { return _on_http(message); }
+         std::string on_http( const std::string& message ) { return _on_http(message); }
 
          void on_message_handler( const std::function<void(const std::string&)>& h ) { _on_message = h; }
          void on_http_handler( const std::function<std::string(const std::string&)>& h ) { _on_http = h; }
@@ -34,7 +34,7 @@ namespace fc { namespace http {
       private:
          fc::any                                   _session_data;
          std::function<void(const std::string&)>   _on_message;
-         std::function<string(const std::string&)> _on_http;
+         std::function<std::string(const std::string&)> _on_http;
    };
    typedef std::shared_ptr<websocket_connection> websocket_connection_ptr;
 
@@ -51,7 +51,7 @@ namespace fc { namespace http {
          void listen( const fc::ip::endpoint& ep );
          void start_accept();
 
-         void add_headers(const fc::string& name, const fc::string& value);
+         void add_headers(const std::string& name, const std::string& value);
 
       private:
          std::unique_ptr<detail::abstract_websocket_server> my;
@@ -73,7 +73,7 @@ namespace fc { namespace http {
          void listen( const fc::ip::endpoint& ep );
          void start_accept();
 
-         void add_headers(const fc::string& name, const fc::string& value);
+         void add_headers(const std::string& name, const std::string& value);
 
       private:
          std::unique_ptr<detail::abstract_websocket_server> my;

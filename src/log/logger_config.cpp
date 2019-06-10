@@ -19,7 +19,7 @@
 namespace fc {
    extern std::unordered_map<std::string,logger>& get_logger_map();
    extern std::unordered_map<std::string,appender::ptr>& get_appender_map();
-   logger_config& logger_config::add_appender( const string& s ) { appenders.push_back(s); return *this; }
+   logger_config& logger_config::add_appender( const std::string& s ) { appenders.push_back(s); return *this; }
 
    void configure_logging( const fc::path& lc )
    {

@@ -412,7 +412,7 @@ namespace fc { namespace http {
             virtual void listen( const fc::ip::endpoint& ep ) = 0;
             virtual void start_accept() = 0;
 
-            virtual void add_headers(const fc::string& name, const fc::string& value) = 0;
+            virtual void add_headers(const std::string& name, const std::string& value) = 0;
             static std::unique_ptr<abstract_websocket_server_monitoring_helper> _counters_helper;
       private:
             static int _counters_refcount;
@@ -630,7 +630,7 @@ namespace fc { namespace http {
                _server.start_accept();
             }
 
-            void add_headers(const fc::string& name, const fc::string& value) override
+            void add_headers(const std::string& name, const std::string& value) override
             {
                 _additional_headers.insert( { name, value } );
             }
@@ -644,17 +644,17 @@ namespace fc { namespace http {
             on_connection_handler              _on_connection;
             fc::promise<void>::ptr             _closed;
             uint32_t                           _pending_messages = 0;
-            std::map<fc::string, fc::string>   _additional_headers;
+            std::map<std::string, std::string> _additional_headers;
       };
      
       template <typename config>
       class websocket_tls_server_impl : public websocket_server_impl<config> 
       {
          public:
-            websocket_tls_server_impl( const string& server_cert_file,
-                                       const string& server_cert_key_file,
-                                       const string& server_cert_chain_file,
-                                       const string& ssl_password )
+            websocket_tls_server_impl( const std::string& server_cert_file,
+                                       const std::string& server_cert_key_file,
+                                       const std::string& server_cert_chain_file,
+                                       const std::string& ssl_password )
             {
                this->_server.set_tls_init_handler( [=]( websocketpp::connection_hdl hdl ) -> context_ptr {
                      context_ptr ctx = websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tls_server);
@@ -931,14 +931,14 @@ namespace fc { namespace http {
       my->start_accept();
    }
 
-   void websocket_server::add_headers(const fc::string& name, const fc::string& value) {
+   void websocket_server::add_headers(const std::string& name, const std::string& value) {
       my->add_headers(name, value);
    }
 
    websocket_tls_server::websocket_tls_server(const std::string& server_cert_file,
                                               const std::string& server_cert_key_file,
                                               const std::string& server_cert_chain_file,
-                                              const string& ssl_password,
+                                              const std::string& ssl_password,
                                               bool enable_permessage_deflate /* = true */) :
       my(
 #ifdef ENABLE_WEBSOCKET_PERMESSAGE_DEFLATE
@@ -979,7 +979,7 @@ namespace fc { namespace http {
       my->start_accept();
    }
 
-   void websocket_tls_server::add_headers(const fc::string& name, const fc::string& value) {
+   void websocket_tls_server::add_headers(const std::string& name, const std::string& value) {
       my->add_headers(name, value);
    }
 

@@ -89,7 +89,7 @@ namespace fc  {
 #endif // USE_FC_STRING
 
 
-  int64_t    to_int64( const fc::string& i )
+  int64_t    to_int64( const std::string& i )
   {
     try
     {
@@ -102,7 +102,7 @@ namespace fc  {
     FC_RETHROW_EXCEPTIONS( warn, "${i} => int64_t", ("i",i) )
   }
 
-  uint64_t   to_uint64( const fc::string& i )
+  uint64_t   to_uint64( const std::string& i )
   { try {
     try
     {
@@ -115,7 +115,7 @@ namespace fc  {
     FC_RETHROW_EXCEPTIONS( warn, "${i} => uint64_t", ("i",i) )
   } FC_CAPTURE_AND_RETHROW( (i) ) }
 
-  double     to_double( const fc::string& i)
+  double     to_double( const std::string& i)
   {
     try
     {
@@ -128,7 +128,7 @@ namespace fc  {
     FC_RETHROW_EXCEPTIONS( warn, "${i} => double", ("i",i) )
   }
 
-  fc::string to_string(double d)
+  std::string to_string(double d)
   {
     // +2 is required to ensure that the double is rounded correctly when read back in.  http://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
     std::stringstream ss;
@@ -136,16 +136,16 @@ namespace fc  {
     return ss.str();
   }
 
-  fc::string to_string( uint64_t d)
+  std::string to_string( uint64_t d)
   {
     return boost::lexical_cast<std::string>(d);
   }
 
-  fc::string to_string( int64_t d)
+  std::string to_string( int64_t d)
   {
     return boost::lexical_cast<std::string>(d);
   }
-  fc::string to_string( uint16_t d)
+  std::string to_string( uint16_t d)
   {
     return boost::lexical_cast<std::string>(d);
   }
@@ -164,9 +164,9 @@ namespace fc  {
      boost::algorithm::to_lower(tmp);
      return tmp;
   }
-  string trim_and_normalize_spaces( const string& s )
+  std::string trim_and_normalize_spaces( const std::string& s )
   {
-     string result = boost::algorithm::trim_copy( s );
+     std::string result = boost::algorithm::trim_copy( s );
      while( result.find( "  " ) != result.npos )
        boost::algorithm::replace_all( result, "  ", " " );
      return result;

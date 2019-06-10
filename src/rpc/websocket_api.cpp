@@ -53,7 +53,7 @@ websocket_api_connection::websocket_api_connection( fc::http::websocket_connecti
 
 variant websocket_api_connection::send_call(
    api_id_type api_id,
-   string method_name,
+   std::string method_name,
    variants args /* = variants() */ )
 {
    auto request = _rpc_state.start_remote_call(  "call", {api_id, std::move(method_name), std::move(args) } );
@@ -128,7 +128,7 @@ std::string websocket_api_connection::on_message(
       wdump((e.to_detail_string()));
       return e.to_detail_string();
    }
-   return string();
+   return std::string();
 }
 
 } } // namespace fc::rpc

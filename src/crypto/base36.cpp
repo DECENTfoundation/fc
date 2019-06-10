@@ -5,9 +5,9 @@
 
 namespace fc
 {
-    fc::string to_base36( const char* data, size_t len )
+    std::string to_base36( const char* data, size_t len )
     {
-       if( len == 0 ) return fc::string();
+       if( len == 0 ) return std::string();
 
        const char* src = data;
        uint32_t src_len = static_cast<uint32_t>(len);
@@ -37,12 +37,12 @@ namespace fc
        return &out[pos]; //fc::string( &out[pos], out.size() - pos);
     }
 
-    fc::string to_base36( const std::vector<char>& vec )
+    std::string to_base36( const std::vector<char>& vec )
     {
       return to_base36( (const char*)vec.data(), vec.size() );
     }
 
-    std::vector<char> from_base36( const fc::string& b36 )
+    std::vector<char> from_base36( const std::string& b36 )
     {
         if ( b36.empty() ) {
            std::vector<char> empty;
@@ -63,7 +63,7 @@ namespace fc
               value = value + (_36.exp(pos) *  fc::bigint(10+*itr - 'A'));
           else
           {
-             wlog("unknown '${char}'", ("char",fc::string(&*itr,1)) );
+             wlog("unknown '${char}'", ("char",std::string(&*itr,1)) );
           }
           ++pos;
        }
