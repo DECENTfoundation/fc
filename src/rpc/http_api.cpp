@@ -44,7 +44,7 @@ http_api_connection::http_api_connection()
 
 variant http_api_connection::send_call(
    api_id_type api_id,
-   string method_name,
+   std::string method_name,
    variants args /* = variants() */ )
 {
    // HTTP has no way to do this, so do nothing

@@ -99,7 +99,7 @@ namespace fc
     if (!context.get_task_name().empty())
       gelf_message["_task_name"] = context.get_task_name();
 
-    string gelf_message_as_string = json::to_string(gelf_message);
+    std::string gelf_message_as_string = json::to_string(gelf_message);
     //unsigned uncompressed_size = gelf_message_as_string.size();
     gelf_message_as_string = zlib_compress(gelf_message_as_string);
     

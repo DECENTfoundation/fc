@@ -7,11 +7,11 @@
 namespace fc {
   class stringstream::impl {
     public:
-    impl( fc::string&s )
+    impl( std::string&s )
     :ss( s )
     { ss.exceptions( std::stringstream::badbit ); }
 
-    impl( const fc::string&s )
+    impl( const std::string&s )
     :ss( s )
     { ss.exceptions( std::stringstream::badbit ); }
 
@@ -20,21 +20,21 @@ namespace fc {
     std::stringstream ss;
   };
 
-  stringstream::stringstream( fc::string& s )
+  stringstream::stringstream( std::string& s )
   :my(s) {
   }
-  stringstream::stringstream( const fc::string& s )
+  stringstream::stringstream( const std::string& s )
   :my(s) {
   }
   stringstream::stringstream(){}
   stringstream::~stringstream(){}
 
 
-  fc::string stringstream::str(){
+  std::string stringstream::str(){
     return my->ss.str();//.c_str();//*reinterpret_cast<fc::string*>(&st);
   }
 
-  void stringstream::str(const fc::string& s) {
+  void stringstream::str(const std::string& s) {
     my->ss.str(s);
   }
 
@@ -111,5 +111,3 @@ namespace fc {
     return c;
   }
 } 
-
-

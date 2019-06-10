@@ -37,7 +37,7 @@ namespace fc {
 #endif
             { 
               static boost::atomic<int> cnt(0);
-              name = fc::string("th_") + char('a'+cnt++); 
+              name = std::string("th_") + char('a'+cnt++); 
 //              printf("thread=%p\n",this);
             }
 
@@ -84,7 +84,7 @@ namespace fc {
            std::vector<fc::context*>       free_list;      // list of unused contexts that are ready for deletion
 
            bool                     done;
-           fc::string               name;
+           std::string              name;
            fc::context*             current;     // the currently-executing task in this thread
 
            fc::context*             pt_head;     // list of contexts that can be reused for new tasks

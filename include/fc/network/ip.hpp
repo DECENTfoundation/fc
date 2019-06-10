@@ -11,10 +11,10 @@ namespace fc {
     class address {
       public:
         address( uint32_t _ip = 0 );
-        address( const fc::string& s );
+        address( const std::string& s );
 
-        address& operator=( const fc::string& s );
-        operator fc::string()const;
+        address& operator=( const std::string& s );
+        operator std::string()const;
         operator uint32_t()const;
 
         friend bool operator==( const address& a, const address& b );
@@ -47,9 +47,9 @@ namespace fc {
         endpoint( const address& i, uint16_t p = 0);
 
         /** Converts "IP:PORT" to an endpoints */
-        static std::vector<endpoint> resolve_string( const string& s );
+        static std::vector<endpoint> resolve_string( const std::string& s );
         /** returns "IP:PORT" */
-        operator string()const;
+        operator std::string()const;
 
         void           set_port(uint16_t p ) { _port = p; }
         uint16_t       port()const;

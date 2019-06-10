@@ -100,13 +100,13 @@ variant::variant( bool val )
 
 variant::variant( char* str )
 {
-   *reinterpret_cast<string**>(this)  = new string( str );
+   *reinterpret_cast<std::string**>(this) = new std::string( str );
    set_variant_type( this, string_type );
 }
 
 variant::variant( const char* str )
 {
-   *reinterpret_cast<string**>(this)  = new string( str );
+   *reinterpret_cast<std::string**>(this) = new std::string( str );
    set_variant_type( this, string_type );
 }
 
@@ -117,7 +117,7 @@ variant::variant( wchar_t* str )
    boost::scoped_array<char> buffer(new char[len]);
    for (unsigned i = 0; i < len; ++i)
      buffer[i] = (char)str[i];
-   *reinterpret_cast<string**>(this)  = new string(buffer.get(), len);
+   *reinterpret_cast<std::string**>(this) = new std::string(buffer.get(), len);
    set_variant_type( this, string_type );
 }
 
@@ -128,13 +128,13 @@ variant::variant( const wchar_t* str )
    boost::scoped_array<char> buffer(new char[len]);
    for (unsigned i = 0; i < len; ++i)
      buffer[i] = (char)str[i];
-   *reinterpret_cast<string**>(this)  = new string(buffer.get(), len);
+   *reinterpret_cast<std::string**>(this) = new std::string(buffer.get(), len);
    set_variant_type( this, string_type );
 }
 
-variant::variant( fc::string val )
+variant::variant( std::string val )
 {
-   *reinterpret_cast<string**>(this)  = new string( fc::move(val) );
+   *reinterpret_cast<std::string**>(this) = new std::string( fc::move(val) );
    set_variant_type( this, string_type );
 }
 variant::variant( blob val )
@@ -164,7 +164,7 @@ variant::variant( variants arr )
 typedef const variant_object* const_variant_object_ptr; 
 typedef const variants* const_variants_ptr; 
 typedef const blob*   const_blob_ptr; 
-typedef const string* const_string_ptr;
+typedef const std::string* const_string_ptr;
 
 void variant::clear()
 {
@@ -177,7 +177,7 @@ void variant::clear()
         delete *reinterpret_cast<variants**>(this);
         break;
      case string_type:
-        delete *reinterpret_cast<string**>(this);
+        delete *reinterpret_cast<std::string**>(this);
         break;
      default:
         break;
@@ -200,8 +200,8 @@ variant::variant( const variant& v )
           set_variant_type( this,  array_type );
           return;
        case string_type:
-          *reinterpret_cast<string**>(this)  = 
-             new string(**reinterpret_cast<const const_string_ptr*>(&v) );
+          *reinterpret_cast<std::string**>(this)  = 
+             new std::string(**reinterpret_cast<const const_string_ptr*>(&v) );
           set_variant_type( this, string_type );
           return;
        default:
@@ -246,7 +246,7 @@ variant& variant::operator=( const variant& v )
             new variants((**reinterpret_cast<const const_variants_ptr*>(&v)));
          break;
       case string_type:
-         *reinterpret_cast<string**>(this)  = new string((**reinterpret_cast<const const_string_ptr*>(&v)) );
+         *reinterpret_cast<std::string**>(this) = new std::string((**reinterpret_cast<const const_string_ptr*>(&v)) );
          break;
 
       default:
@@ -432,7 +432,7 @@ bool  variant::as_bool()const
    {
       case string_type:
       {
-          const string& s = **reinterpret_cast<const const_string_ptr*>(this);
+          const std::string& s = **reinterpret_cast<const const_string_ptr*>(this);
           if( s == "true" )
              return true;
           if( s == "false" )
@@ -454,7 +454,7 @@ bool  variant::as_bool()const
    }
 }
 
-string    variant::as_string()const
+std::string variant::as_string()const
 {
    switch( get_type() )
    {
@@ -471,9 +471,9 @@ string    variant::as_string()const
       case blob_type:
           if( get_blob().data.size() )
              return base64_encode( get_blob().data.data(), get_blob().data.size() ) + "=";
-          return string();
+          return std::string();
       case null_type:
-          return string();
+          return std::string();
       default:
       FC_THROW_EXCEPTION( bad_cast_exception, "Invalid cast from ${type} to string", ("type", get_type() ) );
    }
@@ -511,7 +511,7 @@ blob variant::as_blob()const
       case blob_type: return get_blob();
       case string_type:
       {
-         const string& str = get_string();
+         const std::string& str = get_string();
          if( str.size() == 0 ) return blob();
          if( str.back() == '=' )
          {
@@ -560,7 +560,7 @@ size_t            variant::size()const
     return get_array().size();
 }
 
-const string&        variant::get_string()const
+const std::string& variant::get_string()const
 {
   if( get_type() == string_type )
      return **reinterpret_cast<const const_string_ptr*>(this);
@@ -643,10 +643,10 @@ void from_variant( const variant& var,  float& vo )
 
 void to_variant( const std::string& s, variant& v )
 {
-    v = variant( fc::string(s) );
+    v = variant( std::string(s) );
 }
 
-void from_variant( const variant& var,  string& vo )
+void from_variant( const variant& var, std::string& vo )
 {
    vo = var.as_string();
 }
@@ -670,17 +670,17 @@ void from_variant( const variant& var,  std::vector<char>& vo )
 //   vo = std::vector<char>( b64.c_str(), b64.c_str() + b64.size() );
 }
 
-string      format_string( const string& format, const variant_object& args )
+std::string format_string( const std::string& format, const variant_object& args )
 {
    stringstream ss;
    size_t prev = 0;
    auto next = format.find( '$' );
-   while( prev != size_t(string::npos) && prev < size_t(format.size()) ) 
+   while( prev != size_t(std::string::npos) && prev < size_t(format.size()) ) 
    {
      ss << format.substr( prev, size_t(next-prev) );
    
      // if we got to the end, return it.
-     if( next == size_t(string::npos) ) 
+     if( next == size_t(std::string::npos) ) 
         return ss.str(); 
    
      // if we are not at the end, then update the start
@@ -691,10 +691,10 @@ string      format_string( const string& format, const variant_object& args )
         // if the next char is a open, then find close
          next = format.find( '}', prev );
          // if we found close... 
-         if( next != size_t(string::npos) ) 
+         if( next != size_t(std::string::npos) ) 
          {
            // the key is between prev and next
-           string key = format.substr( prev+1, (next-prev-1) );
+           std::string key = format.substr( prev+1, (next-prev-1) );
 
            auto val = args.find( key );
            if( val != args.end() )

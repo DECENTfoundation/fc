@@ -16,13 +16,13 @@ namespace fc
       {
          public:
             log_level level;
-            string       file;
+            std::string  file;
             uint64_t     line;
-            string       method;
-            string       thread_name;
-            string       task_name;
-            string       hostname;
-            string       context;
+            std::string  method;
+            std::string  thread_name;
+            std::string  task_name;
+            std::string  hostname;
+            std::string  context;
             time_point   timestamp;
       };
 
@@ -34,7 +34,7 @@ namespace fc
             log_message_impl(){}
 
             log_context     context;
-            string          format;
+            std::string     format;
             variant_object  args;
       };
    }
@@ -72,16 +72,16 @@ namespace fc
          my->task_name    = obj["task_name"].as_string();
        my->timestamp    = obj["timestamp"].as<time_point>();
        if( obj.contains( "context" ) )
-           my->context      = obj["context"].as<string>();
+           my->context      = obj["context"].as<std::string>();
    }
 
-   fc::string log_context::to_string()const
+   std::string log_context::to_string()const
    {
       return my->thread_name + "  " + my->file + ":" + fc::to_string(my->line) + " " + my->method;
 
    }
 
-   void log_context::append_context( const fc::string& s )
+   void log_context::append_context( const std::string& s )
    {
         if (!my->context.empty())
           my->context += " -> ";
@@ -178,15 +178,15 @@ namespace fc
 
 
 
-   string     log_context::get_file()const       { return my->file; }
+   std::string log_context::get_file()const       { return my->file; }
    uint64_t   log_context::get_line_number()const { return my->line; }
-   string     log_context::get_method()const     { return my->method; }
-   string     log_context::get_thread_name()const { return my->thread_name; }
-   string     log_context::get_task_name()const { return my->task_name; }
-   string     log_context::get_host_name()const   { return my->hostname; }
+   std::string log_context::get_method()const     { return my->method; }
+   std::string log_context::get_thread_name()const { return my->thread_name; }
+   std::string log_context::get_task_name()const { return my->task_name; }
+   std::string log_context::get_host_name()const   { return my->hostname; }
    time_point  log_context::get_timestamp()const  { return my->timestamp; }
    log_level  log_context::get_log_level()const{ return my->level;   }
-   string     log_context::get_context()const   { return my->context; }
+   std::string log_context::get_context()const   { return my->context; }
 
 
    variant log_context::to_variant()const
@@ -232,10 +232,10 @@ namespace fc
    }
 
    log_context          log_message::get_context()const { return my->context; }
-   string              log_message::get_format()const  { return my->format;  }
+   std::string          log_message::get_format()const  { return my->format;  }
    variant_object log_message::get_data()const    { return my->args;    }
 
-   string        log_message::get_message()const
+   std::string        log_message::get_message()const
    {
       return format_string( my->format, my->args );
    }

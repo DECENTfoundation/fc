@@ -18,27 +18,27 @@ namespace fc { namespace rpc {
       public:
          ~cli();
 
-         virtual variant send_call( api_id_type api_id, string method_name, variants args = variants() );
+         virtual variant send_call( api_id_type api_id, std::string method_name, variants args = variants() );
          virtual variant send_callback( uint64_t callback_id, variants args = variants() );
          virtual void    send_notice( uint64_t callback_id, variants args = variants() );
 
          // sets the CLI to non-interactive mode: commands will be loaded from command_file
-         void set_command_file( const string& command_file );
+         void set_command_file( const std::string& command_file );
 
          void start();
          void stop();
          void wait();
-         void format_result( const string& method, std::function<string(variant,const variants&)> formatter);
+         void format_result( const std::string& method, std::function<std::string(variant,const variants&)> formatter);
 
-         void get_line( const fc::string& prompt, fc::string& line, bool allow_history ) const;
+         void get_line( const std::string& prompt, std::string& line, bool allow_history ) const;
 
-         void set_prompt( const string& prompt );
+         void set_prompt( const std::string& prompt );
 
       private:
          void run();
 
          std::string _prompt = ">>>";
-         std::map<string,std::function<string(variant,const variants&)> > _result_formatters;
+         std::map<std::string,std::function<std::string(variant,const variants&)> > _result_formatters;
          fc::future<void> _run_complete;
 
          std::string command_file;

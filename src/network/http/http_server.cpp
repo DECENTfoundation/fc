@@ -128,7 +128,7 @@ namespace fc { namespace http {
         //wlog( "done handle connection" );
       }
 
-      void set_cors_domains(const fc::string& cors)
+      void set_cors_domains(const std::string& cors)
       {
           cors_domains = cors;
       }
@@ -137,7 +137,7 @@ namespace fc { namespace http {
       std::function<void(const http::request&, const server::response& s)>  on_req;
       std::vector<fc::future<void> >                                        requests_in_progress;
       fc::tcp_server                                                        tcp_serv;
-      fc::string                                                            cors_domains;
+      std::string                                                           cors_domains;
   };
 
 
@@ -169,7 +169,7 @@ namespace fc { namespace http {
   server::response& server::response::operator=(const server::response& s) { my = s.my; return *this; }
   server::response& server::response::operator=(server::response&& s)      { fc_swap(my,s.my); return *this; }
 
-  void server::response::add_header( const fc::string& key, const fc::string& val )const {
+  void server::response::add_header( const std::string& key, const std::string& val )const {
      my->rep.headers.push_back( fc::http::header( key, val ) );
   }
   void server::response::set_status( const http::reply::status_code& s )const {
@@ -205,7 +205,7 @@ namespace fc { namespace http {
 
   server::response::~response(){}
 
-  void server::set_cors_domains(const fc::string& cors)
+  void server::set_cors_domains(const std::string& cors)
   {
       my->set_cors_domains(cors);
   }

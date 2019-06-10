@@ -100,7 +100,7 @@ namespace fc {
       ///////////////
       std::stringstream line;
       line << to_log_category(m.get_context().get_log_level()) << ' ';
-      line << string(m.get_context().get_timestamp()) << ' ';
+      line << std::string(m.get_context().get_timestamp()) << ' ';
       line << std::setw( 10 ) << std::left << m.get_context().get_thread_name().substr(0,9).c_str() <<" "<<std::setw(30)<< std::left <<file_line.str();
 
       auto me = m.get_context().get_method();
@@ -117,7 +117,7 @@ namespace fc {
          line << std::setw( 20 ) << std::left << m.get_context().get_method().substr(p,20).c_str() <<" ";
       }
       line << "] ";
-      fc::string message = fc::format_string( m.get_format(), m.get_data() );
+      std::string message = fc::format_string( m.get_format(), m.get_data() );
       line << message;//.c_str();
 
       fc::unique_lock<boost::mutex> lock(log_mutex());

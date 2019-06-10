@@ -24,7 +24,7 @@ namespace fc
       sha1::encoder sha1_encoder;
       sha1_encoder.write(buffer.c_str(), buffer.size());
       sha1 sha1_result = sha1_encoder.result();
-      string sha1_result_base32 = to_base32((char*)&sha1_result, sizeof(sha1_result));
+      std::string sha1_result_base32 = to_base32((char*)&sha1_result, sizeof(sha1_result));
       return sha1_result_base32.c_str();
     }
 
