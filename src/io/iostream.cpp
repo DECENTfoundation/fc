@@ -259,14 +259,6 @@ namespace fc {
      return o;
   }
 
-#ifdef USE_FC_STRING
-  istream& operator>>( istream& o, fc::string& v )
-  {
-     assert(false && "not implemented");
-     return o;
-  }
-#endif
-
   istream& operator>>( istream& o, char& v )
   {
      o.read(&v,1);

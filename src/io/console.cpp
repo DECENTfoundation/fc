@@ -114,7 +114,7 @@ std::string get_password_hidden(const std::string& current_line)
    res = WriteConsoleInput(GetStdHandle(STD_INPUT_HANDLE), ir, 2, &bytesWritten);
    bytesWritten = 0;
 
-   fc::string redudant_line;
+   std::string redudant_line;
    fc::getline(fc::cin, redudant_line);
 
 #endif
