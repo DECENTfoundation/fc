@@ -91,7 +91,7 @@ namespace fc {
       p->wait();
       my->boost_thread = t;
       my->name = name;
-      wlog("name:${n} tid:${tid}", ("n", name)("tid", (uintptr_t)my->boost_thread->native_handle()) );
+      dlog("name:${n} tid:${tid}", ("n", name)("tid", (uintptr_t)my->boost_thread->native_handle()) );
    }
    thread::thread( thread_d* ) {
      my = new thread_d(*this);
