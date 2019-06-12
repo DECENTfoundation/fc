@@ -523,28 +523,21 @@ namespace fc
                 std::current_exception() ); \
    }
 
-#define FC_REWRAP_EXCEPTION( EXCEPTION, FORMAT, ... ) \
-  FC_MULTILINE_MACRO_BEGIN \
-    fc::exception exc = EXCEPTION( FC_LOG_MESSAGE( error, FORMAT, __VA_ARGS__ ) ); \
-   const fc::log_messages& lm = er.get_log(); \
-   for(int i = 0; i < (int)lm.size(); i++) \
-      exc.append_log(lm[i]); \
-    throw exc; \
-  FC_MULTILINE_MACRO_END
-
 #define FC_REWRAP_EXCEPTIONS( EXCEPTION, LOG_LEVEL, FORMAT, ... ) \
-catch( fc::exception& er ) { \
-   FC_REWRAP_EXCEPTION( EXCEPTION, FORMAT, __VA_ARGS__ ); \
+catch( const fc::exception& er ) { \
+   EXCEPTION fce( \
+      FC_LOG_MESSAGE(LOG_LEVEL, FORMAT, __VA_ARGS__ )); \
+   for(const auto& log : er.get_log()) \
+      fce.append_log(log); \
+   throw fce; \
 } catch(const std::exception& e) { \
-      fc::exception fce( \
-         FC_LOG_MESSAGE(LOG_LEVEL, "${what}: " FORMAT, __VA_ARGS__("what", e.what())), \
-         fc::std_exception_code, \
-         typeid(e).name(), \
-         e.what()); throw fce; \
+   EXCEPTION fce( \
+      FC_LOG_MESSAGE(LOG_LEVEL, "${what}: " FORMAT, __VA_ARGS__("what", e.what())), \
+      fc::std_exception_code, \
+      typeid(e).name(), \
+      e.what()); throw fce; \
 } catch(...) { \
-         throw fc::unhandled_exception( \
-            FC_LOG_MESSAGE(LOG_LEVEL, FORMAT, __VA_ARGS__), \
-            std::current_exception()); \
+   throw fc::unhandled_exception( \
+      FC_LOG_MESSAGE(LOG_LEVEL, FORMAT, __VA_ARGS__), \
+      std::current_exception()); \
 }
-
-
