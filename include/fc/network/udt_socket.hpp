@@ -3,12 +3,12 @@
 #include <fc/fwd.hpp>
 #include <fc/io/iostream.hpp>
 #include <fc/time.hpp>
-#include <fc/noncopyable.hpp>
+#include <boost/noncopyable.hpp>
 
 namespace fc {
    namespace ip { class endpoint; }
 
-   class udt_socket : public virtual iostream, public noncopyable
+   class udt_socket : public virtual iostream, private boost::noncopyable
    {
      public:
        udt_socket();
@@ -51,7 +51,7 @@ namespace fc {
    };
    typedef std::shared_ptr<udt_socket> udt_socket_ptr;
 
-   class udt_server : public noncopyable
+   class udt_server : private boost::noncopyable
    {
       public:
         udt_server();
