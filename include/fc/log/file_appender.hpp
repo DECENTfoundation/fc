@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fc/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
 #include <fc/log/appender.hpp>
 #include <fc/log/logger.hpp>
 #include <fc/time.hpp>
@@ -10,10 +10,10 @@ namespace fc {
 class file_appender : public appender {
     public:
          struct config {
-            config( const fc::path& p = "log.txt" );
+            config( const boost::filesystem::path& p = "log.txt" );
 
             std::string                        format;
-            fc::path                           filename;
+            boost::filesystem::path            filename;
             bool                               flush = true;
             bool                               rotate = false;
             microseconds                       rotation_interval;

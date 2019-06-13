@@ -5,6 +5,7 @@
 #include <fc/thread/scoped_lock.hpp>
 #include <fc/thread/thread.hpp>
 #include <fc/variant.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/thread/mutex.hpp>
 #include <iomanip>
 #include <queue>
@@ -53,8 +54,8 @@ namespace fc {
              fc::time_point now = time_point::now();
              fc::time_point_sec start_time = get_file_start_time( now, cfg.rotation_interval );
              std::string timestamp_string = start_time.to_non_delimited_iso_string();
-             fc::path link_filename = cfg.filename;
-             fc::path log_filename = link_filename.parent_path() / (link_filename.filename().string() + "." + timestamp_string);
+             boost::filesystem::path link_filename = cfg.filename;
+             boost::filesystem::path log_filename = link_filename.parent_path() / (link_filename.filename().string() + "." + timestamp_string);
 
              {
                fc::scoped_lock<boost::mutex> lock( slock );
@@ -73,23 +74,28 @@ namespace fc {
                    out.close();
                }
                remove_all(link_filename);  // on windows, you can't delete the link while the underlying file is opened for writing
-               if( fc::exists( log_filename ) )
+               if( exists( log_filename ) )
                   out.open(log_filename, std::ios_base::app);
                else
                   out.open(log_filename);
 
-               create_hard_link(log_filename, link_filename);
+               try {
+                  boost::filesystem::create_hard_link(log_filename, link_filename); 
+               } catch ( ... ) {
+                     FC_THROW( "Unable to create hard link from '${from}' to '${to}'", 
+                                    ("from",log_filename)("to",link_filename)("exception", fc::except_str() ) );
+               }
              }
 
              /* Delete old log files */
              fc::time_point limit_time = now - cfg.rotation_limit;
              std::string link_filename_string = link_filename.filename().string();
-             directory_iterator itr(link_filename.parent_path());
-             for( ; itr != directory_iterator(); itr++ )
+             boost::filesystem::directory_iterator itr(link_filename.parent_path());
+             for( ; itr != boost::filesystem::directory_iterator(); itr++ )
              {
                  try
                  {
-                     std::string current_filename = itr->filename().string();
+                     std::string current_filename = itr->path().string();
                      if (current_filename.compare(0, link_filename_string.size(), link_filename_string) != 0 ||
                          current_filename.size() <= link_filename_string.size() + 1)
                        continue;
@@ -98,7 +104,7 @@ namespace fc {
                      fc::time_point_sec current_timestamp = fc::time_point_sec::from_iso_string( current_timestamp_str );
                      if( current_timestamp < start_time )
                      {
-                         if( current_timestamp < limit_time || file_size( current_filename ) <= 0 )
+                         if( current_timestamp < limit_time || file_size( itr->path() ) <= 0 )
                          {
                              remove_all( *itr );
                              continue;
@@ -121,7 +127,7 @@ namespace fc {
          }
    };
 
-   file_appender::config::config(const fc::path& p) :
+   file_appender::config::config(const boost::filesystem::path& p) :
      format( "${timestamp} ${thread_name} ${context} ${file}:${line} ${method} ${level}]  ${message}" ),
      filename(p),
      flush(true),
@@ -133,8 +139,8 @@ namespace fc {
    {
       try
       {
-         if(!fc::exists(my->cfg.filename.parent_path())) {
-            fc::create_directories(my->cfg.filename.parent_path());
+         if(!exists(my->cfg.filename.parent_path())) {
+            create_directories(my->cfg.filename.parent_path());
          }
 
          if(my->cfg.rotate)
@@ -149,7 +155,7 @@ namespace fc {
       }
       catch( ... )
       {
-         std::cerr << "error opening log file: " << my->cfg.filename.preferred_string() << "\n";
+         std::cerr << "error opening log file: " << my->cfg.filename.string() << "\n";
       }
    }
 

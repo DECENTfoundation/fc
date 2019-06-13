@@ -743,7 +743,7 @@ namespace fc
 	   return pretty_print(to_string(v, format), 2);
    }
 
-   void json::save_to_file( const variant& v, const fc::path& fi, bool pretty, output_formatting format /* = stringify_large_ints_and_doubles */ )
+   void json::save_to_file( const variant& v, const boost::filesystem::path& fi, bool pretty, output_formatting format /* = stringify_large_ints_and_doubles */ )
    {
       if( pretty )
       {
@@ -757,7 +757,7 @@ namespace fc
        fc::to_stream( o, v, format );
       }
    }
-   variant json::from_file( const fc::path& p, parse_type ptype )
+   variant json::from_file( const boost::filesystem::path& p, parse_type ptype )
    {
       //auto tmp = std::make_shared<fc::ifstream>( p, ifstream::binary );
       //auto tmp = std::make_shared<std::ifstream>( p.generic_string().c_str(), std::ios::binary );

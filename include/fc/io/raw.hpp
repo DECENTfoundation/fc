@@ -9,9 +9,9 @@
 #include <fc/smart_ref_fwd.hpp>
 #include <fc/array.hpp>
 #include <fc/time.hpp>
-#include <fc/filesystem.hpp>
 #include <fc/safe.hpp>
 #include <fc/io/raw_fwd.hpp>
+#include <boost/filesystem/path.hpp>
 #include <map>
 #include <deque>
 
@@ -54,13 +54,13 @@ namespace fc {
     }
 
     template<typename Stream>
-    inline void pack( Stream& s, const fc::path& tp )
+    inline void pack( Stream& s, const boost::filesystem::path& tp )
     {
        fc::raw::pack( s, tp.generic_string() );
     }
 
     template<typename Stream>
-    inline void unpack( Stream& s, fc::path& tp )
+    inline void unpack( Stream& s, boost::filesystem::path& tp )
     {
        std::string p;
        fc::raw::unpack( s, p );

@@ -1,8 +1,13 @@
 #pragma once
 #include <fc/log/logger.hpp>
 
+namespace boost {
+  namespace filesystem {
+    class path;
+  }
+}
+
 namespace fc {
-   class path;
    struct appender_config {
       appender_config(const std::string& name = "",
                       const std::string& type = "", 
@@ -39,7 +44,7 @@ namespace fc {
       std::vector<logger_config>   loggers;
    };
 
-   void configure_logging( const fc::path& log_config );
+   void configure_logging( const boost::filesystem::path& log_config );
    bool configure_logging( const logging_config& l );
 }
 

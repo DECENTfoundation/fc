@@ -27,6 +27,8 @@
 #include <fc/reflect/variant.hpp>
 #include <fc/io/json.hpp>
 
+#include <boost/filesystem.hpp>
+
 #include <algorithm>
 #include <fstream>
 
@@ -42,13 +44,13 @@ namespace monitoring {
    bool monitoring_counters_base::_cache_is_loaded = false;
    std::vector<counter_item> monitoring_counters_base::_pending_save;
 
-   static fc::path monitoring_path;
+   static boost::filesystem::path monitoring_path;
    const char* COUNTERS_JSON_FILENAME = "counters.json";
 
-   void set_data_dir(const fc::path &data_dir)
+   void set_data_dir(const boost::filesystem::path &data_dir)
    {
       monitoring_path = data_dir / "monitoring";
-      fc::create_directories(monitoring_path);
+      create_directories(monitoring_path);
       monitoring_path = monitoring_path / COUNTERS_JSON_FILENAME;
    }
 

@@ -162,7 +162,6 @@ set( fc_sources
      src/io/console.cpp
      src/filesystem.cpp
      src/interprocess/signals.cpp
-     src/interprocess/file_mapping.cpp
      src/interprocess/mmap_struct.cpp
      src/rpc/cli.cpp
      src/rpc/http_api.cpp

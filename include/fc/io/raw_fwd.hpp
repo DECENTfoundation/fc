@@ -13,12 +13,17 @@
 
 #define MAX_ARRAY_ALLOC_SIZE (1024*1024*10) 
 
+namespace boost {
+  namespace filesystem {
+    class path;
+  }
+}
+
 namespace fc { 
    class time_point;
    class time_point_sec;
    class variant;
    class variant_object;
-   class path;
    template<typename... Types> class static_variant;
 
    template<typename IntType, typename EnumType> class enum_type;
@@ -62,8 +67,8 @@ namespace fc {
     template<typename Stream> inline void pack( Stream& s, const variant& v );
     template<typename Stream> inline void unpack( Stream& s, variant& v );
 
-    template<typename Stream> inline void pack( Stream& s, const path& v );
-    template<typename Stream> inline void unpack( Stream& s, path& v );
+    template<typename Stream> inline void pack( Stream& s, const boost::filesystem::path& v );
+    template<typename Stream> inline void unpack( Stream& s, boost::filesystem::path& v );
     template<typename Stream> inline void pack( Stream& s, const ip::endpoint& v );
     template<typename Stream> inline void unpack( Stream& s, ip::endpoint& v );
 

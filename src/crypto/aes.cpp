@@ -10,6 +10,7 @@
 
 #include <fc/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/filesystem.hpp>
 #include <openssl/opensslconf.h>
 #ifndef OPENSSL_THREADS
 # error "OpenSSL must be configured to support threads"
@@ -343,7 +344,7 @@ std::vector<char> aes_decrypt( const fc::sha512& key, const std::vector<char>& c
 /** encrypts plain_text and then includes a checksum that enables us to verify the integrety of
  * the file / key prior to decryption. 
  */
-void              aes_save( const fc::path& file, const fc::sha512& key, std::vector<char> plain_text )
+void              aes_save( const boost::filesystem::path& file, const fc::sha512& key, std::vector<char> plain_text )
 { try {
    auto cipher = aes_encrypt( key, plain_text );
    fc::sha512::encoder check_enc;
@@ -359,9 +360,9 @@ void              aes_save( const fc::path& file, const fc::sha512& key, std::ve
 /**
  *  recovers the plain_text saved via aes_save()
  */
-std::vector<char> aes_load( const fc::path& file, const fc::sha512& key )
+std::vector<char> aes_load( const boost::filesystem::path& file, const fc::sha512& key )
 { try {
-   FC_ASSERT( fc::exists( file ) );
+   FC_ASSERT( exists( file ) );
 
    fc::ifstream in( file );
    fc::sha512 check;

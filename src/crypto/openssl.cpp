@@ -2,8 +2,6 @@
 
 #include <fc/filesystem.hpp>
 
-#include <boost/filesystem/path.hpp>
-
 #include <cstdlib>
 #include <string>
 #include <stdlib.h>
@@ -12,7 +10,7 @@ namespace  fc
 {
     struct openssl_scope
     {
-       static path _configurationFilePath;
+       static boost::filesystem::path _configurationFilePath;
        openssl_scope()
        {
           ERR_load_crypto_strings(); 
@@ -22,7 +20,7 @@ namespace  fc
           if(boostPath.empty() == false)
           {
             std::string varSetting("OPENSSL_CONF=");
-            varSetting += _configurationFilePath.to_native_ansi_path();
+            varSetting += to_native_ansi_path(_configurationFilePath);
 #if defined(WIN32)
             _putenv((char*)varSetting.c_str());
 #else
@@ -51,9 +49,9 @@ namespace  fc
        }
     };
 
-    path openssl_scope::_configurationFilePath;
+    boost::filesystem::path openssl_scope::_configurationFilePath;
 
-    void store_configuration_path(const path& filePath)
+    void store_configuration_path(const boost::filesystem::path& filePath)
     {
       openssl_scope::_configurationFilePath = filePath;
     }

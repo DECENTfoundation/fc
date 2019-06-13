@@ -9,14 +9,18 @@
 #include <openssl/sha.h>
 #include <openssl/obj_mac.h>
 
+namespace boost {
+  namespace filesystem {
+    class path;
+  }
+}
+
 /** 
  * @file openssl.hpp
  * Provides common utility calls for wrapping openssl c api.
  */
 namespace fc 
 {
-  class path;
-
     template <typename ssl_type>
     struct ssl_wrapper
     {
@@ -61,7 +65,7 @@ namespace fc
         \warning to be effective this method should be used before any part using OpenSSL, especially
         before init_openssl call
     */
-    void store_configuration_path(const path& filePath);
+    void store_configuration_path(const boost::filesystem::path& filePath);
     int init_openssl();
 
 } // namespace fc

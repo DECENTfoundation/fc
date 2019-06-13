@@ -1,26 +1,30 @@
 #pragma once
-#include <fc/interprocess/file_mapping.hpp>
 #include <memory>
+#include <boost/interprocess/file_mapping.hpp>
+#include <boost/interprocess/mapped_region.hpp>
+
+namespace boost {
+  namespace filesystem {
+    class path;
+  }
+}
 
 namespace fc
 {
-   class path;
-   namespace detail
+  /**
+   *  Base class used to hide common implementation details.
+   */
+   class mmap_struct_base
    {
-       /**
-        *  Base class used to hide common implementation details.
-        */
-       class mmap_struct_base
-       {
-          public:
-            size_t size()const;
-            void flush();
+     public:
+       size_t size()const;
+       void flush();
 
-          protected:
-            void open( const fc::path& file, size_t s, bool create );
-            std::unique_ptr<fc::file_mapping>  _file_mapping;
-            std::unique_ptr<fc::mapped_region> _mapped_region;
-       };
+     protected:
+       void open( const boost::filesystem::path& file, size_t s, bool create );
+
+       std::unique_ptr<boost::interprocess::file_mapping>  _file_mapping;
+       std::unique_ptr<boost::interprocess::mapped_region> _mapped_region;
    };
 
    /**
@@ -30,7 +34,7 @@ namespace fc
     *  @note T must be POD 
     */
    template<typename T>
-   class mmap_struct : public detail::mmap_struct_base
+   class mmap_struct : public mmap_struct_base
    {
       public:
         mmap_struct():_mapped_struct(nullptr){}
@@ -40,9 +44,9 @@ namespace fc
          *
          *  @throw an exception if the file does not exist or is the wrong size and create is false
          */
-        void open( const fc::path& file, bool create = false )
+        void open( const boost::filesystem::path& file, bool create = false )
         {
-            detail::mmap_struct_base::open( file, sizeof(T), create ); 
+            mmap_struct_base::open( file, sizeof(T), create );
             _mapped_struct = (T*)_mapped_region->get_address();
         }
 
