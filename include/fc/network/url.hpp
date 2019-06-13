@@ -2,14 +2,14 @@
 #include <fc/string.hpp>
 #include <fc/optional.hpp>
 #include <stdint.h>
-#include <fc/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
 #include <fc/variant_object.hpp>
 #include <memory>
 
 namespace fc {
 
   typedef fc::optional<std::string>          ostring;
-  typedef fc::optional<fc::path>             opath;
+  typedef fc::optional<boost::filesystem::path> opath;
   typedef fc::optional<fc::variant_object>   ovariant_object;
 
   namespace detail { class url_impl; }

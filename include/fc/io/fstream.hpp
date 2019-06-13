@@ -4,15 +4,20 @@
 #include <fc/io/iostream.hpp>
 #include <ios>
 
+namespace boost {
+  namespace filesystem {
+    class path;
+  }
+}
+
 namespace fc {
-  class path;
   class ofstream : virtual public ostream {
     public:
       ofstream();
-      ofstream(const fc::path& file, std::ios_base::openmode mode = std::ios::binary);
+      ofstream(const boost::filesystem::path& file, std::ios_base::openmode mode = std::ios::binary);
       ~ofstream();
 
-      void open(const fc::path& file, std::ios_base::openmode mode = std::ios::binary);
+      void open(const boost::filesystem::path& file, std::ios_base::openmode mode = std::ios::binary);
       size_t writesome( const char* buf, size_t len );
       size_t writesome(const std::shared_ptr<const char>& buffer, size_t len, size_t offset);
       void   put( char c );
@@ -29,10 +34,10 @@ namespace fc {
       enum seekdir { beg, cur, end };
 
       ifstream();
-      ifstream(const fc::path& file, std::ios_base::openmode mode = std::ios::binary);
+      ifstream(const boost::filesystem::path& file, std::ios_base::openmode mode = std::ios::binary);
       ~ifstream();
 
-      void      open(const fc::path& file, std::ios_base::openmode mode = std::ios::binary);
+      void      open(const boost::filesystem::path& file, std::ios_base::openmode mode = std::ios::binary);
       size_t    readsome( char* buf, size_t len );
       size_t    readsome(const std::shared_ptr<char>& buffer, size_t max, size_t offset);
       ifstream& read( char* buf, size_t len );
@@ -51,6 +56,6 @@ namespace fc {
    * NB reading a full file into memory is a poor choice
    * if the file may be very large.
    */
-  void read_file_contents( const fc::path& filename, std::string& result );
+  void read_file_contents( const boost::filesystem::path& filename, std::string& result );
 
 } // namespace fc

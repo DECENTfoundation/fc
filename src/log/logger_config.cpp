@@ -21,7 +21,7 @@ namespace fc {
    extern std::unordered_map<std::string,appender::ptr>& get_appender_map();
    logger_config& logger_config::add_appender( const std::string& s ) { appenders.push_back(s); return *this; }
 
-   void configure_logging( const fc::path& lc )
+   void configure_logging( const boost::filesystem::path& lc )
    {
       configure_logging( fc::json::from_file<logging_config>(lc) );
    }

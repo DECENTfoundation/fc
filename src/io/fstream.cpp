@@ -23,11 +23,11 @@ namespace fc {
    ofstream::ofstream()
    :my( new impl() ){}
 
-   ofstream::ofstream( const fc::path& file, std::ios_base::openmode mode )
+   ofstream::ofstream( const boost::filesystem::path& file, std::ios_base::openmode mode )
    :my( new impl() ) { this->open( file, mode ); }
    ofstream::~ofstream(){}
 
-   void ofstream::open( const fc::path& file, std::ios_base::openmode mode ) {
+   void ofstream::open( const boost::filesystem::path& file, std::ios_base::openmode mode ) {
      const boost::filesystem::path& bfp = file; 
      my->ofs.open( bfp, mode | std::ios::binary );
    }
@@ -52,14 +52,14 @@ namespace fc {
 
    ifstream::ifstream()
    :my(new impl()){}
-   ifstream::ifstream( const fc::path& file, std::ios_base::openmode mode )
+   ifstream::ifstream( const boost::filesystem::path& file, std::ios_base::openmode mode )
    :my(new impl())
    {
       this->open( file, mode );
    }
    ifstream::~ifstream(){}
 
-   void ifstream::open( const fc::path& file, std::ios_base::openmode mode ) {
+   void ifstream::open( const boost::filesystem::path& file, std::ios_base::openmode mode ) {
      const boost::filesystem::path& bfp = file; 
       my->ifs.open( bfp, mode | std::ios::binary );
    }
@@ -96,7 +96,7 @@ namespace fc {
 
    bool   ifstream::eof()const { return !my->ifs.good(); }
 
-   void read_file_contents( const fc::path& filename, std::string& result )
+   void read_file_contents( const boost::filesystem::path& filename, std::string& result )
    {
       const boost::filesystem::path& bfp = filename;
       boost::filesystem::ifstream f( bfp, std::ios::in | std::ios::binary );

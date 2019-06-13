@@ -40,11 +40,4 @@
     </Expand>
 </Type>
 
-<Type Name="fc::path">
-	<DisplayString>{_p}</DisplayString>
-	<Expand>
-		<ExpandedItem>_p</ExpandedItem>
-	</Expand>
-</Type>
-
 </AutoVisualizer>

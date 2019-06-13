@@ -1,6 +1,6 @@
 #pragma once
 #include <fc/variant.hpp>
-#include <fc/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
 
 namespace fc
 {
@@ -43,16 +43,16 @@ namespace fc
          static bool     is_valid( const std::string& json_str, parse_type ptype = legacy_parser );
 
          template<typename T>
-         static void     save_to_file( const T& v, const fc::path& fi, bool pretty = true, output_formatting format = stringify_large_ints_and_doubles )
+         static void     save_to_file( const T& v, const boost::filesystem::path& fi, bool pretty = true, output_formatting format = stringify_large_ints_and_doubles )
          {
             save_to_file( variant(v), fi, pretty, format );
          }
 
-         static void     save_to_file( const variant& v, const fc::path& fi, bool pretty = true, output_formatting format = stringify_large_ints_and_doubles );
-         static variant  from_file( const fc::path& p, parse_type ptype = legacy_parser );
+         static void     save_to_file( const variant& v, const boost::filesystem::path& fi, bool pretty = true, output_formatting format = stringify_large_ints_and_doubles );
+         static variant  from_file( const boost::filesystem::path& p, parse_type ptype = legacy_parser );
 
          template<typename T>
-         static T from_file( const fc::path& p, parse_type ptype = legacy_parser )
+         static T from_file( const boost::filesystem::path& p, parse_type ptype = legacy_parser )
          {
             return json::from_file(p, ptype).as<T>();
          }
@@ -72,7 +72,7 @@ namespace fc
          template<typename T>
          static void save_to_file( const T& v, const std::string& p, bool pretty = true, output_formatting format = stringify_large_ints_and_doubles ) 
          {
-            save_to_file( variant(v), fc::path(p), pretty );
+            save_to_file( variant(v), boost::filesystem::path(p), pretty );
          } 
    };
 

@@ -53,11 +53,11 @@ namespace fc
            if (!stricmp(_proto.c_str(), "file"))
               _path = _lpath;
            else
-              _path = fc::path( "/" ) / _lpath; // let other schemes behave like unix
+              _path = boost::filesystem::path( "/" ) / _lpath; // let other schemes behave like unix
 #else
            // On unix, a URL like file:///etc/rc.local would result in _lpath = etc/rc.local
            // but we really want to make it the absolute path /etc/rc.local
-           _path = fc::path( "/" ) / _lpath;
+           _path = boost::filesystem::path( "/" ) / _lpath;
 #endif
            std::getline( ss, _largs );
            if( _args.valid() && _args->size() ) 

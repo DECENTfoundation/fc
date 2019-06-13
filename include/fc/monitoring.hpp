@@ -31,8 +31,13 @@
 #include <string>
 
 #include <fc/reflect/reflect.hpp>
-#include <fc/filesystem.hpp>
 #include <fc/time.hpp>
+
+namespace boost {
+  namespace filesystem {
+    class path;
+  }
+}
 
 namespace monitoring {
 
@@ -57,7 +62,7 @@ namespace monitoring {
       bool persistent;
    };
 
-   void set_data_dir(const fc::path &data_dir);
+   void set_data_dir(const boost::filesystem::path &data_dir);
 
    class monitoring_counters_base
    {
