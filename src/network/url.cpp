@@ -128,15 +128,6 @@ namespace fc
     u.my = get_null_url();
   }
 
-  url::url( const mutable_url& mu )
-  :my( std::make_shared<detail::url_impl>(*mu.my) )
-  {
-
-  }
-  url::url( mutable_url&& mu )
-  :my( fc::move( mu.my ) )
-  { }
-
   url::~url(){}
 
   url& url::operator=(const url& u )
@@ -152,16 +143,6 @@ namespace fc
         my = fc::move(u.my);
         u.my= get_null_url();
      }
-     return *this;
-  }
-  url& url::operator=(const mutable_url& u )
-  {
-     my = std::make_shared<detail::url_impl>(*u.my);
-     return *this;
-  }
-  url& url::operator=(mutable_url&& u )
-  {
-     my = fc::move(u.my);
      return *this;
   }
 

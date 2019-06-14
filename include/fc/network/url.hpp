@@ -14,8 +14,6 @@ namespace fc {
 
   namespace detail { class url_impl; }
 
-  class mutable_url;
-  
   /**
    *  Used to pass an immutable URL and
    *  query its parts.
@@ -27,16 +25,11 @@ namespace fc {
       explicit url( const std::string& u );
       url( const url& c );
       url( url&& c );
-      url( mutable_url&& c );
-      url( const mutable_url& c );
       ~url();
       
       url& operator=( const url& c );
       url& operator=( url&& c );
 
-      url& operator=( const mutable_url& c );
-      url& operator=( mutable_url&& c );
-      
       bool operator==( const url& cmp )const;
       
       operator std::string()const;
@@ -51,55 +44,10 @@ namespace fc {
       fc::optional<uint16_t>    port()const;
 
     private:
-      friend class mutable_url;
       std::shared_ptr<detail::url_impl> my;
   };
 
   void to_variant( const url& u, fc::variant& v );
   void from_variant( const fc::variant& v, url& u );
-
-  /**
-   *  Used to create / manipulate a URL
-   */
-  class mutable_url
-  {
-    public:
-      mutable_url();
-      explicit mutable_url( const std::string& mutable_url );
-      mutable_url( const mutable_url& c );
-      mutable_url( const url& c );
-      mutable_url( mutable_url&& c );
-      ~mutable_url();
-      
-      mutable_url& operator=( const url& c );
-      mutable_url& operator=( const mutable_url& c );
-      mutable_url& operator=( mutable_url&& c );
-      
-      bool operator==( const mutable_url& cmp )const;
-      bool operator==( const url& cmp )const;
-      
-      operator std::string()const;
-      
-      //// file, ssh, tcp, http, ssl, etc...
-      std::string               proto()const; 
-      ostring                   host()const;
-      ostring                   user()const;
-      ostring                   pass()const;
-      opath                     path()const;
-      ovariant_object           args()const;
-      fc::optional<uint16_t>    port()const;
-      
-      void set_proto( std::string   );
-      void set_host( std::string    );
-      void set_user( std::string    );
-      void set_pass( std::string    );
-      void set_path( fc::path p     );
-      void set_args( variant_object );
-      void set_port( uint16_t       );
-
-    private:
-      friend class url;
-      std::unique_ptr<detail::url_impl> my;
-  };
 
 } // namespace fc
