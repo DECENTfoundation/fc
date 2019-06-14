@@ -534,7 +534,7 @@ namespace fc {
   bool simple_lock_file::impl::try_lock()
   {
 #ifdef _WIN32
-    HANDLE fh = CreateFileA(lock_file_path.to_native_ansi_path().c_str(),
+    HANDLE fh = CreateFileW(lock_file_path.wstring().c_str(),
                             GENERIC_READ | GENERIC_WRITE,
                             0, 0,
                             OPEN_ALWAYS, 0, NULL);
