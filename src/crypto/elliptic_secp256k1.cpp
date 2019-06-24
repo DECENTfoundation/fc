@@ -124,10 +124,10 @@ namespace fc { namespace ecc {
     {
         FC_ASSERT( my->_key != empty_pub );
         public_key_point_data dat;
-        int pk_len = static_cast<int>(my->_key.size());
+        size_t pk_len = my->_key.size();
         memcpy( dat.begin(), my->_key.begin(), pk_len );
         FC_ASSERT( secp256k1_ec_pubkey_decompress( detail::_get_context(), (unsigned char *) dat.begin(), &pk_len ) );
-        FC_ASSERT( pk_len == static_cast<int>(dat.size()) );
+        FC_ASSERT( pk_len == dat.size() );
         return dat;
     }
 
@@ -163,8 +163,8 @@ namespace fc { namespace ecc {
             FC_ASSERT( is_canonical( c ), "signature is not canonical" );
         }
 
-        unsigned int pk_len;
-        FC_ASSERT( secp256k1_ecdsa_recover_compact( detail::_get_context(), (unsigned char*) digest.data(), (unsigned char*) c.begin() + 1, (unsigned char*) my->_key.begin(), (int*) &pk_len, 1, (*c.begin() - 27) & 3 ) );
+        size_t pk_len;
+        FC_ASSERT( secp256k1_ecdsa_recover_compact( detail::_get_context(), (unsigned char*) digest.data(), (unsigned char*) c.begin() + 1, (unsigned char*) my->_key.begin(), &pk_len, 1, (*c.begin() - 27) & 3 ) );
         FC_ASSERT( pk_len == my->_key.size() );
     }
 
@@ -438,7 +438,7 @@ namespace fc { namespace ecc {
         for ( int i = 0; i < 4; i++ )
         {
             unsigned char pubkey[33];
-            int pklen = 33;
+            size_t pklen = 33;
             if ( secp256k1_ecdsa_recover_compact( detail::_get_context(), (unsigned char*) hash.data(),
                                                   (unsigned char*) result.begin() + 1,
                                                   pubkey, &pklen, 1, i ) )
@@ -496,7 +496,7 @@ namespace fc { namespace ecc {
                                        uint64_t actual_value
                                      )
      {
-        int proof_len = 5134; 
+        size_t proof_len = 5134; 
         std::vector<char> proof(proof_len);
 
         FC_ASSERT( secp256k1_rangeproof_sign( detail::_get_context(), 
