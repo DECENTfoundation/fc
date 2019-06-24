@@ -71,8 +71,8 @@ namespace fc { namespace ecc {
     {
        FC_ASSERT( my->_key != empty_priv );
        public_key_data pub;
-       unsigned int pk_len;
-       FC_ASSERT( secp256k1_ec_pubkey_create( detail::_get_context(), (unsigned char*) pub.begin(), (int*) &pk_len, (unsigned char*) my->_key.data(), 1 ) );
+       size_t pk_len;
+       FC_ASSERT( secp256k1_ec_pubkey_create( detail::_get_context(), (unsigned char*) pub.begin(), &pk_len, (unsigned char*) my->_key.data(), 1 ) );
        FC_ASSERT( pk_len == pub.size() );
        return public_key(pub);
     }
