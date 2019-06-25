@@ -46,8 +46,8 @@ namespace fc
        api_id_is_not_registered_code         = 105,
        callback_id_is_not_registered_code    = 106,
        invalid_parameter_code                = 107,
-       invalid_space_id_code                 = 108,
-       invalid_type_id_code                  = 109,
+       //invalid_space_id_code                 = 108,
+       //invalid_type_id_code                  = 109,
        block_not_found_code                  = 110,
        block_does_not_contain_requested_trx_code = 111,
        limit_exceeded_code                   = 112,
@@ -115,6 +115,13 @@ namespace fc
           *   developers.
           */
          std::string to_detail_string( log_level ll = log_level::all )const;
+
+         /**
+          *   Generates a detailed string including file, line, method,
+          *   only from first stored item. Used in websockets/http because
+          *   it contains complete stack so all details not needed to output twice
+          */
+         std::string only_first_to_detail_string(log_level ll = log_level::all)const;
 
          /**
           *   Generates a user-friendly error report.
@@ -315,14 +322,12 @@ namespace fc
   FC_DECLARE_EXCEPTION(no_method_with_this_name_exception, no_method_with_this_name_code, "No method with this name.");
   FC_DECLARE_EXCEPTION(api_id_is_not_registered_exception, api_id_is_not_registered_code, "Api id is not registered.");
   FC_DECLARE_EXCEPTION(callback_id_is_not_registered_exception, callback_id_is_not_registered_code, "Callback id is not registered.");
-  FC_DECLARE_EXCEPTION(invalid_parameter_exception, invalid_parameter_code, "Invalid parameter.");
-  
+  FC_DECLARE_EXCEPTION(invalid_parameter_exception, invalid_parameter_code, "Invalid parameter.");  
   FC_DECLARE_EXCEPTION(account_does_not_exist_exception, account_does_not_exist_code, "Account does not exist.");
   FC_DECLARE_EXCEPTION(public_key_not_found_in_wallet_exception, public_key_not_found_in_wallet_code, "Public key not found in wallet.");
   FC_DECLARE_EXCEPTION(private_key_not_imported_exception, private_key_not_imported_code, "Private key not imported.");
-
-  FC_DECLARE_EXCEPTION(invalid_space_id_exception, invalid_space_id_code, "Invalid space id in object identifier.");
-  FC_DECLARE_EXCEPTION(invalid_type_id_exception, invalid_type_id_code, "Invalid type id in object identifier.");
+  //FC_DECLARE_EXCEPTION(invalid_space_id_exception, invalid_space_id_code, "Invalid space id in object identifier.");
+  //FC_DECLARE_EXCEPTION(invalid_type_id_exception, invalid_type_id_code, "Invalid type id in object identifier.");
   FC_DECLARE_EXCEPTION(block_not_found_exception, block_not_found_code, "Block not found.")
   FC_DECLARE_EXCEPTION(block_does_not_contain_requested_trx_exception, block_does_not_contain_requested_trx_code, "Block does not contain requested transaction.");
   FC_DECLARE_EXCEPTION(limit_exceeded_exception, limit_exceeded_code, "Limit exceeded.");

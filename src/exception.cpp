@@ -173,13 +173,33 @@ namespace fc
       ss << variant(my->_code).as_string() <<" " << my->_name << ": " <<my->_what<<" ";
 
       for( auto itr = my->_elog.begin(); itr != my->_elog.end();  )
-      {               
+      {
          ss << itr->get_message(); //fc::format_string( itr->get_format(), itr->get_data() ) <<"\n";
-         //ss << "    " << json::to_string( itr->get_data() )<<"\n";
-         //ss << "    " << itr->get_context().to_string();
+         ss << "    " << json::to_string( itr->get_data() )<<"\n";
+         ss << "    " << itr->get_context().to_string();
          ++itr;
-         //if( itr != my->_elog.end() ) ss<<"\n";
-         break;
+         if( itr != my->_elog.end() ) ss<<"\n";
+      }
+      return ss.str();
+   }
+
+   /**
+    *   Generates a detailed string including file, line, method,
+    *   only from first stored item. Used in websockets/http because
+    *   it contains complete stack so all details not needed to output twice
+    */
+   string exception::only_first_to_detail_string(log_level ll)const
+   {
+      fc::stringstream ss;
+      ss << variant(my->_code).as_string() << " " << my->_name << ": " << my->_what << " ";
+
+      if(my->_elog.size()) {
+         auto itr = my->_elog.begin();
+         ss << itr->get_message(); //fc::format_string( itr->get_format(), itr->get_data() ) <<"\n";
+         ss << "    " << json::to_string(itr->get_data()) << "\n";
+         ss << "    " << itr->get_context().to_string();
+         ++itr;
+         ss << "\n";
       }
       return ss.str();
    }
