@@ -117,6 +117,13 @@ namespace fc
          std::string to_detail_string( log_level ll = log_level::all )const;
 
          /**
+          *   Generates a detailed string including file, line, method,
+          *   only from first stored item. Used in websockets/http because
+          *   it contains complete stack so all details not needed to output twice
+          */
+         std::string only_first_to_detail_string(log_level ll = log_level::all)const;
+
+         /**
           *   Generates a user-friendly error report.
           */
          std::string to_string( log_level ll = log_level::info  )const;
