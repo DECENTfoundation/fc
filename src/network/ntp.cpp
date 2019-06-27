@@ -174,7 +174,7 @@ namespace fc
                   _last_ntp_delta_initialized = true;
                   fc::microseconds ntp_delta_time = fc::microseconds(_last_ntp_delta_microseconds);
                   _last_valid_ntp_reply_received_time = receive_time;
-                  wlog("ntp_delta_time updated to ${delta_time} us", ("delta_time",ntp_delta_time) );
+                  dlog("ntp_delta_time updated to ${delta_time} us", ("delta_time",ntp_delta_time) );
                 }
                 else
                   elog( "NTP time and local time vary by more than a day! ntp:${ntp_time} local:${local}", 
@@ -199,7 +199,7 @@ namespace fc
           _sock.close();
           fc::usleep(fc::seconds(_retry_failed_request_interval_sec));
         } //outer while loop
-        wlog("exiting ntp read_loop");
+        dlog("exiting ntp read_loop");
       } //end read_loop()
     }; //ntp_impl
 
