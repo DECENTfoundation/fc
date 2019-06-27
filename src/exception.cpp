@@ -188,7 +188,7 @@ namespace fc
     *   only from first stored item. Used in websockets/http because
     *   it contains complete stack so all details not needed to output twice
     */
-   string exception::only_first_to_detail_string(log_level ll)const
+   std::string exception::only_first_to_detail_string(log_level ll)const
    {
       fc::stringstream ss;
       ss << variant(my->_code).as_string() << " " << my->_name << ": " << my->_what << " ";
