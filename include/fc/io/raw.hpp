@@ -397,31 +397,6 @@ namespace fc {
 
     } // namesapce detail
 
-    template<typename Stream, typename T>
-    inline void pack( Stream& s, const std::unordered_set<T>& value ) {
-      fc::raw::pack( s, unsigned_int((uint32_t)value.size()) );
-      auto itr = value.begin();
-      auto end = value.end();
-      while( itr != end ) {
-        fc::raw::pack( s, *itr );
-        ++itr;
-      }
-    }
-    template<typename Stream, typename T>
-    inline void unpack( Stream& s, std::unordered_set<T>& value ) {
-      unsigned_int size; fc::raw::unpack( s, size );
-      value.clear();
-      FC_ASSERT( size.value*sizeof(T) < MAX_ARRAY_ALLOC_SIZE );
-      value.reserve(size.value);
-      for( uint32_t i = 0; i < size.value; ++i )
-      {
-          T tmp;
-          fc::raw::unpack( s, tmp );
-          value.insert( std::move(tmp) );
-      }
-    }
-
-
     template<typename Stream, typename K, typename V>
     inline void pack( Stream& s, const std::pair<K,V>& value ) {
        fc::raw::pack( s, value.first );
@@ -434,30 +409,6 @@ namespace fc {
        fc::raw::unpack( s, value.second );
     }
 
-   template<typename Stream, typename K, typename V>
-    inline void pack( Stream& s, const std::unordered_map<K,V>& value ) {
-      fc::raw::pack( s, unsigned_int((uint32_t)value.size()) );
-      auto itr = value.begin();
-      auto end = value.end();
-      while( itr != end ) {
-        fc::raw::pack( s, *itr );
-        ++itr;
-      }
-    }
-    template<typename Stream, typename K, typename V>
-    inline void unpack( Stream& s, std::unordered_map<K,V>& value )
-    {
-      unsigned_int size; fc::raw::unpack( s, size );
-      value.clear();
-      FC_ASSERT( size.value*(sizeof(K)+sizeof(V)) < MAX_ARRAY_ALLOC_SIZE );
-      value.reserve(size.value);
-      for( uint32_t i = 0; i < size.value; ++i )
-      {
-          std::pair<K,V> tmp;
-          fc::raw::unpack( s, tmp );
-          value.insert( std::move(tmp) );
-      }
-    }
     template<typename Stream, typename K, typename V>
     inline void pack( Stream& s, const std::map<K,V>& value ) {
       fc::raw::pack( s, unsigned_int((uint32_t)value.size()) );

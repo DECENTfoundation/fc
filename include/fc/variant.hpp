@@ -4,8 +4,6 @@
 #include <map>
 #include <memory>
 #include <set>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include <string.h> // memset
@@ -85,11 +83,6 @@ namespace fc
    void from_variant( const variant& var,  std::vector<char>& vo );
 
    template<typename K, typename T>
-   void to_variant( const std::unordered_map<K,T>& var,  variant& vo );
-   template<typename K, typename T>
-   void from_variant( const variant& var,  std::unordered_map<K,T>& vo );
-
-   template<typename K, typename T>
    void to_variant( const fc::flat_map<K,T>& var,  variant& vo );
    template<typename K, typename T>
    void from_variant( const variant& var, fc::flat_map<K,T>& vo );
@@ -102,12 +95,6 @@ namespace fc
    void to_variant( const std::multimap<K,T>& var,  variant& vo );
    template<typename K, typename T>
    void from_variant( const variant& var,  std::multimap<K,T>& vo );
-
-
-   template<typename T>
-   void to_variant( const std::unordered_set<T>& var,  variant& vo );
-   template<typename T>
-   void from_variant( const variant& var,  std::unordered_set<T>& vo );
 
    template<typename T>
    void to_variant( const std::deque<T>& var,  variant& vo );
@@ -364,44 +351,7 @@ namespace fc
           from_variant( var, *vo );
       }
    }
-   template<typename T>
-   void to_variant( const std::unordered_set<T>& var,  variant& vo )
-   {
-       std::vector<variant> vars(var.size());
-       size_t i = 0;
-       for( auto itr = var.begin(); itr != var.end(); ++itr, ++i )
-          vars[i] = variant(*itr);
-       vo = vars;
-   }
-   template<typename T>
-   void from_variant( const variant& var,  std::unordered_set<T>& vo )
-   {
-      const variants& vars = var.get_array();
-      vo.clear();
-      vo.reserve( vars.size() );
-      for( auto itr = vars.begin(); itr != vars.end(); ++itr )
-         vo.insert( itr->as<T>() );
-   }
 
-
-   template<typename K, typename T>
-   void to_variant( const std::unordered_map<K, T>& var,  variant& vo )
-   {
-       std::vector< variant > vars(var.size());
-       size_t i = 0;
-       for( auto itr = var.begin(); itr != var.end(); ++itr, ++i )
-          vars[i] = fc::variant(*itr);
-       vo = vars;
-   }
-   template<typename K, typename T>
-   void from_variant( const variant& var,  std::unordered_map<K, T>& vo )
-   {
-      const variants& vars = var.get_array();
-      vo.clear();
-      for( auto itr = vars.begin(); itr != vars.end(); ++itr )
-         vo.insert( itr->as< std::pair<K,T> >() );
-
-   }
    template<typename K, typename T>
    void to_variant( const std::map<K, T>& var,  variant& vo )
    {

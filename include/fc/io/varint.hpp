@@ -77,7 +77,7 @@ void from_variant( const variant& var,  unsigned_int& vo );
 
 }  // namespace fc
 
-#include <unordered_map>
+#include <functional>
 namespace std
 {
    template<>
