@@ -16,8 +16,8 @@ PROJECT( fc LANGUAGES CXX C )
 
 MESSAGE(STATUS "Configuring project fc located in: ${CMAKE_CURRENT_SOURCE_DIR}")
 
-# Compile in C++11 mode
-set(CMAKE_CXX_STANDARD 11)
+# Compile in C++14 mode
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Compile in C99 mode
