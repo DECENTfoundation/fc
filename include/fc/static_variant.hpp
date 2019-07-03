@@ -210,6 +210,12 @@ public:
        );
        static const int value = impl::position<X, Types...>::pos;
     };
+
+    typedef std::tuple<Types...> types;
+
+    template<std::size_t N>
+    using type = typename std::tuple_element_t<N, types>;
+
     static_variant()
     {
        _tag = 0;
