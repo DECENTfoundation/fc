@@ -23,7 +23,7 @@ namespace fc
 
   private:
     class impl;
-    fc::shared_ptr<impl> my;
+    std::shared_ptr<impl> my;
   };
 } // namespace fc
 

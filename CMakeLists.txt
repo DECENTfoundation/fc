@@ -147,9 +147,9 @@ set( fc_sources
      src/thread/spin_yield_lock.cpp
      src/thread/mutex.cpp
      src/thread/non_preemptable_scope_check.cpp
+     src/thread/shared_ptr.cpp
      src/asio.cpp
      src/string.cpp
-     src/shared_ptr.cpp
      src/time.cpp
      src/utf8.cpp
      src/io/iostream.cpp

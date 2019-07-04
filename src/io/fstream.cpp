@@ -11,11 +11,11 @@
 #include <boost/filesystem/fstream.hpp>
 
 namespace fc {
-   class ofstream::impl : public fc::retainable {
+   class ofstream::impl {
       public:
          boost::filesystem::ofstream ofs;
    };
-   class ifstream::impl : public fc::retainable {
+   class ifstream::impl {
       public:
          boost::filesystem::ifstream ifs;
    };

@@ -1,4 +1,4 @@
-#include <fc/shared_ptr.hpp>
+#include <fc/thread/shared_ptr.hpp>
 #include <boost/atomic.hpp>
 #include <boost/memory_order.hpp>
 #include <assert.h>

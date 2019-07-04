@@ -1,7 +1,6 @@
 #pragma once
-#include <fc/utility.hpp>
 #include <fc/time.hpp>
-#include <fc/shared_ptr.hpp>
+#include <fc/thread/shared_ptr.hpp>
 #include <fc/exception/exception.hpp>
 #include <fc/thread/spin_yield_lock.hpp>
 #include <fc/optional.hpp>
@@ -326,4 +325,3 @@ namespace fc {
       fc::shared_ptr<promise<void>> m_prom;
   };
 } 
-

@@ -87,4 +87,3 @@ namespace fc {
     return fc::shared_ptr<T>( static_cast<T*>(t.get()), true );
   }
 }
-

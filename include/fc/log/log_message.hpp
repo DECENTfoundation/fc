@@ -3,10 +3,7 @@
  * @file log_message.hpp
  * @brief Defines types and helper macros necessary for generating log messages.
  */
-#include <fc/time.hpp>
 #include <fc/variant_object.hpp>
-#include <fc/shared_ptr.hpp>
-#include <memory>
 
 namespace fc
 {

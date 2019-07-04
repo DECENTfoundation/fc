@@ -9,7 +9,7 @@
 
 namespace fc { namespace http {
 
-  class server::response::impl : public fc::retainable
+  class server::response::impl
   {
     public:
       impl( const fc::http::connection_ptr& c, const std::function<void()>& cont = std::function<void()>() )
@@ -112,7 +112,7 @@ namespace fc { namespace http {
       {
         try 
         {
-          http::server::response rep( fc::shared_ptr<response::impl>( new response::impl(c) ) );
+          http::server::response rep( std::shared_ptr<response::impl>( new response::impl(c) ) );
           if (!cors_domains.empty())
             rep.add_header("Access-Control-Allow-Origin", cors_domains);
 
@@ -164,7 +164,7 @@ namespace fc { namespace http {
   server::response::response(){}
   server::response::response( const server::response& s ):my(s.my){}
   server::response::response( server::response&& s ):my(fc::move(s.my)){}
-  server::response::response( const fc::shared_ptr<server::response::impl>& m ):my(m){}
+  server::response::response( const std::shared_ptr<server::response::impl>& m ):my(m){}
 
   server::response& server::response::operator=(const server::response& s) { my = s.my; return *this; }
   server::response& server::response::operator=(server::response&& s)      { fc_swap(my,s.my); return *this; }
