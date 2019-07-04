@@ -259,7 +259,8 @@ namespace fc {
          api_id_type get_api_id_from_name( const std::string& name )const
          {
             api_id_type api_id = std::distance( _api_names.begin(), std::find( _api_names.begin(), _api_names.end(), name ) );
-            FC_ASSERT( api_id < _local_apis.size(), "api name is not registered" );
+            if(api_id >= _local_apis.size())
+               FC_THROW_EXCEPTION(api_name_is_not_registered_exception, "API name: ${name}", ("name", name));
             return api_id;
          }
 

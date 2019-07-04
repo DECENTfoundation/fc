@@ -29,7 +29,7 @@ namespace fc
        assert_exception_code             = 10,
        eof_exception_code                = 11,
        std_exception_code                = 13,
-       invalid_operation_exception_code  = 14,
+       //invalid_operation_exception_code  = 14,
        unknown_host_exception_code       = 15,
        null_optional_code                = 16,
        udt_error_code                    = 17,
@@ -37,26 +37,17 @@ namespace fc
        overflow_code                     = 19,
        underflow_code                    = 20,
        divide_by_zero_code               = 21,
+       
        //new codes
-       account_does_not_exist_code           = 100,
-       public_key_not_found_in_wallet_code   = 101,
-       private_key_not_imported_code         = 102,
-       too_few_arguments_code                = 103,
-       no_method_with_this_name_code         = 104,
-       api_id_is_not_registered_code         = 105,
-       callback_id_is_not_registered_code    = 106,
-       invalid_parameter_code                = 107,
-       //invalid_space_id_code                 = 108,
-       //invalid_type_id_code                  = 109,
-       block_not_found_code                  = 110,
-       block_does_not_contain_requested_trx_code = 111,
-       limit_exceeded_code                   = 112,
-       buying_object_does_not_exist_code     = 113,
-       content_object_does_not_exist_code    = 114,
-       decryption_of_key_particle_failed_code = 115,
-       seeder_not_found_code                 = 116,
-       account_in_wallet_not_on_blockchain_code = 117,
-       account_name_or_id_cannot_be_empty_code  = 118,
+
+       // common checking of processing API in api_connection.hpp 
+       too_few_arguments_code            = 50,
+       no_method_with_this_name_code     = 51,
+       api_id_is_not_registered_code     = 52,
+       callback_id_is_not_registered_code = 53,
+       invalid_parameter_code            = 54,
+       api_name_is_not_registered_code   = 55,
+      
    };
 
    /**
@@ -293,9 +284,9 @@ namespace fc
   FC_DECLARE_EXCEPTION( out_of_range_exception, out_of_range_exception_code, "Out of Range" );
 
   /** @brief if an operation is unsupported or not valid this may be thrown */
-  FC_DECLARE_EXCEPTION( invalid_operation_exception,
-                        invalid_operation_exception_code,
-                        "Invalid Operation" );
+  //FC_DECLARE_EXCEPTION( invalid_operation_exception,
+    //                    invalid_operation_exception_code,
+      //                  "Invalid Operation" );
   /** @brief if an host name can not be resolved this may be thrown */
   FC_DECLARE_EXCEPTION( unknown_host_exception,
                          unknown_host_exception_code,
@@ -317,25 +308,13 @@ namespace fc
   FC_DECLARE_EXCEPTION( underflow_exception, underflow_code, "Integer Underflow" );
   FC_DECLARE_EXCEPTION( divide_by_zero_exception, divide_by_zero_code, "Integer Divide By Zero" );
 
-  //new:
+  // common checking when API is called:
   FC_DECLARE_EXCEPTION(too_few_arguments_exception, too_few_arguments_code, "Too few arguments passed to method.");
   FC_DECLARE_EXCEPTION(no_method_with_this_name_exception, no_method_with_this_name_code, "No method with this name.");
   FC_DECLARE_EXCEPTION(api_id_is_not_registered_exception, api_id_is_not_registered_code, "Api id is not registered.");
   FC_DECLARE_EXCEPTION(callback_id_is_not_registered_exception, callback_id_is_not_registered_code, "Callback id is not registered.");
   FC_DECLARE_EXCEPTION(invalid_parameter_exception, invalid_parameter_code, "Invalid parameter.");  
-  FC_DECLARE_EXCEPTION(account_does_not_exist_exception, account_does_not_exist_code, "Account does not exist.");
-  FC_DECLARE_EXCEPTION(public_key_not_found_in_wallet_exception, public_key_not_found_in_wallet_code, "Public key not found in wallet.");
-  FC_DECLARE_EXCEPTION(private_key_not_imported_exception, private_key_not_imported_code, "Private key not imported.");
-  FC_DECLARE_EXCEPTION(block_not_found_exception, block_not_found_code, "Block not found.")
-  FC_DECLARE_EXCEPTION(block_does_not_contain_requested_trx_exception, block_does_not_contain_requested_trx_code, "Block does not contain requested transaction.");
-  FC_DECLARE_EXCEPTION(limit_exceeded_exception, limit_exceeded_code, "Limit exceeded.");
-  FC_DECLARE_EXCEPTION(buying_object_does_not_exist_exception, buying_object_does_not_exist_code, "Buying object does not exist.");
-  FC_DECLARE_EXCEPTION(content_object_does_not_exist_exception, content_object_does_not_exist_code, "Content object does not exist.");
-  FC_DECLARE_EXCEPTION(decryption_of_key_particle_failed_exception, decryption_of_key_particle_failed_code, "Decryption of key particle failed.");
-  FC_DECLARE_EXCEPTION(seeder_not_found_exception, seeder_not_found_code, "Seeder not found.");
-  FC_DECLARE_EXCEPTION(account_in_wallet_not_on_blockchain_exception, account_in_wallet_not_on_blockchain_code, "Account present in the wallet but does not exist on the blockchain.");
-  FC_DECLARE_EXCEPTION(account_name_or_id_cannot_be_empty_exception, account_name_or_id_cannot_be_empty_code, "Account name or id cannot be empty string");
-
+  FC_DECLARE_EXCEPTION(api_name_is_not_registered_exception, api_name_is_not_registered_code, "Api name is not registered.");
 
   std::string except_str();
 
@@ -414,7 +393,7 @@ namespace fc
 
 #define FC_LOG_AND_RETHROW( )  \
    catch( fc::exception& er ) { \
-      wlog( "${details}", ("details",er.to_detail_string()) ); \
+      elog( "${details}", ("details",er.to_detail_string()) ); \
       FC_RETHROW_EXCEPTION( er, warn, "rethrow" ); \
    } catch( const std::exception& e ) {  \
       fc::exception fce( \
@@ -422,20 +401,20 @@ namespace fc
                 fc::std_exception_code,\
                 typeid(e).name(), \
                 e.what() ) ; \
-      wlog( "${details}", ("details",fce.to_detail_string()) ); \
+      elog( "${details}", ("details",fce.to_detail_string()) ); \
       throw fce;\
    } catch( ... ) {  \
       fc::unhandled_exception e( \
                 FC_LOG_MESSAGE( warn, "rethrow"), \
                 std::current_exception() ); \
-      wlog( "${details}", ("details",e.to_detail_string()) ); \
+      elog( "${details}", ("details",e.to_detail_string()) ); \
       throw e; \
    }
 
 #define FC_CAPTURE_LOG_AND_RETHROW( ... )  \
    catch( fc::exception& er ) { \
-      wlog( "${details}", ("details",er.to_detail_string()) ); \
-      wdump( __VA_ARGS__ ); \
+      elog( "${details}", ("details",er.to_detail_string()) ); \
+      edump( __VA_ARGS__ ); \
       FC_RETHROW_EXCEPTION( er, warn, "rethrow", FC_FORMAT_ARG_PARAMS(__VA_ARGS__) ); \
    } catch( const std::exception& e ) {  \
       fc::exception fce( \
@@ -443,36 +422,36 @@ namespace fc
                 fc::std_exception_code,\
                 typeid(e).name(), \
                 e.what() ) ; \
-      wlog( "${details}", ("details",fce.to_detail_string()) ); \
-      wdump( __VA_ARGS__ ); \
+      elog( "${details}", ("details",fce.to_detail_string()) ); \
+      edump( __VA_ARGS__ ); \
       throw fce;\
    } catch( ... ) {  \
       fc::unhandled_exception e( \
                 FC_LOG_MESSAGE( warn, "rethrow", FC_FORMAT_ARG_PARAMS( __VA_ARGS__) ), \
                 std::current_exception() ); \
-      wlog( "${details}", ("details",e.to_detail_string()) ); \
-      wdump( __VA_ARGS__ ); \
+      elog( "${details}", ("details",e.to_detail_string()) ); \
+      edump( __VA_ARGS__ ); \
       throw e; \
    }
 
 #define FC_CAPTURE_AND_LOG( ... )  \
    catch( fc::exception& er ) { \
-      wlog( "${details}", ("details",er.to_detail_string()) ); \
-      wdump( __VA_ARGS__ ); \
+      elog( "${details}", ("details",er.to_detail_string()) ); \
+      edump( __VA_ARGS__ ); \
    } catch( const std::exception& e ) {  \
       fc::exception fce( \
                 FC_LOG_MESSAGE( warn, "rethrow ${what}: ",FC_FORMAT_ARG_PARAMS( __VA_ARGS__  )("what",e.what()) ), \
                 fc::std_exception_code,\
                 typeid(e).name(), \
                 e.what() ) ; \
-      wlog( "${details}", ("details",fce.to_detail_string()) ); \
-      wdump( __VA_ARGS__ ); \
+      elog( "${details}", ("details",fce.to_detail_string()) ); \
+      edump( __VA_ARGS__ ); \
    } catch( ... ) {  \
       fc::unhandled_exception e( \
                 FC_LOG_MESSAGE( warn, "rethrow", FC_FORMAT_ARG_PARAMS( __VA_ARGS__) ), \
                 std::current_exception() ); \
-      wlog( "${details}", ("details",e.to_detail_string()) ); \
-      wdump( __VA_ARGS__ ); \
+      elog( "${details}", ("details",e.to_detail_string()) ); \
+      edump( __VA_ARGS__ ); \
    }
 
 
