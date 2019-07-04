@@ -2,6 +2,7 @@
 #include <fc/log/log_message.hpp>
 #include <fc/thread/unique_lock.hpp>
 #include <fc/string.hpp>
+#include <fc/time.hpp>
 #include <fc/variant.hpp>
 #include <fc/reflect/variant.hpp>
 #ifndef WIN32
