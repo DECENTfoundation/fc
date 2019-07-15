@@ -37,9 +37,8 @@ namespace fc
        overflow_code                     = 19,
        underflow_code                    = 20,
        divide_by_zero_code               = 21,
-       
-       //new codes
 
+       // new codes
        // common checking of processing API in api_connection.hpp 
        too_few_arguments_code            = 50,
        no_method_with_this_name_code     = 51,
@@ -48,6 +47,16 @@ namespace fc
        invalid_parameter_code            = 54,
        api_name_is_not_registered_code   = 55,
       
+   };
+
+   enum exception_base_codes 
+   {
+      low_level_exception_base_code       = 0,
+      db_exception_base_code              = 100,
+      app_exception_base_code             = 200,
+      net_exception_base_code             = 300,
+      chain_exception_base_code           = 400,
+      wallet_exception_base_code          = 500,
    };
 
    /**
@@ -394,10 +403,10 @@ namespace fc
 #define FC_LOG_AND_RETHROW( )  \
    catch( fc::exception& er ) { \
       elog( "${details}", ("details",er.to_detail_string()) ); \
-      FC_RETHROW_EXCEPTION( er, warn, "rethrow" ); \
+      FC_RETHROW_EXCEPTION( er, error, "rethrow" ); \
    } catch( const std::exception& e ) {  \
       fc::exception fce( \
-                FC_LOG_MESSAGE( warn, "rethrow ${what}: ", ("what",e.what())), \
+                FC_LOG_MESSAGE( error, "rethrow ${what}: ", ("what",e.what())), \
                 fc::std_exception_code,\
                 typeid(e).name(), \
                 e.what() ) ; \
@@ -405,7 +414,7 @@ namespace fc
       throw fce;\
    } catch( ... ) {  \
       fc::unhandled_exception e( \
-                FC_LOG_MESSAGE( warn, "rethrow"), \
+                FC_LOG_MESSAGE( error, "rethrow"), \
                 std::current_exception() ); \
       elog( "${details}", ("details",e.to_detail_string()) ); \
       throw e; \
@@ -415,10 +424,10 @@ namespace fc
    catch( fc::exception& er ) { \
       elog( "${details}", ("details",er.to_detail_string()) ); \
       edump( __VA_ARGS__ ); \
-      FC_RETHROW_EXCEPTION( er, warn, "rethrow", FC_FORMAT_ARG_PARAMS(__VA_ARGS__) ); \
+      FC_RETHROW_EXCEPTION( er, error, "rethrow", FC_FORMAT_ARG_PARAMS(__VA_ARGS__) ); \
    } catch( const std::exception& e ) {  \
       fc::exception fce( \
-                FC_LOG_MESSAGE( warn, "rethrow ${what}: ", FC_FORMAT_ARG_PARAMS( __VA_ARGS__ )("what",e.what())), \
+                FC_LOG_MESSAGE( error, "rethrow ${what}: ", FC_FORMAT_ARG_PARAMS( __VA_ARGS__ )("what",e.what())), \
                 fc::std_exception_code,\
                 typeid(e).name(), \
                 e.what() ) ; \
@@ -427,7 +436,7 @@ namespace fc
       throw fce;\
    } catch( ... ) {  \
       fc::unhandled_exception e( \
-                FC_LOG_MESSAGE( warn, "rethrow", FC_FORMAT_ARG_PARAMS( __VA_ARGS__) ), \
+                FC_LOG_MESSAGE( error, "rethrow", FC_FORMAT_ARG_PARAMS( __VA_ARGS__) ), \
                 std::current_exception() ); \
       elog( "${details}", ("details",e.to_detail_string()) ); \
       edump( __VA_ARGS__ ); \
@@ -440,7 +449,7 @@ namespace fc
       edump( __VA_ARGS__ ); \
    } catch( const std::exception& e ) {  \
       fc::exception fce( \
-                FC_LOG_MESSAGE( warn, "rethrow ${what}: ",FC_FORMAT_ARG_PARAMS( __VA_ARGS__  )("what",e.what()) ), \
+                FC_LOG_MESSAGE( error, "rethrow ${what}: ",FC_FORMAT_ARG_PARAMS( __VA_ARGS__  )("what",e.what()) ), \
                 fc::std_exception_code,\
                 typeid(e).name(), \
                 e.what() ) ; \
@@ -448,7 +457,7 @@ namespace fc
       edump( __VA_ARGS__ ); \
    } catch( ... ) {  \
       fc::unhandled_exception e( \
-                FC_LOG_MESSAGE( warn, "rethrow", FC_FORMAT_ARG_PARAMS( __VA_ARGS__) ), \
+                FC_LOG_MESSAGE( error, "rethrow", FC_FORMAT_ARG_PARAMS( __VA_ARGS__) ), \
                 std::current_exception() ); \
       elog( "${details}", ("details",e.to_detail_string()) ); \
       edump( __VA_ARGS__ ); \
@@ -477,31 +486,31 @@ namespace fc
 
 #define FC_RETHROW() \
    catch( fc::exception& er ) { \
-      FC_RETHROW_EXCEPTION( er, warn, "" ); \
+      FC_RETHROW_EXCEPTION( er, error, "" ); \
    } catch( const std::exception& e ) {  \
       fc::exception fce( \
-                FC_LOG_MESSAGE( warn, "${what}: ", ("what",e.what())), \
+                FC_LOG_MESSAGE( error, "${what}: ", ("what",e.what())), \
                 fc::std_exception_code,\
                 typeid(e).name(), \
                 e.what() ) ; throw fce;\
    } catch( ... ) {  \
       throw fc::unhandled_exception( \
-                FC_LOG_MESSAGE( warn, "" ), \
+                FC_LOG_MESSAGE( error, "" ), \
                 std::current_exception() ); \
    }
 
 #define FC_CAPTURE_AND_RETHROW( ... ) \
    catch( fc::exception& er ) { \
-      FC_RETHROW_EXCEPTION( er, warn, "", FC_FORMAT_ARG_PARAMS(__VA_ARGS__) ); \
+      FC_RETHROW_EXCEPTION( er, error, "", FC_FORMAT_ARG_PARAMS(__VA_ARGS__) ); \
    } catch( const std::exception& e ) {  \
       fc::exception fce( \
-                FC_LOG_MESSAGE( warn, "${what}: ",FC_FORMAT_ARG_PARAMS(__VA_ARGS__)("what",e.what())), \
+                FC_LOG_MESSAGE( error, "${what}: ",FC_FORMAT_ARG_PARAMS(__VA_ARGS__)("what",e.what())), \
                 fc::std_exception_code,\
                 typeid(e).name(), \
                 e.what() ) ; throw fce;\
    } catch( ... ) {  \
       throw fc::unhandled_exception( \
-                FC_LOG_MESSAGE( warn, "",FC_FORMAT_ARG_PARAMS(__VA_ARGS__)), \
+                FC_LOG_MESSAGE( error, "",FC_FORMAT_ARG_PARAMS(__VA_ARGS__)), \
                 std::current_exception() ); \
    }
 
