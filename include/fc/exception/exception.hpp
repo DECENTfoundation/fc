@@ -29,13 +29,12 @@ namespace fc
        assert_exception_code             = 10,
        eof_exception_code                = 11,
        std_exception_code                = 13,
-       //invalid_operation_exception_code  = 14,
-       unknown_host_exception_code       = 15,
-       null_optional_code                = 16,
-       udt_error_code                    = 17,
-       aes_error_code                    = 18,
-       overflow_code                     = 19,
-       underflow_code                    = 20,
+       unknown_host_exception_code       = 14,
+       null_optional_code                = 15,
+       udt_error_code                    = 16,
+       aes_error_code                    = 17,
+       overflow_code                     = 18,
+       underflow_code                    = 19,
        divide_by_zero_code               = 21,
 
        // new codes
@@ -292,10 +291,6 @@ namespace fc
   FC_DECLARE_EXCEPTION( bad_cast_exception, bad_cast_exception_code, "Bad Cast" );
   FC_DECLARE_EXCEPTION( out_of_range_exception, out_of_range_exception_code, "Out of Range" );
 
-  /** @brief if an operation is unsupported or not valid this may be thrown */
-  //FC_DECLARE_EXCEPTION( invalid_operation_exception,
-    //                    invalid_operation_exception_code,
-      //                  "Invalid Operation" );
   /** @brief if an host name can not be resolved this may be thrown */
   FC_DECLARE_EXCEPTION( unknown_host_exception,
                          unknown_host_exception_code,
