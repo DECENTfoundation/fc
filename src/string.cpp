@@ -1,5 +1,4 @@
 #include <fc/string.hpp>
-#include <fc/utility.hpp>
 #include <fc/fwd_impl.hpp>
 #include <fc/exception/exception.hpp>
 #include <boost/lexical_cast.hpp>

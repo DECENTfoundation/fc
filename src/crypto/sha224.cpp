@@ -5,6 +5,7 @@
 #include <string.h>
 #include <fc/crypto/sha224.hpp>
 #include <fc/variant.hpp>
+#include <algorithm>
 #include "_digest_common.hpp"
 
 namespace fc {
@@ -89,7 +90,7 @@ namespace fc {
     if( ve.empty() )
         memset( &bi._hash, 0, sizeof(bi._hash) );
     else
-        memcpy(&bi._hash, ve.data(), fc::min<size_t>(ve.size(), sizeof(bi._hash)) );
+        memcpy(&bi._hash, ve.data(), std::min<size_t>(ve.size(), sizeof(bi._hash)) );
   }
 
     template<>

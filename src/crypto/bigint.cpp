@@ -1,5 +1,4 @@
 #include <fc/crypto/bigint.hpp>
-#include <fc/utility.hpp>
 #include <openssl/bn.h>
 #include <fc/variant.hpp>
 #include <fc/crypto/base64.hpp>
@@ -145,7 +144,7 @@ namespace fc {
         BN_CTX* ctx = BN_CTX_new();
         bigint tmp;//*this);
         BN_div( tmp.n, NULL, n, a.n, ctx );
-        fc_swap( tmp.n, n );
+        std::swap( tmp.n, n );
         BN_CTX_free(ctx);
         return tmp;
       }
@@ -188,7 +187,7 @@ namespace fc {
 
 
       bigint& bigint::operator = ( bigint&& a ) {
-        fc_swap( a.n, n );
+        std::swap( a.n, n );
         return *this;
       }
       bigint& bigint::operator = ( const bigint& a ) {

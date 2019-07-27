@@ -29,8 +29,8 @@ namespace fc
          ~logger();
          logger& operator=(const logger&);
          logger& operator=(logger&&);
-         friend bool operator==( const logger&, nullptr_t );
-         friend bool operator!=( const logger&, nullptr_t );
+         friend bool operator==( const logger&, std::nullptr_t );
+         friend bool operator!=( const logger&, std::nullptr_t );
 
          logger&    set_log_level( log_level e );
          log_level  get_log_level()const;

@@ -170,7 +170,7 @@ namespace fc
         /// Constructs a null_type variant
         variant();
         /// Constructs a null_type variant
-        variant( nullptr_t );
+        variant( std::nullptr_t );
 
         /// @param str - UTF8 string
         variant( const char* str );
@@ -299,7 +299,7 @@ namespace fc
         template<typename T>
         variant& operator=( T&& v )
         {
-           return *this = variant( fc::forward<T>(v) );
+           return *this = variant( std::forward<T>(v) );
         }
 
         template<typename T>

@@ -28,7 +28,7 @@ namespace fc {
     logger::logger()
     :my( new impl() ){}
 
-    logger::logger(nullptr_t){}
+    logger::logger(std::nullptr_t){}
 
     logger::logger( const std::string& name, const logger& parent )
     :my( new impl() )
@@ -42,7 +42,7 @@ namespace fc {
     :my(l.my){}
 
     logger::logger( logger&& l )
-    :my(fc::move(l.my)){}
+    :my(std::move(l.my)){}
 
     logger::~logger(){}
 
@@ -51,7 +51,7 @@ namespace fc {
        return *this;
     }
     logger& logger::operator=( logger&& l ){
-       fc_swap(my,l.my);
+       std::swap(my,l.my);
        return *this;
     }
     bool operator==( const logger& l, std::nullptr_t ) { return !l.my; }

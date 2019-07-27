@@ -37,7 +37,7 @@ namespace fc {
        fc::raw::unpack( s, what );
        fc::raw::unpack( s, msgs );
 
-       e = fc::exception( fc::move(msgs), code, name, what );
+       e = fc::exception( std::move(msgs), code, name, what );
     }
 
     template<typename Stream>
@@ -327,7 +327,7 @@ namespace fc {
           Stream& s;
       };
 
-      template<typename IsClass=fc::true_type>
+      template<typename IsClass=std::true_type>
       struct if_class{
         template<typename Stream, typename T>
         static inline void pack( Stream& s, const T& v ) { s << v; }
@@ -336,7 +336,7 @@ namespace fc {
       };
 
       template<>
-      struct if_class<fc::false_type> {
+      struct if_class<std::false_type> {
         template<typename Stream, typename T>
         static inline void pack( Stream& s, const T& v ) {
           s.write( (char*)&v, sizeof(v) );
@@ -347,7 +347,7 @@ namespace fc {
         }
       };
 
-      template<typename IsEnum=fc::false_type>
+      template<typename IsEnum=std::false_type>
       struct if_enum {
         template<typename Stream, typename T>
         static inline void pack( Stream& s, const T& v ) {
@@ -359,7 +359,7 @@ namespace fc {
         }
       };
       template<>
-      struct if_enum<fc::true_type> {
+      struct if_enum<std::true_type> {
         template<typename Stream, typename T>
         static inline void pack( Stream& s, const T& v ) {
           fc::raw::pack(s, (int64_t)v);
@@ -372,19 +372,19 @@ namespace fc {
         }
       };
 
-      template<typename IsReflected=fc::false_type>
+      template<typename IsReflected=std::false_type>
       struct if_reflected {
         template<typename Stream, typename T>
         static inline void pack( Stream& s, const T& v ) {
-          if_class<typename fc::is_class<T>::type>::pack(s,v);
+          if_class<typename std::is_class<T>::type>::pack(s,v);
         }
         template<typename Stream, typename T>
         static inline void unpack( Stream& s, T& v ) {
-          if_class<typename fc::is_class<T>::type>::unpack(s,v);
+          if_class<typename std::is_class<T>::type>::unpack(s,v);
         }
       };
       template<>
-      struct if_reflected<fc::true_type> {
+      struct if_reflected<std::true_type> {
         template<typename Stream, typename T>
         static inline void pack( Stream& s, const T& v ) {
           if_enum< typename fc::reflector<T>::is_enum >::pack(s,v);

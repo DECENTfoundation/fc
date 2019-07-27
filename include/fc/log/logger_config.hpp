@@ -14,7 +14,7 @@ namespace fc {
                       variant args = variant()) :
         name(name),
         type(type),
-        args(fc::move(args)),
+        args(std::move(args)),
         enabled(true)
       {}
       std::string name;

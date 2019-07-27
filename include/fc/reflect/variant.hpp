@@ -9,7 +9,6 @@ namespace fc
    template<typename T>
    void from_variant( const variant& v, T& o );
 
-
    template<typename T>
    class to_variant_visitor
    {
@@ -57,15 +56,15 @@ namespace fc
          T& val;
    };
 
-   template<typename IsReflected=fc::false_type>
-   struct if_enum 
+   template<typename IsReflected=std::false_type>
+   struct if_enum
    {
      template<typename T>
      static inline void to_variant( const T& v, fc::variant& vo ) 
      { 
          mutable_variant_object mvo;
          fc::reflector<T>::visit( to_variant_visitor<T>( mvo, v ) );
-         vo = fc::move(mvo);
+         vo = std::move(mvo);
      }
      template<typename T>
      static inline void from_variant( const fc::variant& v, T& o ) 
@@ -75,8 +74,8 @@ namespace fc
      }
    };
 
-    template<> 
-    struct if_enum<fc::true_type> 
+    template<>
+    struct if_enum<std::true_type>
     {
        template<typename T>
        static inline void to_variant( const T& o, fc::variant& v ) 
@@ -92,7 +91,6 @@ namespace fc
               o = static_cast<T>(v.as_int64());
        }
     };
-
 
    template<typename T>
    void to_variant( const T& o, variant& v )

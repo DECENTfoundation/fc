@@ -1,5 +1,6 @@
 #pragma once
-#include <fc/utility.hpp>
+#include <cstdint>
+#include <utility>
 
 namespace fc {
 
@@ -62,7 +63,7 @@ namespace fc {
         return *this;
       }
       shared_ptr& operator=(shared_ptr&& p ) {
-        fc_swap(_ptr,p._ptr); 
+        std::swap(_ptr,p._ptr); 
         return *this;
       }
       T& operator*  ()const  { return *_ptr; }

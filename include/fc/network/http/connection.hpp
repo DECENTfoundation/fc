@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include <string>
-#include <fc/utility.hpp>
 #include <memory>
 
 namespace fc { 
@@ -13,7 +12,7 @@ namespace fc {
      struct header 
      {
        header( std::string k, std::string v )
-       :key(fc::move(k)),val(fc::move(v)){}
+       :key(std::move(k)),val(std::move(v)){}
        header(){}
        std::string key;
        std::string val;

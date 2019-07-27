@@ -5,6 +5,7 @@
 #include <fc/crypto/sha1.hpp>
 #include <fc/variant.hpp>
 #include <vector>
+#include <algorithm>
 #include "_digest_common.hpp"
 
 namespace fc 
@@ -93,7 +94,7 @@ bool operator == ( const sha1& h1, const sha1& h2 ) {
     if( ve.empty() )
         memset( &bi._hash, 0, sizeof(bi._hash) );
     else
-        memcpy(&bi._hash, ve.data(), fc::min<size_t>(ve.size(), sizeof(bi._hash)) );
+        memcpy(&bi._hash, ve.data(), std::min<size_t>(ve.size(), sizeof(bi._hash)) );
   }
   
 } // fc

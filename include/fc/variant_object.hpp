@@ -69,7 +69,7 @@ namespace fc
       variant_object( std::string key, T&& val )
       :_key_value( std::make_shared<std::vector<entry> >() )
       {
-         *this = variant_object( std::move(key), variant(forward<T>(val)) );
+         *this = variant_object( std::move(key), variant(std::forward<T>(val)) );
       }
       variant_object( const variant_object& );
       variant_object( variant_object&& );
@@ -171,7 +171,7 @@ namespace fc
       template<typename T>
       mutable_variant_object& operator()( std::string key, T&& var )
       {
-         set(std::move(key), variant( fc::forward<T>(var) ) );
+         set(std::move(key), variant( std::forward<T>(var) ) );
          return *this;
       }
       /**
@@ -189,7 +189,7 @@ namespace fc
       explicit mutable_variant_object( T&& v )
       :_key_value( new std::vector<entry>() )
       {
-          *this = variant(fc::forward<T>(v)).get_object();
+          *this = variant(std::forward<T>(v)).get_object();
       }
 
       mutable_variant_object();
@@ -200,7 +200,7 @@ namespace fc
       mutable_variant_object( std::string key, T&& val )
       :_key_value( new std::vector<entry>() )
       {
-         set( std::move(key), variant(forward<T>(val)) );
+         set( std::move(key), variant(std::forward<T>(val)) );
       }
 
       mutable_variant_object( mutable_variant_object&& );

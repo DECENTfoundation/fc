@@ -57,7 +57,7 @@ namespace fc
       my->_code = code;
       my->_what = what_value;
       my->_name = name_value;
-      my->_elog = fc::move(msgs);
+      my->_elog = std::move(msgs);
    }
 
    exception::exception(
@@ -74,7 +74,7 @@ namespace fc
    }
 
    unhandled_exception::unhandled_exception( log_message&& m, std::exception_ptr e )
-   :exception( fc::move(m) )
+   :exception( std::move(m) )
    {
       _inner = e;
    }
@@ -84,11 +84,11 @@ namespace fc
    }
    unhandled_exception::unhandled_exception( log_messages m )
    :exception()
-   { my->_elog = fc::move(m); }
+   { my->_elog = std::move(m); }
 
    std::exception_ptr unhandled_exception::get_inner_exception()const { return _inner; }
 
-   NO_RETURN void     unhandled_exception::dynamic_rethrow_exception()const
+   void unhandled_exception::dynamic_rethrow_exception()const
    {
       if( !(_inner == std::exception_ptr()) ) std::rethrow_exception( _inner );
       else { fc::exception::dynamic_rethrow_exception(); }
@@ -120,13 +120,13 @@ namespace fc
       my->_code = code;
       my->_what = what_value;
       my->_name = name_value;
-      my->_elog.push_back( fc::move( msg ) );
+      my->_elog.push_back( std::move( msg ) );
    }
    exception::exception( const exception& c )
    :my( new detail::exception_impl(*c.my) )
    { }
    exception::exception( exception&& c )
-   :my( fc::move(c.my) ){}
+   :my( std::move(c.my) ){}
 
    const char*  exception::name()const throw() { return my->_name.c_str(); }
    const char*  exception::what()const throw() { return my->_what.c_str(); }
@@ -158,7 +158,7 @@ namespace fc
    const log_messages&   exception::get_log()const { return my->_elog; }
    void                  exception::append_log( log_message m )
    {
-      my->_elog.emplace_back( fc::move(m) );
+      my->_elog.emplace_back( std::move(m) );
    }
 
    /**
@@ -218,7 +218,7 @@ namespace fc
       return ss.str();
    }
 
-   void NO_RETURN exception_factory::rethrow( const exception& e )const
+   void exception_factory::rethrow( const exception& e )const
    {
       auto itr = _registered_exceptions.find( e.code() );
       if( itr != _registered_exceptions.end() )
@@ -230,7 +230,7 @@ namespace fc
     * the error code.  This is used to propagate exception types
     * across conversions to/from JSON
     */
-   NO_RETURN void  exception::dynamic_rethrow_exception()const
+   void exception::dynamic_rethrow_exception()const
    {
       exception_factory::instance().rethrow( *this );
    }

@@ -110,7 +110,7 @@ namespace fc {
     if( ve.empty() )
         std::fill( bi.begin(), bi.end(), T(0) );
     else
-        std::copy( ve.begin(), ve.begin() + fc::min<size_t>(ve.size(), bi.size()), bi.begin() );
+        std::copy( ve.begin(), ve.begin() + std::min<size_t>(ve.size(), bi.size()), bi.begin() );
   }
   template<size_t N>
   void from_variant( const variant& v, array<unsigned char,N>& bi )
@@ -119,7 +119,7 @@ namespace fc {
     if( ve.empty() )
         memset( bi.data, 0, N );
     else
-        memcpy( bi.data, ve.data(), fc::min<size_t>(ve.size(), N) );
+        memcpy( bi.data, ve.data(), std::min<size_t>(ve.size(), N) );
   }
   template<size_t N>
   void from_variant( const variant& v, array<char,N>& bi )
@@ -128,7 +128,7 @@ namespace fc {
     if( ve.empty() )
         memset( bi.data, 0, N );
     else
-        memcpy( bi.data, ve.data(), fc::min<size_t>(ve.size(), N) );
+        memcpy( bi.data, ve.data(), std::min<size_t>(ve.size(), N) );
   }
   template<typename T,size_t N> struct get_typename< fc::array<T,N> >  
   { 

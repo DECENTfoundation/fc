@@ -2,7 +2,6 @@
 #include <fc/filesystem.hpp>
 #include <fc/exception/exception.hpp>
 #include <fc/fwd_impl.hpp>
-#include <fc/utility.hpp>
 #include <fc/io/fstream.hpp>
 
 #include <fc/utf8.hpp>

@@ -27,7 +27,7 @@ variant::variant()
    set_variant_type( this, null_type );
 }
 
-variant::variant( fc::nullptr_t )
+variant::variant( std::nullptr_t )
 {
    set_variant_type( this, null_type );
 }
@@ -134,29 +134,29 @@ variant::variant( const wchar_t* str )
 
 variant::variant( std::string val )
 {
-   *reinterpret_cast<std::string**>(this) = new std::string( fc::move(val) );
+   *reinterpret_cast<std::string**>(this) = new std::string( std::move(val) );
    set_variant_type( this, string_type );
 }
 variant::variant( blob val )
 {
-   *reinterpret_cast<blob**>(this)  = new blob( fc::move(val) );
+   *reinterpret_cast<blob**>(this)  = new blob( std::move(val) );
    set_variant_type( this, blob_type );
 }
 
 variant::variant( variant_object obj)
 {
-   *reinterpret_cast<variant_object**>(this)  = new variant_object(fc::move(obj));
+   *reinterpret_cast<variant_object**>(this)  = new variant_object(std::move(obj));
    set_variant_type(this,  object_type );
 }
 variant::variant( mutable_variant_object obj)
 {
-   *reinterpret_cast<variant_object**>(this)  = new variant_object(fc::move(obj));
+   *reinterpret_cast<variant_object**>(this)  = new variant_object(std::move(obj));
    set_variant_type(this,  object_type );
 }
 
 variant::variant( variants arr )
 {
-   *reinterpret_cast<variants**>(this)  = new variants(fc::move(arr));
+   *reinterpret_cast<variants**>(this)  = new variants(std::move(arr));
    set_variant_type(this,  array_type );
 }
 
