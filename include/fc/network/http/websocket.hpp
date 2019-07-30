@@ -5,7 +5,7 @@
 
 #include <boost/any.hpp>
 #include <fc/network/ip.hpp>
-#include <fc/signals.hpp>
+#include <boost/signals2/signal.hpp>
 
 namespace fc { namespace http {
    namespace detail {
@@ -14,7 +14,7 @@ namespace fc { namespace http {
       class websocket_tls_client_impl;
    } // namespace detail;
 
-   class websocket_connection 
+   class websocket_connection
    {
       public:
          virtual ~websocket_connection(){}
@@ -29,7 +29,7 @@ namespace fc { namespace http {
          void     set_session_data( boost::any d ){ _session_data = std::move(d); }
          boost::any& get_session_data() { return _session_data; }
 
-         fc::signal<void()> closed;
+         boost::signals2::signal<void()> closed;
          bool is_tls;
       private:
          boost::any                                _session_data;
