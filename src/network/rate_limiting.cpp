@@ -8,7 +8,6 @@
 #include <fc/asio.hpp>
 #include <fc/log/logger.hpp>
 #include <fc/io/stdio.hpp>
-#include <fc/exception/exception.hpp>
 #include <fc/thread/thread.hpp>
 
 namespace fc 

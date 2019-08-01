@@ -7,7 +7,7 @@
 
 #include <cstring>
 #include <fc/crypto/blowfish.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 
 namespace fc {
 //Extract low order byte

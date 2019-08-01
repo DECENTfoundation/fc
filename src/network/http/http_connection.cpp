@@ -2,7 +2,6 @@
 #include <fc/network/tcp_socket.hpp>
 #include <fc/io/sstream.hpp>
 #include <fc/io/iostream.hpp>
-#include <fc/exception/exception.hpp>
 #include <fc/network/ip.hpp>
 #include <fc/crypto/hex.hpp>
 #include <fc/log/logger.hpp>

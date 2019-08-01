@@ -4,7 +4,7 @@
 // it is not meant to be included except internally from json.cpp in fc
 
 #include <fc/io/json.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include <fc/io/iostream.hpp>
 #include <fc/io/buffered_iostream.hpp>
 #include <fc/io/fstream.hpp>

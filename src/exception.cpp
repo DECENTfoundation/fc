@@ -1,7 +1,6 @@
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include <boost/exception/all.hpp>
 #include <fc/io/sstream.hpp>
-#include <fc/log/logger.hpp>
 #include <fc/io/json.hpp>
 
 #include <iostream>
@@ -38,53 +37,18 @@ namespace fc
       }
    } _ex_reg;
 
-   namespace detail
-   {
-      class exception_impl
-      {
-         public:
-            std::string     _name;
-            std::string     _what;
-            int64_t         _code;
-            log_messages    _elog;
-      };
-   }
-   exception::exception( log_messages&& msgs, int64_t code,
-                                    const std::string& name_value,
-                                    const std::string& what_value )
-   :my( new detail::exception_impl() )
-   {
-      my->_code = code;
-      my->_what = what_value;
-      my->_name = name_value;
-      my->_elog = std::move(msgs);
-   }
-
-   exception::exception(
-      const log_messages& msgs,
-      int64_t code,
-      const std::string& name_value,
-      const std::string& what_value )
-   :my( new detail::exception_impl() )
-   {
-      my->_code = code;
-      my->_what = what_value;
-      my->_name = name_value;
-      my->_elog = msgs;
-   }
-
    unhandled_exception::unhandled_exception( log_message&& m, std::exception_ptr e )
-   :exception( std::move(m) )
+   :exception( std::move(m), unhandled_exception_code ), _inner(e)
    {
-      _inner = e;
    }
    unhandled_exception::unhandled_exception( const exception& r )
    :exception(r)
    {
    }
-   unhandled_exception::unhandled_exception( log_messages m )
-   :exception()
-   { my->_elog = std::move(m); }
+   unhandled_exception::unhandled_exception( log_messages&& m )
+   :exception( std::move(m), unhandled_exception_code )
+   {
+   }
 
    std::exception_ptr unhandled_exception::get_inner_exception()const { return _inner; }
 
@@ -101,10 +65,18 @@ namespace fc
       return e;
    }
 
+   struct exception::impl
+   {
+      std::string     _name;
+      std::string     _what;
+      int64_t         _code;
+      log_messages    _elog;
+   };
+
    exception::exception( int64_t code,
                          const std::string& name_value,
                          const std::string& what_value )
-   :my( new detail::exception_impl() )
+   :my( new impl{} )
    {
       my->_code = code;
       my->_what = what_value;
@@ -115,15 +87,25 @@ namespace fc
                          int64_t code,
                          const std::string& name_value,
                          const std::string& what_value )
-   :my( new detail::exception_impl() )
+   :my( new impl() )
    {
       my->_code = code;
       my->_what = what_value;
       my->_name = name_value;
       my->_elog.push_back( std::move( msg ) );
    }
+   exception::exception( log_messages&& msgs, int64_t code,
+                                    const std::string& name_value,
+                                    const std::string& what_value )
+   :my( new impl() )
+   {
+      my->_code = code;
+      my->_what = what_value;
+      my->_name = name_value;
+      my->_elog = std::move(msgs);
+   }
    exception::exception( const exception& c )
-   :my( new detail::exception_impl(*c.my) )
+   :my( new impl(*c.my) )
    { }
    exception::exception( exception&& c )
    :my( std::move(c.my) ){}

@@ -1,7 +1,7 @@
 #include <fc/network/url.hpp>
 #include <fc/string.hpp>
 #include <fc/io/sstream.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include <fc/log/logger.hpp>
 #include <sstream>
 

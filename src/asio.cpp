@@ -2,7 +2,6 @@
 #include <fc/thread/thread.hpp>
 #include <boost/thread.hpp>
 #include <fc/log/logger.hpp>
-#include <fc/exception/exception.hpp>
 
 namespace fc {
   namespace asio {

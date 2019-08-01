@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdint>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include <fc/reflect/reflect.hpp>
 
 struct uint48_t

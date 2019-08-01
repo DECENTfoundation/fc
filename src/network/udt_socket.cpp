@@ -115,7 +115,7 @@ namespace fc {
                 auto read_itr = _read_promises.find( udt_socket_id );
                 if( read_itr != _read_promises.end() )
                 {
-                   read_itr->second->set_exception( fc::copy_exception( fc::exception() ) );
+                   read_itr->second->set_exception( std::make_shared<unhandled_exception>( log_message(), std::make_exception_ptr( exception() ) ) );
                    _read_promises.erase(read_itr);
                 }
              }
@@ -123,7 +123,7 @@ namespace fc {
                 auto write_itr = _write_promises.find( udt_socket_id );
                 if( write_itr != _write_promises.end() )
                 {
-                   write_itr->second->set_exception( fc::copy_exception( fc::exception() ) );
+                   write_itr->second->set_exception( std::make_shared<unhandled_exception>( log_message(), std::make_exception_ptr( exception() ) ) );
                    _write_promises.erase(write_itr);
                 }
              }

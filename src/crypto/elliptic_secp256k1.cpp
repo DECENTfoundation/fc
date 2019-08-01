@@ -6,7 +6,6 @@
 #include <fc/crypto/sha512.hpp>
 
 #include <fc/fwd_impl.hpp>
-#include <fc/exception/exception.hpp>
 #include <fc/log/logger.hpp>
 
 #include <assert.h>

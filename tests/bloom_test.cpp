@@ -1,7 +1,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <fc/bloom_filter.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include <fc/reflect/variant.hpp>
 #include <iostream>
 #include <fc/variant.hpp>

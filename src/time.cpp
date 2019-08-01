@@ -5,7 +5,7 @@
 #include <sstream>
 #include <fc/string.hpp>
 #include <fc/io/sstream.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 
 namespace fc {
 

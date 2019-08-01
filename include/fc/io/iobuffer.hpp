@@ -1,6 +1,5 @@
 #pragma once
 #include <fc/io/iostream.hpp>
-#include <fc/exception/exception.hpp>
 
 namespace fc
 {

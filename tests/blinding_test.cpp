@@ -5,7 +5,7 @@
 #include <fc/crypto/hex.hpp>
 #include <fc/crypto/elliptic.hpp>
 #include <fc/crypto/openssl.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 
 // See https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#Test_Vectors
 

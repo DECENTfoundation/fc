@@ -5,7 +5,7 @@
 #include <fc/crypto/base36.hpp>
 #include <fc/crypto/base58.hpp>
 #include <fc/crypto/base64.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 
 #include <iostream>
 

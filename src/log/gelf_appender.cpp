@@ -1,7 +1,6 @@
 #include <fc/network/udp_socket.hpp>
 #include <fc/network/ip.hpp>
 #include <fc/network/resolve.hpp>
-#include <fc/exception/exception.hpp>
 #include <fc/log/gelf_appender.hpp>
 #include <fc/reflect/variant.hpp>
 #include <fc/thread/thread.hpp>

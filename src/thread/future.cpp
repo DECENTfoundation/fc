@@ -2,7 +2,6 @@
 #include <fc/thread/spin_yield_lock.hpp>
 #include <fc/thread/thread.hpp>
 #include <fc/thread/unique_lock.hpp>
-#include <fc/exception/exception.hpp>
 
 #include <boost/assert.hpp>
 

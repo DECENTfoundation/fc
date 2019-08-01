@@ -78,8 +78,7 @@ namespace fc {
          variant call( const std::string& name, const variants& args )
          {
             auto itr = _by_name.find(name);
-            if(itr == _by_name.end())
-               FC_THROW_EXCEPTION(no_method_with_this_name_exception, "'${name}'", ("name", name)("api", _by_name));
+            FC_VERIFY_AND_THROW(itr != _by_name.end(), no_method_with_this_name_exception, "'${name}'", ("name", name)("api", _by_name));
             return call( itr->second, args );
          }
 
@@ -137,8 +136,7 @@ namespace fc {
          template<typename R, typename T, typename ... Args2, typename ... Args>
          R call_generic(const std::function<R(std::function<T(Args2...)>, Args...)>& f, variants::const_iterator a0, variants::const_iterator e, int param_idx)
          {
-            if(a0 == e)
-               FC_THROW_EXCEPTION(too_few_arguments_exception, "");
+            FC_VERIFY_AND_THROW(a0 != e, too_few_arguments_exception);
             detail::callback_functor<T(Args2...)> arg0(get_connection(), a0->as<uint64_t>());
             return  call_generic<R, Args...>(this->bind_first_arg<R, std::function<T(Args2...)>, Args...>(f, std::function<T(Args2...)>(arg0)), a0 + 1, e, param_idx + 1);
          }
@@ -146,8 +144,7 @@ namespace fc {
          template<typename R, typename T, typename ... Args2, typename ... Args>
          R call_generic(const std::function<R(const std::function<T(Args2...)>&, Args...)>& f, variants::const_iterator a0, variants::const_iterator e, int param_idx)
          {
-            if(a0 == e)
-               FC_THROW_EXCEPTION(too_few_arguments_exception, "");
+            FC_VERIFY_AND_THROW(a0 != e, too_few_arguments_exception);
             detail::callback_functor<T(Args2...)> arg0(get_connection(), a0->as<uint64_t>());
             return  call_generic<R, Args...>(this->bind_first_arg<R, const std::function<T(Args2...)>&, Args...>(f, arg0), a0 + 1, e, param_idx + 1);
          }
@@ -155,8 +152,7 @@ namespace fc {
          template<typename R, typename Arg0, typename ... Args>
          R call_generic( const std::function<R(Arg0,Args...)>& f, variants::const_iterator a0, variants::const_iterator e, int param_idx)
          {
-            if(a0 == e)
-               FC_THROW_EXCEPTION(too_few_arguments_exception, "");
+            FC_VERIFY_AND_THROW(a0 != e, too_few_arguments_exception);
             std::function<R(Args...)> bind_result;
             try {
                bind_result = this->bind_first_arg<R, Arg0, Args...>(f, a0->as< typename std::decay<Arg0>::type >());
@@ -217,20 +213,17 @@ namespace fc {
 
          variant receive_call( api_id_type api_id, const std::string& method_name, const variants& args = variants() )const
          {
-            if(_local_apis.size() <= api_id)
-               FC_THROW_EXCEPTION(api_id_is_not_registered_exception, "");
+            FC_VERIFY_AND_THROW(api_id < _local_apis.size(), api_id_is_not_registered_exception);
             return _local_apis[api_id]->call( method_name, args );
          }
          variant receive_callback( uint64_t callback_id,  const variants& args = variants() )const
          {
-            if(_local_callbacks.size() <= callback_id)
-               FC_THROW_EXCEPTION(callback_id_is_not_registered_exception, "");
+            FC_VERIFY_AND_THROW(callback_id < _local_callbacks.size(), callback_id_is_not_registered_exception);
             return _local_callbacks[callback_id]( args );
          }
          void receive_notice( uint64_t callback_id,  const variants& args = variants() )const
          {
-            if(_local_callbacks.size() <= callback_id)
-               FC_THROW_EXCEPTION(callback_id_is_not_registered_exception, "");
+            FC_VERIFY_AND_THROW(callback_id < _local_callbacks.size(), callback_id_is_not_registered_exception);
             _local_callbacks[callback_id]( args );
          }
 
@@ -259,8 +252,7 @@ namespace fc {
          api_id_type get_api_id_from_name( const std::string& name )const
          {
             api_id_type api_id = std::distance( _api_names.begin(), std::find( _api_names.begin(), _api_names.end(), name ) );
-            if(api_id >= _local_apis.size())
-               FC_THROW_EXCEPTION(api_name_is_not_registered_exception, "API name: ${name}", ("name", name));
+            FC_VERIFY_AND_THROW(api_id < _local_apis.size(), api_name_is_not_registered_exception, "API name: ${name}", ("name", name));
             return api_id;
          }
 
@@ -352,7 +344,6 @@ namespace fc {
             _remote_connection->receive_notice( callback_id, args );
          }
 
-
          void  set_remote_connection( const std::shared_ptr<fc::api_connection>& rc )
          {
             FC_ASSERT( !_remote_connection );
@@ -379,7 +370,6 @@ namespace fc {
       auto gapi = &api;
 
       return [=]( const variants& args ) {
-
          auto con = api_con.lock();
          FC_ASSERT( con, "not connected" );
 
@@ -395,7 +385,6 @@ namespace fc {
       auto gapi = &api;
 
       return [=]( const variants& args )-> fc::variant {
-
          auto con = api_con.lock();
          FC_ASSERT( con, "not connected" );
 
@@ -410,9 +399,9 @@ namespace fc {
    {
       generic_api* gapi = &api;
 
-	   return [f,gapi]( const variants& args ) {
+      return [f,gapi]( const variants& args ) {
          return variant(gapi->call_generic(f, args.begin(), args.end(), 0));
-	  };
+      };
    }
 
    template<typename ... Args>
@@ -421,7 +410,6 @@ namespace fc {
       generic_api* gapi = &api;
 
       return [f,gapi]( const variants& args ) {
-
          gapi->call_generic( f, args.begin(), args.end(), 0 );
          return variant();
       };
@@ -438,7 +426,6 @@ namespace fc {
             throw fc::eof_exception();
          locked->send_callback( _callback_id, fc::variants{ args... } ).template as< result_type >();
       }
-
 
       template<typename... Args>
       class callback_functor<void(Args...)>

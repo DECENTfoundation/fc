@@ -1,5 +1,4 @@
 #include <fc/io/json.hpp>
-#include <fc/exception/exception.hpp>
 #include <fc/io/iostream.hpp>
 #include <fc/io/buffered_iostream.hpp>
 #include <fc/io/fstream.hpp>

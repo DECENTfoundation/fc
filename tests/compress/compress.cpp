@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fc/compress/smaz.hpp>
 #include <fc/compress/zlib.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 
 BOOST_AUTO_TEST_SUITE(compress)
 

@@ -1,6 +1,5 @@
 #pragma once
 #include <fc/thread/thread.hpp>
-#include <fc/exception/exception.hpp>
 #include <vector>
 
 #include <boost/context/execution_context.hpp>

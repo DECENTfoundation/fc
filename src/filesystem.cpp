@@ -1,6 +1,6 @@
 //#define BOOST_NO_SCOPED_ENUMS
 #include <fc/filesystem.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include <fc/fwd_impl.hpp>
 #include <fc/io/fstream.hpp>
 

@@ -12,7 +12,7 @@
 #pragma once
 #include <stdexcept>
 #include <typeinfo>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 
 namespace fc {
 

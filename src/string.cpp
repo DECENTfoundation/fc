@@ -1,6 +1,6 @@
 #include <fc/string.hpp>
 #include <fc/fwd_impl.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 

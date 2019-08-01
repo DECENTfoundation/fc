@@ -1,5 +1,4 @@
 #include <fc/log/log_message.hpp>
-#include <fc/exception/exception.hpp>
 #include <fc/variant.hpp>
 #include <fc/time.hpp>
 #include <fc/thread/thread.hpp>

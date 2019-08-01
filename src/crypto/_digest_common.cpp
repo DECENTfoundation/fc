@@ -1,5 +1,6 @@
-#include <fc/exception/exception.hpp>
 #include "_digest_common.hpp"
+#include <cstdint>
+#include <cstring>
 
 namespace fc { namespace detail {
     static void shift_l( const uint8_t* in, uint8_t* out, std::size_t n, std::size_t i) {

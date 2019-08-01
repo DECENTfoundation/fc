@@ -7,7 +7,7 @@
 #include <fc/log/console_appender.hpp>
 #include <fc/log/file_appender.hpp>
 #include <fc/reflect/variant.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include <fc/io/stdio.hpp>
 
 #include <boost/property_tree/ptree.hpp>

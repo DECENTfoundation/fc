@@ -2,8 +2,7 @@
 #include <openssl/bn.h>
 #include <fc/variant.hpp>
 #include <fc/crypto/base64.hpp>
-
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include "../byteswap.hpp"
 
 namespace fc {

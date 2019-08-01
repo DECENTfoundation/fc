@@ -1,5 +1,5 @@
 #include <fc/crypto/elliptic.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include <iostream>
 #include <fstream>
 

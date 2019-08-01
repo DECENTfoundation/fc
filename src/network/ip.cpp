@@ -1,7 +1,6 @@
 #include <fc/network/ip.hpp>
 #include <fc/network/resolve.hpp>
 #include <fc/variant.hpp>
-#include <fc/exception/exception.hpp>
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include <string>

@@ -23,7 +23,7 @@
 
 #include <fc/log/logger.hpp>
 #include <fc/string.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 
 #include <stdexcept>
 #include <vector>

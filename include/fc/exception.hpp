@@ -4,15 +4,12 @@
  *  @brief Defines exception's used by fc
  */
 #include <fc/log/logger.hpp>
-#include <fc/optional.hpp>
 #include <exception>
 #include <functional>
 #include <unordered_map>
 
 namespace fc
 {
-   namespace detail { class exception_impl; }
-
    enum exception_code
    {
        /** for exceptions we threw that don't have an assigned code */
@@ -44,18 +41,7 @@ namespace fc
        api_id_is_not_registered_code     = 52,
        callback_id_is_not_registered_code = 53,
        invalid_parameter_code            = 54,
-       api_name_is_not_registered_code   = 55,
-      
-   };
-
-   enum exception_base_codes 
-   {
-      low_level_exception_base_code       = 0,
-      db_exception_base_code              = 100,
-      app_exception_base_code             = 200,
-      net_exception_base_code             = 300,
-      chain_exception_base_code           = 400,
-      wallet_exception_base_code          = 500,
+       api_name_is_not_registered_code   = 55
    };
 
    /**
@@ -89,10 +75,6 @@ namespace fc
          exception( log_messages&&, int64_t code = unspecified_exception_code,
                                     const std::string& name_value = "exception",
                                     const std::string& what_value = "unspecified");
-         exception( const log_messages&,
-                    int64_t code = unspecified_exception_code,
-                    const std::string& name_value = "exception",
-                    const std::string& what_value = "unspecified");
          exception( const exception& e );
          exception( exception&& e );
          virtual ~exception();
@@ -148,16 +130,14 @@ namespace fc
 
          exception& operator=( const exception& copy );
          exception& operator=( exception&& copy );
-      protected:
-         std::unique_ptr<detail::exception_impl> my;
+      private:
+         struct impl;
+         std::unique_ptr<impl> my;
    };
 
    void to_variant( const exception& e, variant& v );
    void from_variant( const variant& e, exception& ll );
    typedef std::shared_ptr<exception> exception_ptr;
-
-   typedef optional<exception> oexception;
-
 
    /**
     *  @brief re-thrown whenever an unhandled exception is caught.
@@ -176,8 +156,8 @@ namespace fc
           code_value = unhandled_exception_code,
        };
        unhandled_exception( log_message&& m, std::exception_ptr e = std::current_exception() );
-       unhandled_exception( log_messages );
-       unhandled_exception( const exception&  );
+       unhandled_exception( log_messages&& m );
+       unhandled_exception( const exception& e );
 
        std::exception_ptr get_inner_exception()const;
 
@@ -186,19 +166,6 @@ namespace fc
       private:
        std::exception_ptr _inner;
    };
-
-   template<typename T>
-   fc::exception_ptr copy_exception( T&& e )
-   {
-#if defined(_MSC_VER) && (_MSC_VER < 1700)
-     return std::make_shared<unhandled_exception>( log_message(),
-                                                   std::copy_exception(std::forward<T>(e)) );
-#else
-     return std::make_shared<unhandled_exception>( log_message(),
-                                                   std::make_exception_ptr(std::forward<T>(e)) );
-#endif
-   }
-
 
    class exception_factory
    {
@@ -239,43 +206,39 @@ namespace fc
         std::unordered_map<int64_t,base_exception_builder*> _registered_exceptions;
    };
 
-#define FC_DECLARE_DERIVED_EXCEPTION( TYPE, BASE, CODE, WHAT ) \
-   class TYPE : public BASE  \
+#define FC_DECLARE_DERIVED_EXCEPTION( TYPE, BASE, OFFSET, WHAT ) \
+   class TYPE : public BASE \
    { \
       public: \
        enum code_enum { \
-          code_value = CODE, \
+          code_value = BASE::code_value + OFFSET \
        }; \
        explicit TYPE( int64_t code, const std::string& name_value, const std::string& what_value ) \
        :BASE( code, name_value, what_value ){} \
        explicit TYPE( fc::log_message&& m, int64_t code, const std::string& name_value, const std::string& what_value ) \
        :BASE( std::move(m), code, name_value, what_value ){} \
-       explicit TYPE( fc::log_messages&& m, int64_t code, const std::string& name_value, const std::string& what_value )\
-       :BASE( std::move(m), code, name_value, what_value ){}\
-       explicit TYPE( const fc::log_messages& m, int64_t code, const std::string& name_value, const std::string& what_value )\
-       :BASE( m, code, name_value, what_value ){}\
-       TYPE( const std::string& what_value, const fc::log_messages& m ) \
-       :BASE( m, CODE, BOOST_PP_STRINGIZE(TYPE), what_value ){} \
+       explicit TYPE( fc::log_messages&& m, int64_t code, const std::string& name_value, const std::string& what_value ) \
+       :BASE( std::move(m), code, name_value, what_value ){} \
        TYPE( fc::log_message&& m ) \
-       :BASE( std::move(m), CODE, BOOST_PP_STRINGIZE(TYPE), WHAT ){}\
-       TYPE( fc::log_messages msgs ) \
-       :BASE( std::move( msgs ), CODE, BOOST_PP_STRINGIZE(TYPE), WHAT ) {} \
+       :BASE( std::move(m), TYPE::code_value, BOOST_PP_STRINGIZE(TYPE), WHAT ){} \
+       TYPE( fc::log_messages&& m ) \
+       :BASE( std::move(m), TYPE::code_value, BOOST_PP_STRINGIZE(TYPE), WHAT ) {} \
        TYPE( const TYPE& c ) \
        :BASE(c){} \
        TYPE( const BASE& c ) \
        :BASE(c){} \
-       TYPE():BASE(CODE, BOOST_PP_STRINGIZE(TYPE), WHAT){}\
+       TYPE():BASE(TYPE::code_value, BOOST_PP_STRINGIZE(TYPE), WHAT){}\
        \
        virtual std::shared_ptr<fc::exception> dynamic_copy_exception()const\
        { return std::make_shared<TYPE>( *this ); } \
        [[noreturn]] virtual void dynamic_rethrow_exception()const \
-       { if( code() == CODE ) throw *this;\
+       { if( code() == TYPE::code_value ) throw *this;\
          else fc::exception::dynamic_rethrow_exception(); \
        } \
    };
 
-  #define FC_DECLARE_EXCEPTION( TYPE, CODE, WHAT ) \
-      FC_DECLARE_DERIVED_EXCEPTION( TYPE, fc::exception, CODE, WHAT )
+#define FC_DECLARE_EXCEPTION( TYPE, OFFSET, WHAT ) \
+   FC_DECLARE_DERIVED_EXCEPTION( TYPE, fc::exception, OFFSET, WHAT )
 
   FC_DECLARE_EXCEPTION( timeout_exception, timeout_exception_code, "Timeout" );
   FC_DECLARE_EXCEPTION( file_not_found_exception, file_not_found_exception_code, "File Not Found" );
@@ -331,14 +294,6 @@ namespace fc
   extern bool enable_record_assert_trip;
 } // namespace fc
 
-#if __APPLE__
-    #define LIKELY(x)    __builtin_expect(static_cast<long>(!!(x)), 1L)
-    #define UNLIKELY(x)  __builtin_expect(static_cast<long>(!!(x)), 0L)
-#else
-    #define LIKELY(x)   (x)
-    #define UNLIKELY(x) (x)
-#endif
-
 /**
  *@brief: Workaround for varying preprocessing behavior between MSVC and gcc
  */
@@ -349,13 +304,24 @@ namespace fc
 #define FC_ASSERT( TEST, ... ) \
   FC_EXPAND_MACRO( \
     FC_MULTILINE_MACRO_BEGIN \
-      if( UNLIKELY(!(TEST)) ) \
+      if( BOOST_UNLIKELY(!(TEST)) ) \
       {                                                                      \
         if( fc::enable_record_assert_trip )                                  \
            fc::record_assert_trip( __FILE__, __LINE__, #TEST );              \
         FC_THROW_EXCEPTION( fc::assert_exception, #TEST ": "  __VA_ARGS__ ); \
       }                                                                      \
     FC_MULTILINE_MACRO_END \
+  )
+
+#define FC_VERIFY_AND_THROW( TEST, EXCEPTION_TYPE, ... ) \
+  FC_EXPAND_MACRO( \
+   FC_MULTILINE_MACRO_BEGIN \
+     if( BOOST_UNLIKELY(!(TEST)) ) { \
+       if( fc::enable_record_assert_trip ) \
+         fc::record_assert_trip( __FILE__, __LINE__, #TEST ); \
+       FC_THROW_EXCEPTION( EXCEPTION_TYPE, #TEST ": " __VA_ARGS__ ); \
+     } \
+   FC_MULTILINE_MACRO_END \
   )
 
 #define FC_CAPTURE_AND_THROW( EXCEPTION_TYPE, ... ) \

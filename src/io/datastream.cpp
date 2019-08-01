@@ -1,5 +1,5 @@
 #include <fc/io/datastream.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 
 void fc::detail::throw_datastream_range_error(char const* method, size_t len, int64_t over)
 {

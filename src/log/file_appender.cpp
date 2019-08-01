@@ -1,4 +1,3 @@
-#include <fc/exception/exception.hpp>
 #include <fc/io/fstream.hpp>
 #include <fc/log/file_appender.hpp>
 #include <fc/reflect/variant.hpp>

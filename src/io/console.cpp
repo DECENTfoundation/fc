@@ -1,6 +1,5 @@
 #include <fc/io/console.hpp>
 #include <fc/io/stdio.hpp>
-#include <fc/exception/exception.hpp>
 #include <fc/thread/thread.hpp>
 
 #ifndef _WIN32

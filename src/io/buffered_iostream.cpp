@@ -1,5 +1,5 @@
 #include <fc/io/buffered_iostream.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <iostream>
 

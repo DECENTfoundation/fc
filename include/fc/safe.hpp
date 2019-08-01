@@ -1,5 +1,5 @@
 #pragma once
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include <fc/reflect/reflect.hpp>
 
 #include <limits>

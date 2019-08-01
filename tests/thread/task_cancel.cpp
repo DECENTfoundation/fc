@@ -4,7 +4,6 @@
 #include <fc/thread/scoped_lock.hpp>
 #include <fc/log/logger.hpp>
 #include <fc/thread/mutex.hpp>
-#include <fc/exception/exception.hpp>
 #include <fc/thread/non_preemptable_scope_check.hpp>
 
 BOOST_AUTO_TEST_SUITE(fc_thread)

@@ -1,9 +1,8 @@
-
 #include <fstream>
 #include <sstream>
 
 #include <fc/filesystem.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include <fc/io/fstream.hpp>
 #include <fc/log/logger.hpp>
 

@@ -1,6 +1,5 @@
 #include <fc/crypto/aes.hpp>
 #include <fc/crypto/openssl.hpp>
-#include <fc/exception/exception.hpp>
 #include <fc/fwd_impl.hpp>
 
 #include <fc/io/fstream.hpp>

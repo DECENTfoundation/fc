@@ -1,5 +1,5 @@
 #include <fc/crypto/hex.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 
 namespace fc {
 

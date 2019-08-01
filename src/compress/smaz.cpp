@@ -1,7 +1,8 @@
 #include <string>
 #include <sstream>
 #include <string.h>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
+
 namespace fc {
 
 typedef const char*  const_char_ptr;

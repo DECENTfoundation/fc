@@ -1,5 +1,4 @@
 #include <fc/thread/task.hpp>
-#include <fc/exception/exception.hpp>
 #include <fc/thread/unique_lock.hpp>
 #include <fc/thread/spin_lock.hpp>
 #include <fc/fwd_impl.hpp>

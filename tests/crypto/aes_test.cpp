@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fc/crypto/aes.hpp>
 #include <fc/crypto/city.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 
 #include <fc/variant.hpp>
 

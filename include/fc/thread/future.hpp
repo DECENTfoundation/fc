@@ -1,7 +1,7 @@
 #pragma once
 #include <fc/time.hpp>
 #include <fc/thread/shared_ptr.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include <fc/thread/spin_yield_lock.hpp>
 #include <fc/optional.hpp>
 

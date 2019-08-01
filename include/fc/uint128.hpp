@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <string>
 
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include <fc/crypto/city.hpp>
 
 #ifdef _MSC_VER

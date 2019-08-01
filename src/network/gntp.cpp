@@ -1,5 +1,4 @@
 #include <fc/network/gntp.hpp>
-#include <fc/exception/exception.hpp>
 
 #include <fc/log/logger.hpp>
 #include <fc/asio.hpp>

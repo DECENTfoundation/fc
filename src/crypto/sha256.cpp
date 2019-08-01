@@ -5,7 +5,6 @@
 #include <string.h>
 #include <fc/crypto/sha256.hpp>
 #include <fc/variant.hpp>
-#include <fc/exception/exception.hpp>
 #include <algorithm>
 #include "_digest_common.hpp"
 

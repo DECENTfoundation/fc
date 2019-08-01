@@ -1,6 +1,6 @@
 #include <openssl/rand.h>
 #include <fc/crypto/openssl.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 #include <fc/fwd_impl.hpp>
 
 

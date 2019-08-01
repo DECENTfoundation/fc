@@ -1,7 +1,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <fc/crypto/dh.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 
 BOOST_AUTO_TEST_SUITE(fc_crypto)
 

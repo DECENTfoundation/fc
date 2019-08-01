@@ -6,7 +6,7 @@
 #include <fc/crypto/sha224.hpp>
 #include <fc/crypto/sha256.hpp>
 #include <fc/crypto/sha512.hpp>
-#include <fc/exception/exception.hpp>
+#include <fc/exception.hpp>
 
 #include <iostream>
 
