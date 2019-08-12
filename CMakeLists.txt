@@ -117,17 +117,17 @@ find_package(OpenSSL 1.0 REQUIRED)
 message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
 
 SET(BOOST_COMPONENTS thread filesystem program_options serialization unit_test_framework coroutine iostreams)
-SET(Boost_USE_STATIC_LIBS ON CACHE STRING "ON or OFF")
+SET(Boost_USE_STATIC_LIBS ON)
 
 find_package(Boost 1.65.1 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 
 # We are now building in support for deflate compression into our websockets layer by default,
 # which requires zlib.  Aside from that, all of fc compiles without zlib, so this could be
 # made optional without much effort
-# (important exception, apple: as of 10.10 yosemite, the OpenSSL static libraries shipped with 
+# (important exception, apple: as of 10.10 yosemite, the OpenSSL static libraries shipped with
 # os x have a dependency on zlib)
 # On a side note, fc's fc::zlib_compress() function uses a separate implementation of zlib
-# from the miniz library.  If we're comfortable requiring an external zlib, we can 
+# from the miniz library.  If we're comfortable requiring an external zlib, we can
 # reimplement fc::zlib_compress() to call the real zlib, and remove miniz.c from our
 # repository.
 find_package( ZLIB REQUIRED )
