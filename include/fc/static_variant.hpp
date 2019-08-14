@@ -211,10 +211,10 @@ public:
        static const int value = impl::position<X, Types...>::pos;
     };
 
-    typedef std::tuple<Types...> types;
+    using type_info = impl::type_info<Types...>;
 
     template<std::size_t N>
-    using type = typename std::tuple_element_t<N, types>;
+    using type = std::tuple_element_t<N, std::tuple<Types...>>;
 
     static_variant()
     {
@@ -330,9 +330,8 @@ public:
         return impl::storage_ops<0, Types...>::apply(_tag, storage, v);
     }
 
-    static int count() { return impl::type_info<Types...>::count; }
     void set_which( int w ) {
-      FC_ASSERT( w < count() );
+      FC_ASSERT( w < type_info::count );
       this->~static_variant();
       _tag = w;
       impl::storage_ops<0, Types...>::con(_tag, storage);
@@ -346,7 +345,7 @@ struct visitor {
     typedef Result result_type;
 };
 
-   struct from_static_variant 
+   struct from_static_variant
    {
       variant& var;
       from_static_variant( variant& dv ):var(dv){}
@@ -366,7 +365,7 @@ struct visitor {
       typedef void result_type;
       template<typename T> void operator()( T& v )const
       {
-         from_variant( var, v ); 
+         from_variant( var, v );
       }
    };
 
