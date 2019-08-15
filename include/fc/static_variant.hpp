@@ -331,7 +331,7 @@ public:
     }
 
     void set_which( int w ) {
-      FC_ASSERT( w < type_info::count );
+      FC_ASSERT( static_cast<size_t>(w) < type_info::count );
       this->~static_variant();
       _tag = w;
       impl::storage_ops<0, Types...>::con(_tag, storage);
