@@ -330,10 +330,10 @@ public:
         return impl::storage_ops<0, Types...>::apply(_tag, storage, v);
     }
 
-    void set_which( int w ) {
-      FC_ASSERT( static_cast<size_t>(w) < type_info::count );
+    void set_which( std::size_t w ) {
+      FC_ASSERT( w < type_info::count );
       this->~static_variant();
-      _tag = w;
+      _tag = static_cast<int>(w);
       impl::storage_ops<0, Types...>::con(_tag, storage);
     }
 
@@ -382,7 +382,7 @@ struct visitor {
    {
       auto ar = v.get_array();
       if( ar.size() < 2 ) return;
-      s.set_which( static_cast<int>(ar[0].as_uint64()) );
+      s.set_which( static_cast<std::size_t>(ar[0].as_uint64()) );
       s.visit( to_static_variant(ar[1]) );
    }
 
