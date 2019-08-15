@@ -119,7 +119,7 @@ message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
 SET(BOOST_COMPONENTS thread filesystem program_options serialization unit_test_framework coroutine iostreams)
 SET(Boost_USE_STATIC_LIBS ON CACHE BOOL "Use static Boost libraries")
 IF( WIN32 )
-  SET(Boost_USE_STATIC_RUNTIME ${Boost_USE_STATIC_LIBS})
+  SET(Boost_USE_STATIC_RUNTIME ${Boost_USE_STATIC_LIBS} CACHE BOOL "Use static runtime")
 ENDIF()
 
 find_package(Boost 1.65.1 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
