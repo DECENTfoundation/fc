@@ -63,7 +63,6 @@ namespace fc {
       promise_base(const char* desc FC_TASK_NAME_DEFAULT_ARG);
 
       const char* get_desc()const;
-                   
       virtual void cancel(const char* reason FC_CANCELATION_REASON_DEFAULT_ARG);
       bool canceled()const { return _canceled; }
       bool ready()const;
@@ -113,9 +112,7 @@ namespace fc {
     public:
       typedef fc::shared_ptr< promise<T> > ptr;
       promise( const char* desc FC_TASK_NAME_DEFAULT_ARG):promise_base(desc){}
-      promise( const T& val ){ set_value(val); }
-      promise( T&& val ){ set_value(std::move(val) ); }
-    
+
       const T& wait(const microseconds& timeout = microseconds::maximum() ){
         this->_wait( timeout );
         return *result;
@@ -126,12 +123,12 @@ namespace fc {
       }
 
       void set_value( const T& v ) {
-        result = v;
+        result.set_value(v);
         _set_value(&*result);
       }
 
       void set_value( T&& v ) {
-        result = std::move(v);
+        result.set_value(std::forward<T>(v));
         _set_value(&*result);
       }
 

@@ -82,6 +82,20 @@ namespace fc {
         new ((char*)ptr()) T( std::forward<U>(u) );
       }
 
+      void set_value( const T& v )
+      {
+        reset();
+        new (ptr()) T( v );
+        _valid = true;
+      }
+
+      void set_value( T&& v )
+      {
+        reset();
+        new (ptr()) T( std::forward<T>(v) );
+        _valid = true;
+      }
+
       template<typename U>
       optional& operator=( U&& u ) 
       {
