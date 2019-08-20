@@ -79,9 +79,9 @@ namespace fc {
                   out.open(log_filename);
 
                try {
-                  boost::filesystem::create_hard_link(log_filename, link_filename); 
+                  boost::filesystem::create_hard_link(log_filename, link_filename);
                } catch ( ... ) {
-                     FC_THROW( "Unable to create hard link from '${from}' to '${to}'", 
+                     FC_THROW( "Unable to create hard link from '${from}' to '${to}'",
                                     ("from",log_filename)("to",link_filename)("exception", fc::except_str() ) );
                }
              }
@@ -94,7 +94,7 @@ namespace fc {
              {
                  try
                  {
-                     std::string current_filename = itr->path().string();
+                     std::string current_filename = itr->path().filename().string();
                      if (current_filename.compare(0, link_filename_string.size(), link_filename_string) != 0 ||
                          current_filename.size() <= link_filename_string.size() + 1)
                        continue;
