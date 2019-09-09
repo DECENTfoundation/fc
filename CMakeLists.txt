@@ -122,6 +122,7 @@ IF( WIN32 )
   SET(Boost_USE_STATIC_RUNTIME ${Boost_USE_STATIC_LIBS} CACHE BOOL "Use static runtime")
 ENDIF()
 
+SET(Boost_NO_BOOST_CMAKE ON)
 find_package(Boost 1.65.1 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 
 # We are now building in support for deflate compression into our websockets layer by default,
