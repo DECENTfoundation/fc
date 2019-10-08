@@ -6,6 +6,7 @@
 #include <vector>
 #include <functional>
 #include <utility>
+#include <boost/any.hpp>
 #include <boost/signals2/signal.hpp>
 
 namespace fc {
@@ -35,6 +36,7 @@ namespace fc {
       {
          return [=]( Args... args ) { return f( a0, args... ); };
       }
+
       template<typename R>
       R call_generic( const std::function<R()>& f, variants::const_iterator a0, variants::const_iterator e, int param_idx)
       {
@@ -230,7 +232,7 @@ namespace fc {
          template<typename Interface>
          api_id_type register_api( const Interface& a )
          {
-            auto handle = a.get_handle();
+            auto handle = (uint64_t)a.instance();
             auto itr = _handle_to_id.find(handle);
             if( itr != _handle_to_id.end() ) return itr->second;
 
@@ -312,6 +314,7 @@ namespace fc {
                     return from_variant( var_result, (Result*)nullptr, con );
                 };
             }
+
             template<typename... Args>
             void operator()( const char* name, std::function<void(Args...)>& memb )const
             {
@@ -333,11 +336,13 @@ namespace fc {
             FC_ASSERT( _remote_connection );
             return _remote_connection->receive_call( api_id, method_name, std::move(args) );
          }
+
          virtual variant send_callback( uint64_t callback_id, variants args = variants() ) override
          {
             FC_ASSERT( _remote_connection );
             return _remote_connection->receive_callback( callback_id, args );
          }
+
          virtual void send_notice( uint64_t callback_id, variants args = variants() ) override
          {
             FC_ASSERT( _remote_connection );
@@ -350,6 +355,7 @@ namespace fc {
             FC_ASSERT( rc != this->shared_from_this() );
             _remote_connection = rc;
          }
+
          const std::shared_ptr<fc::api_connection>& remote_connection()const  { return _remote_connection; }
 
          std::shared_ptr<fc::api_connection>    _remote_connection;
@@ -377,6 +383,7 @@ namespace fc {
          return con->register_api( api_result );
       };
    }
+
    template<typename Interface, typename Adaptor, typename ... Args>
    std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic(
                                                const std::function<fc::optional<fc::api<Interface,Adaptor>>(Args...)>& f )const
@@ -394,6 +401,7 @@ namespace fc {
          return variant();
       };
    }
+
    template<typename R, typename ... Args>
    std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic( const std::function<R(Args...)>& f )const
    {
