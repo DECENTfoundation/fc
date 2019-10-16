@@ -7,6 +7,8 @@
 #include <fc/array.hpp>
 #include <fc/io/raw_fwd.hpp>
 
+extern const std::string GRAPHENE_ADDRESS_PREFIX;
+
 namespace fc {
 
   namespace ecc {
@@ -42,8 +44,9 @@ namespace fc {
            public_key_data serialize()const;
            public_key_point_data serialize_ecc_point()const;
 
-           operator public_key_data()const { return serialize(); }
-
+           explicit public_key( const std::string& str );
+           static public_key_data key_data_from_string( const std::string& str );
+           explicit operator std::string()const;
 
            public_key( const public_key_data& v );
            public_key( const public_key_point_data& v );
@@ -62,14 +65,9 @@ namespace fc {
            public_key& operator=( public_key&& pk );
            public_key& operator=( const public_key& pk );
 
-           inline friend bool operator==( const public_key& a, const public_key& b )
-           {
-            return a.serialize() == b.serialize();
-           }
-           inline friend bool operator!=( const public_key& a, const public_key& b )
-           {
-            return a.serialize() != b.serialize();
-           }
+           bool operator==( const public_key& pk ) const;
+           bool operator!=( const public_key& pk ) const;
+           bool operator< ( const public_key& pk ) const;
 
            /// Allows to convert current public key object into base58 number.
            std::string to_base58() const;
@@ -270,7 +268,7 @@ namespace fc {
       template<typename Stream>
       void pack( Stream& s, const fc::ecc::public_key& pk)
       {
-          fc::raw::pack( s, pk.serialize() );
+          fc::raw::pack( s, pk.valid() ? pk.serialize() : fc::ecc::public_key_data() );
       }
 
       template<typename Stream>

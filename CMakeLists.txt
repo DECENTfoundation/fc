@@ -41,18 +41,6 @@ SET( DEFAULT_LIBRARY_INSTALL_DIR lib/ )
 SET( DEFAULT_EXECUTABLE_INSTALL_DIR bin/ )
 SET( CMAKE_DEBUG_POSTFIX _debug )
 SET( BUILD_SHARED_LIBS NO )
-SET( ECC_IMPL secp256k1 CACHE STRING "secp256k1 or openssl or mixed" )
-
-IF( ECC_IMPL STREQUAL openssl )
-  SET( ECC_REST src/crypto/elliptic_impl_pub.cpp )
-ELSE( ECC_IMPL STREQUAL openssl )
-  SET( ECC_LIB secp256k1 )
-  IF( ECC_IMPL STREQUAL mixed )
-    SET( ECC_REST src/crypto/elliptic_impl_priv.cpp src/crypto/elliptic_impl_pub.cpp )
-  ELSE( ECC_IMPL STREQUAL mixed )
-    SET( ECC_REST src/crypto/elliptic_impl_priv.cpp )
-  ENDIF( ECC_IMPL STREQUAL mixed )
-ENDIF( ECC_IMPL STREQUAL openssl )
 
 # Configure secp256k1-zkp
 if ( WIN32 )
@@ -198,8 +186,7 @@ set( fc_sources
      src/crypto/dh.cpp
      src/crypto/blowfish.cpp
      src/crypto/elliptic_common.cpp
-     ${ECC_REST}
-     src/crypto/elliptic_${ECC_IMPL}.cpp
+     src/crypto/elliptic_secp256k1.cpp
      src/crypto/rand.cpp
      src/network/tcp_socket.cpp
      src/network/udp_socket.cpp
@@ -283,7 +270,7 @@ target_include_directories(fc
     ${ZLIB_INCLUDE_DIR}
   )
 
-target_link_libraries( fc PUBLIC udt Boost::thread Boost::filesystem Boost::program_options Boost::serialization Boost::coroutine Boost::iostreams Boost::disable_autolinking ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES} ${PLATFORM_SPECIFIC_LIBS} ${readline_libraries} ${ECC_LIB} )
+target_link_libraries( fc PUBLIC udt Boost::thread Boost::filesystem Boost::program_options Boost::serialization Boost::coroutine Boost::iostreams Boost::disable_autolinking ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES} ${PLATFORM_SPECIFIC_LIBS} ${readline_libraries} secp256k1 )
 
 if(MSVC)
   set_source_files_properties( src/network/http/websocket.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
@@ -292,10 +279,8 @@ endif(MSVC)
 add_executable( api tests/api.cpp )
 target_link_libraries( api fc )
 
-if( ECC_IMPL STREQUAL secp256k1 )
-    add_executable( blind tests/all_tests.cpp tests/crypto/blind.cpp )
-    target_link_libraries( blind fc )
-endif()
+add_executable( blind tests/all_tests.cpp tests/crypto/blind.cpp )
+target_link_libraries( blind fc )
 
 add_executable( ntp_test tests/all_tests.cpp tests/network/ntp_test.cpp )
 target_link_libraries( ntp_test fc )

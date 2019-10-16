@@ -16,6 +16,17 @@
 #define BTC_EXT_PUB_MAGIC   (0x0488B21E)
 #define BTC_EXT_PRIV_MAGIC  (0x0488ADE4)
 
+const std::string GRAPHENE_ADDRESS_PREFIX("DCT");
+
+struct binary_key
+{
+    binary_key() {}
+    uint32_t                 check = 0;
+    fc::ecc::public_key_data data;
+};
+
+FC_REFLECT( binary_key, (data)(check) )
+
 namespace fc { namespace ecc {
 
     namespace detail {
@@ -114,6 +125,25 @@ namespace fc { namespace ecc {
             static private_key_secret half_order = _get_half_curve_order();
             return half_order;
         }
+    }
+
+    public_key_data public_key::key_data_from_string( const std::string& str )
+    {
+        const size_t prefix_len = GRAPHENE_ADDRESS_PREFIX.size();
+        FC_ASSERT( str.size() > prefix_len && str.find(GRAPHENE_ADDRESS_PREFIX) == 0, "Missing key prefix in ${str}", ("str", str) );
+        auto bin = fc::from_base58( str.substr( prefix_len ) );
+        auto k = fc::raw::unpack<binary_key>(bin);
+        FC_ASSERT( fc::ripemd160::hash( k.data.data, k.data.size() )._hash[0] == k.check );
+        return k.data;
+    }
+
+    public_key::operator std::string()const
+    {
+        binary_key k;
+        if(valid()) k.data = serialize();
+        k.check = fc::ripemd160::hash( k.data.data, k.data.size() )._hash[0];
+        auto data = fc::raw::pack( k );
+        return GRAPHENE_ADDRESS_PREFIX + fc::to_base58( data.data(), data.size() );
     }
 
     public_key public_key::from_key_data( const public_key_data &data ) {
@@ -269,7 +299,7 @@ namespace fc { namespace ecc {
         memcpy( dest, key.begin(), key.size() );
         return result;
     }
-    
+
     extended_public_key extended_public_key::deserialize( const extended_key_data& data )
     {
        return from_base58( _to_base58( data ) );
@@ -340,7 +370,7 @@ namespace fc { namespace ecc {
         memcpy( dest, key.data(), key.data_size() );
         return result;
     }
-    
+
     extended_private_key extended_private_key::deserialize( const extended_key_data& data )
     {
        return from_base58( _to_base58( data ) );
@@ -402,14 +432,12 @@ void from_variant( const variant& var,  ecc::private_key& vo )
 
 void to_variant( const ecc::public_key& var,  variant& vo )
 {
-    vo = var.serialize();
+    vo = std::string( var );
 }
 
 void from_variant( const variant& var,  ecc::public_key& vo )
 {
-    ecc::public_key_data dat;
-    from_variant( var, dat );
-    vo = ecc::public_key(dat);
+    vo = ecc::public_key( var.as_string() );
 }
 
 }

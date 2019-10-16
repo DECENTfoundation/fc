@@ -17,8 +17,6 @@
 # include <alloca.h>
 #endif
 
-#include "_elliptic_impl_priv.hpp"
-
 namespace fc { namespace ecc {
     namespace detail
     {
@@ -32,6 +30,34 @@ namespace fc { namespace ecc {
             static int init_o = init_openssl();
             (void)ctx;
             (void)init_o;
+        }
+
+        class private_key_impl
+        {
+            public:
+                private_key_impl() BOOST_NOEXCEPT;
+                private_key_impl( const private_key_impl& cpy ) BOOST_NOEXCEPT;
+
+                private_key_impl& operator=( const private_key_impl& pk ) BOOST_NOEXCEPT;
+
+                private_key_secret _key;
+        };
+
+        private_key_impl::private_key_impl() BOOST_NOEXCEPT
+        {
+            _init_lib();
+        }
+
+        private_key_impl::private_key_impl( const private_key_impl& cpy ) BOOST_NOEXCEPT
+        {
+            _init_lib();
+            this->_key = cpy._key;
+        }
+
+        private_key_impl& private_key_impl::operator=( const private_key_impl& pk ) BOOST_NOEXCEPT
+        {
+            _key = pk._key;
+            return *this;
         }
 
         class public_key_impl
@@ -72,6 +98,75 @@ namespace fc { namespace ecc {
       return fc::sha512::hash( pub.begin() + 1, pub.size() - 1 );
     }
 
+    private_key::private_key() {}
+
+    private_key::private_key( const private_key& pk ) : my( pk.my ) {}
+
+    private_key::private_key( private_key&& pk ) : my( std::move( pk.my ) ) {}
+
+    private_key::~private_key() {}
+
+    private_key& private_key::operator=( private_key&& pk )
+    {
+        my = std::move( pk.my );
+        return *this;
+    }
+
+    private_key& private_key::operator=( const private_key& pk )
+    {
+        my = pk.my;
+        return *this;
+    }
+
+    private_key private_key::regenerate( const fc::sha256& secret )
+    {
+       private_key self;
+       self.my->_key = secret;
+       return self;
+    }
+
+    fc::sha256 private_key::get_secret()const
+    {
+        return my->_key;
+    }
+
+    private_key::private_key( EC_KEY* k )
+    {
+       my->_key = get_secret( k );
+       EC_KEY_free(k);
+    }
+
+    public_key private_key::get_public_key()const
+    {
+       FC_ASSERT( my->_key != empty_priv );
+       public_key_data pub;
+       size_t pk_len;
+       FC_ASSERT( secp256k1_ec_pubkey_create( detail::_get_context(), (unsigned char*) pub.begin(), &pk_len, (unsigned char*) my->_key.data(), 1 ) );
+       FC_ASSERT( pk_len == pub.size() );
+       return public_key(pub);
+    }
+
+    static int extended_nonce_function( unsigned char *nonce32, const unsigned char *msg32,
+                                        const unsigned char *key32, unsigned int attempt,
+                                        const void *data ) {
+        unsigned int* extra = (unsigned int*) data;
+        (*extra)++;
+        return secp256k1_nonce_function_default( nonce32, msg32, key32, *extra, nullptr );
+    }
+
+    compact_signature private_key::sign_compact( const fc::sha256& digest, bool require_canonical )const
+    {
+        FC_ASSERT( my->_key != empty_priv );
+        compact_signature result;
+        int recid;
+        unsigned int counter = 0;
+        do
+        {
+            FC_ASSERT( secp256k1_ecdsa_sign_compact( detail::_get_context(), (unsigned char*) digest.data(), (unsigned char*) result.begin() + 1, (unsigned char*) my->_key.data(), extended_nonce_function, &counter, &recid ));
+        } while( require_canonical && !public_key::is_canonical( result ) );
+        result.begin()[0] = 27 + 4 + recid;
+        return result;
+    }
 
     public_key::public_key() {}
 
@@ -91,6 +186,30 @@ namespace fc { namespace ecc {
     {
         my = pk.my;
         return *this;
+    }
+
+    bool public_key::operator==( const public_key& pk ) const
+    {
+        return my->_key == pk.my->_key;
+    }
+
+    bool public_key::operator!=( const public_key& pk ) const
+    {
+        return my->_key != pk.my->_key;
+    }
+
+    bool public_key::operator < ( const public_key& pk ) const
+    {
+        int i=0;
+        while (i<33 )
+        {
+            if(my->_key.at(i) < pk.my->_key.at(i) )
+                return true;
+            if(my->_key.at(i) > pk.my->_key.at(i) )
+                return false;
+            i++;
+        }
+        return false;
     }
 
     bool public_key::valid()const
@@ -149,6 +268,11 @@ namespace fc { namespace ecc {
     public_key::public_key( const public_key_data& dat )
     {
         my->_key = dat;
+    }
+
+    public_key::public_key( const std::string& str )
+    {
+        my->_key = key_data_from_string(str);
     }
 
     public_key::public_key( const compact_signature& c, const fc::sha256& digest, bool check_canonical )
@@ -291,21 +415,19 @@ namespace fc { namespace ecc {
         from_bignum( bn_k, int256, 32 );
     }
 
-    static public_key compute_k( const private_key_secret& a, const private_key_secret& c,
-                                 const public_key& p )
+    static public_key_data compute_k( const private_key_secret& a, const private_key_secret& c, const public_key_data& p )
     {
         private_key_secret prod = a;
         FC_ASSERT( secp256k1_ec_privkey_tweak_mul( detail::_get_context(), (unsigned char*) prod.data(), (unsigned char*) c.data() ) > 0 );
         invert( prod, prod );
-        public_key_data P = p.serialize();
-        FC_ASSERT( secp256k1_ec_pubkey_tweak_mul( detail::_get_context(), (unsigned char*) P.begin(), static_cast<int>(P.size()), (unsigned char*) prod.data() ) );
+        FC_ASSERT( secp256k1_ec_pubkey_tweak_mul( detail::_get_context(), (unsigned char*) p.begin(), static_cast<int>(p.size()), (unsigned char*) prod.data() ) );
 //        printf("K: "); print(P); printf("\n");
-        return public_key( P );
+        return p;
     }
 
-    static public_key compute_t( const private_key_secret& a, const private_key_secret& b,
-                                 const private_key_secret& c, const private_key_secret& d,
-                                 const public_key_data& p, const public_key_data& q )
+    static public_key_data compute_t( const private_key_secret& a, const private_key_secret& b,
+                                      const private_key_secret& c, const private_key_secret& d,
+                                      const public_key_data& p, const public_key_data& q )
     {
         private_key_secret prod;
         invert( c, prod ); // prod == c^-1
@@ -328,7 +450,7 @@ namespace fc { namespace ecc {
         FC_ASSERT( secp256k1_ec_pubkey_tweak_add( detail::_get_context(), (unsigned char*) accu.begin(), static_cast<int>(accu.size()), (unsigned char*) b.data() ) );
         // accu == c^-1 * a * P + Q + b*G
 
-        public_key_data k = compute_k( a, c, p ).serialize();
+        public_key_data k = compute_k( a, c, p );
         memcpy( prod.data(), k.begin() + 1, prod.data_size() );
         // prod == Kx
         FC_ASSERT( secp256k1_ec_privkey_tweak_mul( detail::_get_context(), (unsigned char*) prod.data(), (unsigned char*) a.data() ) > 0 );
@@ -340,7 +462,7 @@ namespace fc { namespace ecc {
         // accu == (c^-1 * a * P + Q + b*G) * (Kx * a)^-1
 
 //        printf("T: "); print(accu); printf("\n");
-        return public_key( accu );
+        return accu;
     }
 
     extended_private_key::extended_private_key( const private_key& k, const sha256& c,
@@ -421,10 +543,10 @@ namespace fc { namespace ecc {
         private_key_secret b = generate_b(i).get_secret();
         private_key_secret c = generate_c(i).get_secret();
         private_key_secret d = generate_d(i).get_secret();
-        public_key p = bob.generate_p(i);
-        public_key q = bob.generate_q(i);
+        public_key_data p = bob.generate_p(i).serialize();
+        public_key_data q = bob.generate_q(i).serialize();
         public_key_data k = compute_k( a, c, p );
-        public_key_data t = compute_t( a, b, c, d, p, q ).serialize();
+        public_key_data t = compute_t( a, b, c, d, p, q );
 
         FC_ASSERT( secp256k1_ec_privkey_tweak_mul( detail::_get_context(), (unsigned char*) c.data(), (unsigned char*) sig.data() ) > 0 );
         FC_ASSERT( secp256k1_ec_privkey_tweak_add( detail::_get_context(), (unsigned char*) c.data(), (unsigned char*) d.data() ) > 0 );
@@ -486,24 +608,24 @@ namespace fc { namespace ecc {
         return secp256k1_rangeproof_verify( detail::_get_context(), &min_val, &max_val, (const unsigned char*)&commit, (const unsigned char*)proof.data(), static_cast<int>(proof.size()) );
      }
 
-     std::vector<char>    range_proof_sign( uint64_t min_value, 
-                                       const commitment_type& commit, 
-                                       const blind_factor_type& commit_blind, 
+     std::vector<char>    range_proof_sign( uint64_t min_value,
+                                       const commitment_type& commit,
+                                       const blind_factor_type& commit_blind,
                                        const blind_factor_type& nonce,
                                        int8_t base10_exp,
                                        uint8_t min_bits,
                                        uint64_t actual_value
                                      )
      {
-        size_t proof_len = 5134; 
+        size_t proof_len = 5134;
         std::vector<char> proof(proof_len);
 
-        FC_ASSERT( secp256k1_rangeproof_sign( detail::_get_context(), 
-                                              (unsigned char*)proof.data(), 
-                                              &proof_len, min_value, 
-                                              (const unsigned char*)&commit, 
-                                              (const unsigned char*)&commit_blind, 
-                                              (const unsigned char*)&nonce, 
+        FC_ASSERT( secp256k1_rangeproof_sign( detail::_get_context(),
+                                              (unsigned char*)proof.data(),
+                                              &proof_len, min_value,
+                                              (const unsigned char*)&commit,
+                                              (const unsigned char*)&commit_blind,
+                                              (const unsigned char*)&nonce,
                                               base10_exp, min_bits, actual_value ) );
         proof.resize(proof_len);
         return proof;
@@ -512,16 +634,16 @@ namespace fc { namespace ecc {
 
      bool            verify_range_proof_rewind( blind_factor_type& blind_out,
                                                 uint64_t& value_out,
-                                                std::string& message_out, 
+                                                std::string& message_out,
                                                 const blind_factor_type& nonce,
-                                                uint64_t& min_val, 
-                                                uint64_t& max_val, 
-                                                commitment_type commit, 
+                                                uint64_t& min_val,
+                                                uint64_t& max_val,
+                                                commitment_type commit,
                                                 const std::vector<char>& proof )
      {
         char msg[4096];
         int  mlen = 0;
-        FC_ASSERT( secp256k1_rangeproof_rewind( detail::_get_context(), 
+        FC_ASSERT( secp256k1_rangeproof_rewind( detail::_get_context(),
                                                 (unsigned char*)&blind_out,
                                                 &value_out,
                                                 (unsigned char*)msg,
@@ -540,12 +662,12 @@ namespace fc { namespace ecc {
      range_proof_info range_get_info( const std::vector<char>& proof )
      {
         range_proof_info result;
-        FC_ASSERT( secp256k1_rangeproof_info( detail::_get_context(), 
-                                              (int*)&result.exp, 
-                                              (int*)&result.mantissa, 
-                                              (uint64_t*)&result.min_value, 
-                                              (uint64_t*)&result.max_value, 
-                                              (const unsigned char*)proof.data(), 
+        FC_ASSERT( secp256k1_rangeproof_info( detail::_get_context(),
+                                              (int*)&result.exp,
+                                              (int*)&result.mantissa,
+                                              (uint64_t*)&result.min_value,
+                                              (uint64_t*)&result.max_value,
+                                              (const unsigned char*)proof.data(),
                                               (int)proof.size() ) );
 
         return result;
