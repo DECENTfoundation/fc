@@ -1,6 +1,6 @@
 #include <fc/network/http/websocket.hpp>
 
-#ifndef WIN32 
+#ifndef WIN32
 // websocket++ currently does not build correctly with permessage deflate enabled
 // since chrome does not work with websocketpp's implementation of permessage-deflate
 // yet, I'm just disabling it on windows instead of trying to fix the build error.
@@ -359,7 +359,7 @@ namespace fc { namespace http {
 
             virtual void send_message( const std::string& message )override
             {
-               ddump((message));
+               idump((message));
                auto ec = _ws_connection->send( message );
                FC_ASSERT( !ec, "websocket send failed: ${msg}", ("msg",ec.message() ) );
             }
@@ -371,9 +371,8 @@ namespace fc { namespace http {
             T _ws_connection;
       };
 
-
       typedef websocketpp::lib::shared_ptr<boost::asio::ssl::context> context_ptr;
-      
+
       MONITORING_COUNTERS_BEGIN(abstract_websocket_server_monitoring_helper)
       MONITORING_DEFINE_TRANSIENT_COUNTER(connections_rpc_active)
       MONITORING_DEFINE_COUNTER(connections_rpc_active_max)
@@ -383,8 +382,7 @@ namespace fc { namespace http {
       MONITORING_COUNTER_DEPENDENCY(connections_http_active_max, connections_http_active)
       MONITORING_COUNTER_DEPENDENCY(connections_rpc_active_max, connections_rpc_active)
       MONITORING_COUNTERS_END
-      
-      
+
       class abstract_websocket_server_monitoring_helper PUBLIC_DERIVATION_FROM_ONLY_MONITORING_CLASS(abstract_websocket_server_monitoring_helper)
       {
       public:
@@ -400,7 +398,7 @@ namespace fc { namespace http {
                _counters_refcount++;
                FC_ASSERT(_counters_helper);
             }
-            virtual ~abstract_websocket_server() 
+            virtual ~abstract_websocket_server()
             {
                if (_counters_refcount == 1)
                   _counters_helper.reset();
@@ -417,15 +415,12 @@ namespace fc { namespace http {
       private:
             static int _counters_refcount;
       };
-     
 
       std::unique_ptr<abstract_websocket_server_monitoring_helper> abstract_websocket_server::_counters_helper = nullptr;
       int abstract_websocket_server::_counters_refcount = 0;
 
-      
-
       template <typename config>
-      class websocket_server_impl : public abstract_websocket_server 
+      class websocket_server_impl : public abstract_websocket_server
       {
          public:
             websocket_server_impl()
@@ -448,10 +443,10 @@ namespace fc { namespace http {
                        websocket_connection_ptr new_con = std::make_shared<websocket_connection_impl<typename websocketpp::server<config>::connection_ptr>>( _server.get_con_from_hdl(hdl) );
                        _on_connection( _connections[hdl] = new_con, new_con->is_tls );
                        _counters_helper->MONITORING_COUNTER_VALUE(connections_rpc_active)++;
-                       
+
                        if (_counters_helper->MONITORING_COUNTER_VALUE(connections_rpc_active_max) < _counters_helper->MONITORING_COUNTER_VALUE(connections_rpc_active))
                           _counters_helper->MONITORING_COUNTER_VALUE(connections_rpc_active_max) = _counters_helper->MONITORING_COUNTER_VALUE(connections_rpc_active);
-                          
+
                     }).wait();
                });
 
@@ -477,7 +472,7 @@ namespace fc { namespace http {
                                --_pending_messages;
                            con->on_message( payload );
                        });
-                       if( _pending_messages > 100 ) 
+                       if( _pending_messages > 100 )
                          f.wait();
                     }).wait();
                });
@@ -489,7 +484,7 @@ namespace fc { namespace http {
                        const shutdown_preventing_task_scoped_maybe_lock lock(spt);
                        if (shutdown_locker_wraith->is_shutting_down()) return;
 
-                       auto current_con = std::make_shared<websocket_connection_impl<typename websocketpp::server<config>::connection_ptr>>( _server.get_con_from_hdl(hdl) );                 
+                       auto current_con = std::make_shared<websocket_connection_impl<typename websocketpp::server<config>::connection_ptr>>( _server.get_con_from_hdl(hdl) );
                        _on_connection( current_con, current_con->is_tls );
                       _counters_helper->MONITORING_COUNTER_VALUE(connections_http_active)++;
                       if (_counters_helper->MONITORING_COUNTER_VALUE(connections_http_active_max) < _counters_helper->MONITORING_COUNTER_VALUE(connections_http_active))
@@ -506,6 +501,7 @@ namespace fc { namespace http {
                           if (shutdown_locker_wraith->is_shutting_down()) return;
 
                           std::string response = current_con->on_http(request_body);
+                          idump((response));
                           con->set_body( response );
                           con->set_status( websocketpp::http::status_code::ok );
                           con->replace_header( "Content-Type", "application/json" );
@@ -646,9 +642,9 @@ namespace fc { namespace http {
             uint32_t                           _pending_messages = 0;
             std::map<std::string, std::string> _additional_headers;
       };
-     
+
       template <typename config>
-      class websocket_tls_server_impl : public websocket_server_impl<config> 
+      class websocket_tls_server_impl : public websocket_server_impl<config>
       {
          public:
             websocket_tls_server_impl( const std::string& server_cert_file,
@@ -676,8 +672,6 @@ namespace fc { namespace http {
                });
             }
       };
-
-
 
       typedef websocketpp::client<asio_with_stub_log> websocket_client_type;
       typedef websocketpp::client<asio_tls_stub_log> websocket_tls_client_type;
@@ -783,8 +777,6 @@ namespace fc { namespace http {
             websocket_client_type              _client;
             websocket_connection_ptr           _connection;
       };
-
-
 
       class websocket_tls_client_impl
       {
@@ -903,12 +895,12 @@ namespace fc { namespace http {
    } // namespace detail
 
    websocket_server::websocket_server(bool enable_permessage_deflate /* = true */) :
-      my( 
+      my(
 #ifdef ENABLE_WEBSOCKET_PERMESSAGE_DEFLATE
-          enable_permessage_deflate ? 
-            (detail::abstract_websocket_server*)new detail::websocket_server_impl<detail::asio_with_stub_log_and_deflate> : 
+          enable_permessage_deflate ?
+            (detail::abstract_websocket_server*)new detail::websocket_server_impl<detail::asio_with_stub_log_and_deflate> :
 #endif
-            (detail::abstract_websocket_server*)new detail::websocket_server_impl<detail::asio_with_stub_log> ) 
+            (detail::abstract_websocket_server*)new detail::websocket_server_impl<detail::asio_with_stub_log> )
    {
 #ifndef ENABLE_WEBSOCKET_PERMESSAGE_DEFLATE
      if (enable_permessage_deflate)
@@ -946,7 +938,7 @@ namespace fc { namespace http {
                                               bool enable_permessage_deflate /* = true */) :
       my(
 #ifdef ENABLE_WEBSOCKET_PERMESSAGE_DEFLATE
-          enable_permessage_deflate ? 
+          enable_permessage_deflate ?
             (detail::abstract_websocket_server*)new detail::websocket_tls_server_impl<detail::asio_tls_stub_log_and_deflate>(server_cert_file,
                                                                                                                              server_cert_key_file,
                                                                                                                              server_cert_chain_file,
@@ -978,7 +970,7 @@ namespace fc { namespace http {
       my->listen(ep);
    }
 
-   void websocket_tls_server::start_accept() 
+   void websocket_tls_server::start_accept()
    {
       my->start_accept();
    }
