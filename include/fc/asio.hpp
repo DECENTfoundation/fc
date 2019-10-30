@@ -8,7 +8,7 @@
 #include <fc/thread/future.hpp>
 #include <fc/io/iostream.hpp>
 
-namespace fc { 
+namespace fc {
 /**
  *  @brief defines fc wrappers for boost::asio functions.
  */
@@ -31,7 +31,7 @@ namespace asio {
         class read_write_handler_with_buffer
         {
         public:
-          read_write_handler_with_buffer(const promise<size_t>::ptr& p, 
+          read_write_handler_with_buffer(const promise<size_t>::ptr& p,
                                          const std::shared_ptr<const char>& buffer);
           void operator()(const boost::system::error_code& ec, size_t bytes_transferred);
         private:
@@ -39,42 +39,42 @@ namespace asio {
           std::shared_ptr<const char> _buffer;
         };
 
-        //void read_write_handler( const promise<size_t>::ptr& p, 
-        //                         const boost::system::error_code& ec, 
+        //void read_write_handler( const promise<size_t>::ptr& p,
+        //                         const boost::system::error_code& ec,
         //                         size_t bytes_transferred );
-        void read_write_handler_ec( promise<size_t>* p, 
-                                    boost::system::error_code* oec, 
-                                    const boost::system::error_code& ec, 
+        void read_write_handler_ec( promise<size_t>* p,
+                                    boost::system::error_code* oec,
+                                    const boost::system::error_code& ec,
                                     size_t bytes_transferred );
-        void error_handler( const promise<void>::ptr& p, 
+        void error_handler( const promise<void>::ptr& p,
                               const boost::system::error_code& ec );
-        void error_handler_ec( promise<boost::system::error_code>* p, 
-                              const boost::system::error_code& ec ); 
+        void error_handler_ec( promise<boost::system::error_code>* p,
+                              const boost::system::error_code& ec );
 
         template<typename C>
-        struct non_blocking { 
-          bool operator()( C& c ) { return c.non_blocking(); } 
-          bool operator()( C& c, bool s ) { c.non_blocking(s); return true; } 
+        struct non_blocking {
+          bool operator()( C& c ) { return c.non_blocking(); }
+          bool operator()( C& c, bool s ) { c.non_blocking(s); return true; }
         };
 
         #if WIN32  // windows stream handles do not support non blocking!
 	       template<>
-         struct non_blocking<boost::asio::windows::stream_handle> { 
+         struct non_blocking<boost::asio::windows::stream_handle> {
 	          typedef boost::asio::windows::stream_handle C;
-            bool operator()( C& ) { return false; } 
-            bool operator()( C&, bool ) { return false; } 
+            bool operator()( C& ) { return false; }
+            bool operator()( C&, bool ) { return false; }
         };
-        #endif 
+        #endif
     }
     /**
      * @return the default boost::asio::io_service for use with fc::asio
-     * 
+     *
      * This IO service is automatically running in its own thread to service asynchronous
      * requests without blocking any other threads.
      */
     boost::asio::io_service& default_io_service(bool cleanup = false);
 
-    /** 
+    /**
      *  @brief wraps boost::asio::async_read
      *  @pre s.non_blocking() == true
      *  @return the number of bytes read.
@@ -85,10 +85,10 @@ namespace asio {
         boost::asio::async_read( s, buf, detail::read_write_handler(p) );
         return p->wait();
     }
-    /** 
+    /**
      *  This method will read at least 1 byte from the stream and will
      *  cooperatively block until that byte is available or an error occurs.
-     *  
+     *
      *  If the stream is not in 'non-blocking' mode it will be put in 'non-blocking'
      *  mode it the stream supports s.non_blocking() and s.non_blocking(bool).
      *
@@ -110,7 +110,7 @@ namespace asio {
     future<size_t> read_some(AsyncReadStream& s, char* buffer, size_t length, size_t offset = 0)
     {
       promise<size_t>::ptr completion_promise(new promise<size_t>("fc::asio::async_read_some"));
-      s.async_read_some(boost::asio::buffer(buffer + offset, length), 
+      s.async_read_some(boost::asio::buffer(buffer + offset, length),
                         detail::read_write_handler(completion_promise));
       return completion_promise;//->wait();
     }
@@ -119,7 +119,7 @@ namespace asio {
     future<size_t> read_some(AsyncReadStream& s, const std::shared_ptr<char>& buffer, size_t length, size_t offset)
     {
       promise<size_t>::ptr completion_promise(new promise<size_t>("fc::asio::async_read_some"));
-      s.async_read_some(boost::asio::buffer(buffer.get() + offset, length), 
+      s.async_read_some(boost::asio::buffer(buffer.get() + offset, length),
                         detail::read_write_handler_with_buffer(completion_promise, buffer));
       return completion_promise;//->wait();
     }
@@ -163,7 +163,7 @@ namespace asio {
         return p->wait();
     }
 
-    /** 
+    /**
      *  @pre s.non_blocking() == true
      *  @brief wraps boost::asio::async_write_some
      *  @return the number of bytes written
@@ -176,7 +176,7 @@ namespace asio {
     }
 
     template<typename AsyncWriteStream>
-    future<size_t> write_some( AsyncWriteStream& s, const char* buffer, 
+    future<size_t> write_some( AsyncWriteStream& s, const char* buffer,
                                size_t length, size_t offset = 0) {
         promise<size_t>::ptr p(new promise<size_t>("fc::asio::write_some"));
         s.async_write_some( boost::asio::buffer(buffer + offset, length), detail::read_write_handler(p));
@@ -184,7 +184,7 @@ namespace asio {
     }
 
     template<typename AsyncWriteStream>
-    future<size_t> write_some( AsyncWriteStream& s, const std::shared_ptr<const char>& buffer, 
+    future<size_t> write_some( AsyncWriteStream& s, const std::shared_ptr<const char>& buffer,
                                size_t length, size_t offset ) {
         promise<size_t>::ptr p(new promise<size_t>("fc::asio::write_some"));
         s.async_write_some( boost::asio::buffer(buffer.get() + offset, length), detail::read_write_handler_with_buffer(p, buffer));
@@ -202,16 +202,16 @@ namespace asio {
     }
 
     template<typename AsyncWriteStream>
-    void async_write_some(AsyncWriteStream& s, const char* buffer, 
+    void async_write_some(AsyncWriteStream& s, const char* buffer,
                           size_t length, promise<size_t>::ptr completion_promise) {
-      s.async_write_some(boost::asio::buffer(buffer, length), 
+      s.async_write_some(boost::asio::buffer(buffer, length),
                          detail::read_write_handler(completion_promise));
     }
 
     template<typename AsyncWriteStream>
-    void async_write_some(AsyncWriteStream& s, const std::shared_ptr<const char>& buffer, 
+    void async_write_some(AsyncWriteStream& s, const std::shared_ptr<const char>& buffer,
                           size_t length, size_t offset, promise<size_t>::ptr completion_promise) {
-      s.async_write_some(boost::asio::buffer(buffer.get() + offset, length), 
+      s.async_write_some(boost::asio::buffer(buffer.get() + offset, length),
                          detail::read_write_handler_with_buffer(completion_promise, buffer));
     }
 
@@ -223,7 +223,7 @@ namespace asio {
 
         /** @brief wraps boost::asio::async_accept
           * @post sock is connected
-          * @post sock.non_blocking() == true  
+          * @post sock.non_blocking() == true
           * @throw on error.
           */
         template<typename SocketType, typename AcceptorType>
@@ -236,7 +236,7 @@ namespace asio {
         }
 
         /** @brief wraps boost::asio::socket::async_connect
-          * @post sock.non_blocking() == true  
+          * @post sock.non_blocking() == true
           * @throw on error
           */
         template<typename AsyncSocket, typename EndpointType>
@@ -247,13 +247,26 @@ namespace asio {
             //if( ec ) BOOST_THROW_EXCEPTION( boost::system::system_error(ec) );
         }
     }
+
+    namespace ssl {
+        /** @brief wraps boost::asio::ssl::socket::async_handshake
+          * @throw on error
+          */
+        template<typename Stream>
+        void handshake( Stream& stream, typename Stream::handshake_type type ) {
+            promise<void>::ptr p(new promise<void>("fc::asio::ssl::handshake"));
+            stream.async_handshake( type, boost::bind( fc::asio::detail::error_handler, p, _1 ) );
+            p->wait();
+            //if( ec ) BOOST_THROW_EXCEPTION( boost::system::system_error(ec) );
+        }
+    }
+
     namespace udp {
         typedef boost::asio::ip::udp::endpoint endpoint;
         typedef boost::asio::ip::udp::resolver::iterator resolver_iterator;
         typedef boost::asio::ip::udp::resolver resolver;
         /// @brief resolve all udp::endpoints for hostname:port
-        std::vector<endpoint> resolve( resolver& r, const std::string& hostname, 
-                                                         const std::string& port );
+        std::vector<endpoint> resolve( resolver& r, const std::string& hostname, const std::string& port );
     }
 
     template<typename AsyncReadStream>
@@ -271,7 +284,7 @@ namespace asio {
           {
              return fc::asio::read_some(*_stream, buf, len, offset).wait();
           }
-    
+
        private:
           std::shared_ptr<AsyncReadStream> _stream;
     };
@@ -287,12 +300,12 @@ namespace asio {
           {
              return fc::asio::write_some(*_stream, buf, len).wait();
           }
-    
+
           virtual size_t     writesome( const std::shared_ptr<const char>& buf, size_t len, size_t offset )
           {
              return fc::asio::write_some(*_stream, buf, len, offset).wait();
           }
-    
+
           virtual void       close(){ _stream->close(); }
           virtual void       flush() {}
        private:
@@ -301,4 +314,3 @@ namespace asio {
 
 
 } } // namespace fc::asio
-

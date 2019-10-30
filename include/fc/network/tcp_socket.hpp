@@ -1,17 +1,17 @@
 #pragma once
-#include <fc/fwd.hpp>
 #include <fc/io/iostream.hpp>
-#include <fc/time.hpp>
 
 namespace fc {
   namespace ip { class endpoint; }
 
-  class tcp_socket_io_hooks;
+  class microseconds;
+  struct tcp_socket_io_hooks;
 
   class tcp_socket : public virtual iostream
   {
     public:
-      tcp_socket();
+      tcp_socket(const std::string& cert_file = std::string());
+      tcp_socket(const std::string& cert_file, const std::string& key_file, const std::string& key_password = std::string());
       ~tcp_socket();
 
       void     connect_to( const fc::ip::endpoint& remote_endpoint );
@@ -27,7 +27,6 @@ namespace fc {
       {
           read( &c, 1 );
       }
-
 
       /// istream interface
       /// @{
@@ -49,19 +48,14 @@ namespace fc {
 
     private:
       friend class tcp_server;
+      // non copyable
+      tcp_socket( const tcp_socket& );
+      tcp_socket& operator=(const tcp_socket& );
+
       class impl;
-      #if defined(_MSC_VER)
-      #if _MSC_VER < 1920
-      fc::fwd<impl,0x88> my;
-      #else
-      fc::fwd<impl,0x98> my;
-      #endif
-      #else
-      fc::fwd<impl,0x54> my;
-      #endif
+      std::unique_ptr<impl> my;
   };
   typedef std::shared_ptr<tcp_socket> tcp_socket_ptr;
-
 
   class tcp_server
   {
@@ -79,11 +73,10 @@ namespace fc {
     private:
       // non copyable
       tcp_server( const tcp_server& );
-      tcp_server& operator=(const tcp_server& s );
+      tcp_server& operator=(const tcp_server& );
 
       class impl;
-      impl* my;
+      std::unique_ptr<impl> my;
   };
 
 } // namesapce fc
-
