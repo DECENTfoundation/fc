@@ -654,20 +654,17 @@ namespace fc { namespace http {
             {
                this->_server.set_tls_init_handler( [=]( websocketpp::connection_hdl hdl ) -> context_ptr {
                      context_ptr ctx = websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tls_server);
-                     try {
-                        ctx->set_options(boost::asio::ssl::context::default_workarounds |
+                     ctx->set_options(boost::asio::ssl::context::default_workarounds |
                         boost::asio::ssl::context::no_sslv2 |
                         boost::asio::ssl::context::no_sslv3 |
                         boost::asio::ssl::context::no_tlsv1 |
                         boost::asio::ssl::context::no_tlsv1_1 |
                         boost::asio::ssl::context::single_dh_use);
-                        ctx->set_password_callback([=](std::size_t max_length, boost::asio::ssl::context::password_purpose){ return ssl_password;});
-                        ctx->use_certificate_file(server_cert_file, boost::asio::ssl::context::pem);
-                        ctx->use_private_key_file(server_cert_key_file, boost::asio::ssl::context::pem);
+                     ctx->set_password_callback([=](std::size_t, boost::asio::ssl::context::password_purpose){ return ssl_password; });
+                     ctx->use_certificate_file(server_cert_file, boost::asio::ssl::context::pem);
+                     ctx->use_private_key_file(server_cert_key_file, boost::asio::ssl::context::pem);
+                     if(!server_cert_chain_file.empty())
                         ctx->use_certificate_chain_file(server_cert_chain_file);
-                     } catch (const std::exception& e) {
-                        elog(e.what());
-                     }
                      return ctx;
                });
             }
