@@ -1,19 +1,15 @@
 #pragma once
 #include <fc/uint48.hpp>
+#include <fc/io/raw_fwd.hpp>
 #include <fc/io/raw_variant.hpp>
 #include <fc/reflect/reflect.hpp>
 #include <fc/io/datastream.hpp>
-#include <fc/io/varint.hpp>
 #include <fc/optional.hpp>
 #include <fc/fwd.hpp>
 #include <fc/smart_ref_fwd.hpp>
-#include <fc/array.hpp>
 #include <fc/time.hpp>
-#include <fc/safe.hpp>
-#include <fc/io/raw_fwd.hpp>
 #include <boost/filesystem/path.hpp>
 #include <map>
-#include <deque>
 
 namespace fc {
     namespace raw {
@@ -256,6 +252,54 @@ namespace fc {
       value.resize(size.value);
       if( value.size() )
         s.read( value.data(), value.size() );
+    }
+
+    template<typename Stream, typename T>
+    inline void pack( Stream& s, const boost::container::flat_set<T>& value ) {
+      pack( s, unsigned_int((uint32_t)value.size()) );
+      auto itr = value.begin();
+      auto end = value.end();
+      while( itr != end ) {
+        fc::raw::pack( s, *itr );
+        ++itr;
+      }
+    }
+    template<typename Stream, typename T>
+    inline void unpack( Stream& s, boost::container::flat_set<T>& value ) {
+      unsigned_int size; unpack( s, size );
+      value.clear();
+      FC_ASSERT( size.value*sizeof(T) < MAX_ARRAY_ALLOC_SIZE );
+      value.reserve(size.value);
+      for( uint32_t i = 0; i < size.value; ++i )
+      {
+          T tmp;
+          fc::raw::unpack( s, tmp );
+          value.insert( std::move(tmp) );
+      }
+    }
+    template<typename Stream, typename K, typename V>
+    inline void pack( Stream& s, const boost::container::flat_map<K,V>& value ) {
+      pack( s, unsigned_int((uint32_t)value.size()) );
+      auto itr = value.begin();
+      auto end = value.end();
+      while( itr != end ) {
+        fc::raw::pack( s, *itr );
+        ++itr;
+      }
+    }
+    template<typename Stream, typename K, typename V>
+    inline void unpack( Stream& s, boost::container::flat_map<K,V>& value )
+    {
+      unsigned_int size; unpack( s, size );
+      value.clear();
+      FC_ASSERT( size.value*(sizeof(K)+sizeof(V)) < MAX_ARRAY_ALLOC_SIZE );
+      value.reserve(size.value);
+      for( uint32_t i = 0; i < size.value; ++i )
+      {
+          std::pair<K,V> tmp;
+          fc::raw::unpack( s, tmp );
+          value.insert( std::move(tmp) );
+      }
     }
 
     // fc::string
@@ -503,8 +547,6 @@ namespace fc {
       }
     }
 
-
-
     template<typename Stream, typename T>
     inline void pack( Stream& s, const T& v ) {
       fc::raw::detail::if_reflected< typename fc::reflector<T>::is_defined >::pack(s,v);
@@ -604,7 +646,6 @@ namespace fc {
          fc::raw::unpack( stream, v );
       }
    };
-
 
     template<typename Stream, typename... T>
     void pack( Stream& s, const static_variant<T...>& sv )

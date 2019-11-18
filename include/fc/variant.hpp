@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include <deque>
 #include <map>
@@ -10,21 +10,21 @@
 
 #include <fc/optional.hpp>
 #include <fc/string.hpp>
-#include <fc/container/deque_fwd.hpp>
-#include <fc/container/flat_fwd.hpp>
 #include <fc/smart_ref_fwd.hpp>
+#include <boost/container/flat_map.hpp>
+#include <boost/container/flat_set.hpp>
 #include <boost/multi_index_container_fwd.hpp>
 
 namespace fc
 {
    /**
     * @defgroup serializable Serializable _types
-    * @brief Clas_ses that may be converted to/from an variant
+    * @brief Classes that may be converted to/from an variant
     *
-    * To make a class 'serializable' the following methods must be available 
+    * To make a class 'serializable' the following methods must be available
     * for your Serializable_type
     *
-    *  @code 
+    *  @code
     *     void   to_variant( const Serializable_type& e, variant& v );
     *     void   from_variant( const variant& e, Serializable_type& ll );
     *  @endcode
@@ -44,7 +44,6 @@ namespace fc
 
    void to_variant( const blob& var,  variant& vo );
    void from_variant( const variant& var,  blob& vo );
-
 
    template<typename T, typename... Args> void to_variant( const boost::multi_index_container<T,Args...>& s, variant& v );
    template<typename T, typename... Args> void from_variant( const variant& v, boost::multi_index_container<T,Args...>& s );
@@ -83,9 +82,9 @@ namespace fc
    void from_variant( const variant& var,  std::vector<char>& vo );
 
    template<typename K, typename T>
-   void to_variant( const fc::flat_map<K,T>& var,  variant& vo );
+   void to_variant( const boost::container::flat_map<K,T>& var,  variant& vo );
    template<typename K, typename T>
-   void from_variant( const variant& var, fc::flat_map<K,T>& vo );
+   void from_variant( const variant& var, boost::container::flat_map<K,T>& vo );
 
    template<typename K, typename T>
    void to_variant( const std::map<K,T>& var,  variant& vo );
@@ -102,9 +101,9 @@ namespace fc
    void from_variant( const variant& var,  std::deque<T>& vo );
 
    template<typename T>
-   void to_variant( const fc::flat_set<T>& var,  variant& vo );
+   void to_variant( const boost::container::flat_set<T>& var,  variant& vo );
    template<typename T>
-   void from_variant( const variant& var, fc::flat_set<T>& vo );
+   void from_variant( const variant& var, boost::container::flat_set<T>& vo );
 
    template<typename T>
    void to_variant( const std::set<T>& var,  variant& vo );
@@ -140,14 +139,12 @@ namespace fc
    template<typename A, typename B>
    void from_variant( const variant& v, std::pair<A,B>& p );
 
-
-
    /**
     * @brief stores null, int64, uint64, double, bool, string, std::vector<variant>,
-    *        and variant_object's.  
+    *        and variant_object's.
     *
     * variant's allocate everything but strings, arrays, and objects on the
-    * stack and are 'move aware' for values allcoated on the heap.  
+    * stack and are 'move aware' for values allcoated on the heap.
     *
     * Memory usage on 64 bit systems is 16 bytes and 12 bytes on 32 bit systems.
     */
@@ -156,9 +153,9 @@ namespace fc
       public:
         enum type_id
         {
-           null_type   = 0,     
-           int64_type  = 1, 
-           uint64_type = 2, 
+           null_type   = 0,
+           int64_type  = 1,
+           uint64_type = 2,
            double_type = 3,
            bool_type   = 4,
            string_type = 5,
@@ -200,7 +197,7 @@ namespace fc
         /**
          *  Read-only access to the content of the variant.
          */
-        class visitor 
+        class visitor
         {
            public:
               virtual ~visitor(){}
@@ -236,7 +233,7 @@ namespace fc
          *   int64, uint64, bool
          */
         bool                        is_integer()const;
-                                    
+
         int64_t                     as_int64()const;
         uint64_t                    as_uint64()const;
         bool                        as_bool()const;
@@ -247,23 +244,23 @@ namespace fc
         blob                        as_blob()const;
 
         /** Convert's double, ints, bools, etc to a string
-         * @throw if get_type() == array_type | get_type() == object_type 
+         * @throw if get_type() == array_type | get_type() == object_type
          */
         std::string                 as_string()const;
 
         /// @pre  get_type() == string_type
         const std::string&          get_string()const;
-                                    
+
         /// @throw if get_type() != array_type | null_type
         variants&                   get_array();
 
-        /// @throw if get_type() != array_type 
+        /// @throw if get_type() != array_type
         const variants&             get_array()const;
 
         /// @throw if get_type() != object_type | null_type
         variant_object&             get_object();
 
-        /// @throw if get_type() != object_type 
+        /// @throw if get_type() != object_type
         const variant_object&       get_object()const;
 
         /// @pre is_object()
@@ -281,7 +278,7 @@ namespace fc
          *  void from_variant( const Variant& var, T& val )
          *  </code>
          *
-         *  The above form is not always convienant, so the this templated 
+         *  The above form is not always convienant, so the this templated
          *  method is used to enable conversion from Variants to other
          *  types.
          */
@@ -320,7 +317,7 @@ namespace fc
         char    _type[sizeof(void*)]; ///< pad to void* size
    };
    typedef optional<variant> ovariant;
-  
+
    /** @ingroup Serializable */
    void from_variant( const variant& var,  std::string& vo );
    /** @ingroup Serializable */
@@ -388,7 +385,6 @@ namespace fc
          vo.insert( itr->as< std::pair<K,T> >() );
    }
 
-
    template<typename T>
    void to_variant( const std::set<T>& var,  variant& vo )
    {
@@ -428,7 +424,6 @@ namespace fc
       v = std::move(vars);
    }
 
-
    /** @ingroup Serializable */
    template<typename T>
    void from_variant( const variant& var, std::vector<T>& tmp )
@@ -450,7 +445,6 @@ namespace fc
        v = std::move(vars);
    }
 
-
    /** @ingroup Serializable */
    template<typename A, typename B>
    void to_variant( const std::pair<A,B>& t, variant& v )
@@ -470,6 +464,43 @@ namespace fc
       p.second = vars[1].as<B>();
    }
 
+   template<typename T>
+   void to_variant( const boost::container::flat_set<T>& var,  variant& vo )
+   {
+       std::vector<variant> vars(var.size());
+       size_t i = 0;
+       for( auto itr = var.begin(); itr != var.end(); ++itr, ++i )
+          vars[i] = variant(*itr);
+       vo = vars;
+   }
+   template<typename T>
+   void from_variant( const variant& var, boost::container::flat_set<T>& vo )
+   {
+      const variants& vars = var.get_array();
+      vo.clear();
+      vo.reserve( vars.size() );
+      for( auto itr = vars.begin(); itr != vars.end(); ++itr )
+         vo.insert( itr->as<T>() );
+   }
+
+   template<typename K, typename T>
+   void to_variant( const boost::container::flat_map<K, T>& var,  variant& vo )
+   {
+       std::vector< variant > vars(var.size());
+       size_t i = 0;
+       for( auto itr = var.begin(); itr != var.end(); ++itr, ++i )
+          vars[i] = fc::variant(*itr);
+       vo = vars;
+   }
+   template<typename K, typename T>
+   void from_variant( const variant& var, boost::container::flat_map<K, T>& vo )
+   {
+      const variants& vars = var.get_array();
+      vo.clear();
+      for( auto itr = vars.begin(); itr != vars.end(); ++itr )
+         vo.insert( itr->as< std::pair<K,T> >() );
+
+   }
 
    template<typename T>
    variant::variant( const T& val )
@@ -514,7 +545,6 @@ namespace fc
           from_variant( var, *vo );
       }
    }
-
 
    template<typename T>
    void to_variant( const safe<T>& s, variant& v ) { v = s.value; }

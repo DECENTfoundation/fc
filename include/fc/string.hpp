@@ -10,7 +10,6 @@ namespace fc
   std::string to_string( uint64_t );
   std::string to_string( int64_t );
   std::string to_string( uint16_t );
-  std::string to_pretty_string( int64_t );
   inline std::string to_string( int32_t v ) { return to_string( int64_t(v) ); }
   inline std::string to_string( uint32_t v ){ return to_string( uint64_t(v) ); }
 #ifdef __APPLE__
@@ -19,7 +18,4 @@ namespace fc
 
   class variant_object;
   std::string format_string( const std::string&, const variant_object& );
-  std::string trim( const std::string& );
-  std::string to_lower( const std::string& );
-  std::string trim_and_normalize_spaces( const std::string& s );
 }

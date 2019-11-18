@@ -121,7 +121,6 @@ find_package( ZLIB REQUIRED )
 
 set( fc_sources
      src/uint128.cpp
-     src/real128.cpp
      src/variant.cpp
      src/exception.cpp
      src/monitoring.cpp
@@ -284,9 +283,6 @@ target_link_libraries( task_cancel_test fc )
 add_executable( bloom_test tests/all_tests.cpp tests/bloom_test.cpp )
 target_link_libraries( bloom_test fc )
 
-add_executable( real128_test tests/all_tests.cpp tests/real128_test.cpp )
-target_link_libraries( real128_test fc )
-
 add_executable( hmac_test tests/hmac_test.cpp )
 target_link_libraries( hmac_test fc )
 
@@ -324,7 +320,6 @@ add_executable( all_tests tests/all_tests.cpp
                           tests/network/http/websocket_test.cpp
                           tests/thread/task_cancel.cpp
                           tests/bloom_test.cpp
-                          tests/real128_test.cpp
                           tests/utf8_test.cpp
                           )
 target_link_libraries( all_tests fc )

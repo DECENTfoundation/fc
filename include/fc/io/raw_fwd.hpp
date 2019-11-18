@@ -1,6 +1,4 @@
 #pragma once
-#include <fc/container/flat_fwd.hpp>
-#include <fc/container/deque_fwd.hpp>
 #include <fc/io/varint.hpp>
 #include <fc/array.hpp>
 #include <fc/safe.hpp>
@@ -8,8 +6,10 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <boost/container/flat_map.hpp>
+#include <boost/container/flat_set.hpp>
 
-#define MAX_ARRAY_ALLOC_SIZE (1024*1024*10) 
+#define MAX_ARRAY_ALLOC_SIZE (1024*1024*10)
 
 namespace boost {
   namespace filesystem {
@@ -17,7 +17,7 @@ namespace boost {
   }
 }
 
-namespace fc { 
+namespace fc {
    class time_point;
    class time_point_sec;
    class variant;
@@ -40,8 +40,8 @@ namespace fc {
     template<typename Stream, typename... T> void pack( Stream& s, const static_variant<T...>& sv );
     template<typename Stream, typename... T> void unpack( Stream& s, static_variant<T...>& sv );
 
-    template<typename Stream, typename T> inline void pack( Stream& s, const flat_set<T>& value );
-    template<typename Stream, typename T> inline void unpack( Stream& s, flat_set<T>& value );
+    template<typename Stream, typename T> inline void pack( Stream& s, const boost::container::flat_set<T>& value );
+    template<typename Stream, typename T> inline void unpack( Stream& s, boost::container::flat_set<T>& value );
 
     template<typename Stream, typename T> inline void pack( Stream& s, const std::deque<T>& value );
     template<typename Stream, typename T> inline void unpack( Stream& s, std::deque<T>& value );
@@ -49,8 +49,8 @@ namespace fc {
     template<typename Stream, typename K, typename V> inline void pack( Stream& s, const std::map<K,V>& value );
     template<typename Stream, typename K, typename V> inline void unpack( Stream& s, std::map<K,V>& value );
 
-    template<typename Stream, typename K, typename V> inline void pack( Stream& s, const flat_map<K,V>& value );
-    template<typename Stream, typename K, typename V> inline void unpack( Stream& s, flat_map<K,V>& value );
+    template<typename Stream, typename K, typename V> inline void pack( Stream& s, const boost::container::flat_map<K,V>& value );
+    template<typename Stream, typename K, typename V> inline void unpack( Stream& s, boost::container::flat_map<K,V>& value );
 
     template<typename Stream, typename K, typename V> inline void pack( Stream& s, const std::pair<K,V>& value );
     template<typename Stream, typename K, typename V> inline void unpack( Stream& s, std::pair<K,V>& value );
@@ -65,25 +65,24 @@ namespace fc {
     template<typename Stream> inline void pack( Stream& s, const ip::endpoint& v );
     template<typename Stream> inline void unpack( Stream& s, ip::endpoint& v );
 
-
-    template<typename Stream, typename T> void unpack( Stream& s, fc::optional<T>& v ); 
-    template<typename Stream, typename T> void unpack( Stream& s, const T& v ); 
+    template<typename Stream, typename T> void unpack( Stream& s, fc::optional<T>& v );
+    template<typename Stream, typename T> void unpack( Stream& s, const T& v );
     template<typename Stream, typename T> void pack( Stream& s, const fc::optional<T>& v );
     template<typename Stream, typename T> void pack( Stream& s, const safe<T>& v );
     template<typename Stream, typename T> void unpack( Stream& s, fc::safe<T>& v );
 
-    template<typename Stream> void unpack( Stream& s, time_point& ); 
+    template<typename Stream> void unpack( Stream& s, time_point& );
     template<typename Stream> void pack( Stream& s, const time_point& );
-    template<typename Stream> void unpack( Stream& s, time_point_sec& ); 
+    template<typename Stream> void unpack( Stream& s, time_point_sec& );
     template<typename Stream> void pack( Stream& s, const time_point_sec& );
-    template<typename Stream> void unpack( Stream& s, std::string& ); 
+    template<typename Stream> void unpack( Stream& s, std::string& );
     template<typename Stream> void pack( Stream& s, const std::string& );
-    template<typename Stream> void unpack( Stream& s, fc::ecc::public_key& ); 
+    template<typename Stream> void unpack( Stream& s, fc::ecc::public_key& );
     template<typename Stream> void pack( Stream& s, const fc::ecc::public_key& );
-    template<typename Stream> void unpack( Stream& s, fc::ecc::private_key& ); 
+    template<typename Stream> void unpack( Stream& s, fc::ecc::private_key& );
     template<typename Stream> void pack( Stream& s, const fc::ecc::private_key& );
 
-    template<typename Stream, typename T> inline void pack( Stream& s, const T& v ); 
+    template<typename Stream, typename T> inline void pack( Stream& s, const T& v );
     template<typename Stream, typename T> inline void unpack( Stream& s, T& v );
 
     template<typename Stream, typename T> inline void pack( Stream& s, const std::vector<T>& v );
