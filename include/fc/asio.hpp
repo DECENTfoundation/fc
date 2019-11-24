@@ -17,7 +17,6 @@ namespace asio {
      *  @brief internal implementation types/methods for fc::asio
      */
     namespace detail {
-        using namespace fc;
 
         class read_write_handler
         {
