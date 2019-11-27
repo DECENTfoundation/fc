@@ -6,8 +6,7 @@
 #include <fc/fwd.hpp>
 #include <fc/array.hpp>
 #include <fc/io/raw_fwd.hpp>
-
-extern const std::string GRAPHENE_ADDRESS_PREFIX;
+#include <fc/reflect/reflect.hpp>
 
 namespace fc {
 
@@ -247,9 +246,8 @@ namespace fc {
                                           const range_proof_type& proof );
      range_proof_info range_get_info( const range_proof_type& proof );
 
-
-
   } // namespace ecc
+
   void to_variant( const ecc::private_key& var,  variant& vo );
   void from_variant( const variant& var,  ecc::private_key& vo );
   void to_variant( const ecc::public_key& var,  variant& vo );
@@ -288,7 +286,6 @@ namespace fc {
   } // namespace raw
 
 } // namespace fc
-#include <fc/reflect/reflect.hpp>
 
 FC_REFLECT_TYPENAME( fc::ecc::private_key )
 FC_REFLECT_TYPENAME( fc::ecc::public_key )
