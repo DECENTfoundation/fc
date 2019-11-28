@@ -337,14 +337,8 @@ namespace fc {
           fc::raw::pack( s, c.*p );
         }
 
-        template<typename T, typename C>
-        void operator()( const char* name, std::function<T(const C&)> fnc )const {
-          fc::raw::pack( s, fnc(c) );
-        }
-
-        private:
-          const Class& c;
-          Stream&      s;
+        const Class& c;
+        Stream&      s;
       };
 
       template<typename Stream, typename Class>
@@ -358,17 +352,8 @@ namespace fc {
           fc::raw::unpack( s, c.*p );
         } FC_RETHROW_EXCEPTIONS( warn, "Error unpacking field ${field}", ("field",name) ) }
 
-        template<typename T, typename C>
-        inline void operator()( const char* name, std::function<C(const T&)> fnc )const
-        { try {
-          T val;
-          fc::raw::unpack( s, val );
-          c = fnc(val);
-        } FC_RETHROW_EXCEPTIONS( warn, "Error unpacking field ${field}", ("field",name) ) }
-
-        private:
-          Class&  c;
-          Stream& s;
+        Class&  c;
+        Stream& s;
       };
 
       template<typename IsClass=std::true_type>
@@ -662,4 +647,43 @@ namespace fc {
        sv.visit( unpack_static_variant<Stream>(s) );
     }
 
-} } // namespace fc::raw
+} // namespace raw
+
+template<typename T, T value, uint32_t magic>
+struct reflector<reflect_default_value<T, value, magic>> {
+   typedef reflect_default_value<T, value, magic> type;
+   typedef std::true_type is_defined;
+   typedef std::false_type is_enum;
+   enum member_count_enum {
+      local_member_count = 1,
+      total_member_count = 1
+   };
+
+   template<typename S, typename C>
+   static void visit(const fc::raw::detail::pack_object_visitor<S, C>& v)
+   {
+      if(v.c.has_value()) {
+         fc::raw::pack(v.s, unsigned_int(magic));
+         fc::raw::pack(v.s, v.c.instance);
+      }
+   }
+
+   template<typename S, typename C>
+   static void visit(const fc::raw::detail::unpack_object_visitor<S, C>& v)
+   {
+      try {
+         auto pos = v.s.tellp();
+         unsigned_int i;
+         fc::raw::unpack(v.s, i);
+         if(i == magic)
+            fc::raw::unpack(v.s, v.c.instance);
+         else {
+            v.s.seekp(pos);
+            v.c.instance = value;
+         }
+      }
+      FC_RETHROW_EXCEPTIONS( warn, "reflect_default_value<${type},${value},${magic}>", ("type", get_typename<T>::name())("value", value)("magic", magic) )
+   }
+};
+
+} // namespace fc

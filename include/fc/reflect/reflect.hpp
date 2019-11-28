@@ -28,11 +28,12 @@ namespace fc {
  *  class for your type.
  */
 template<typename T>
-struct reflector{
+struct reflector {
     typedef T type;
     typedef std::false_type is_defined;
     typedef std::false_type is_enum;
 
+    #ifdef DOXYGEN
     /**
      *  @tparam Visitor a function object of the form:
      *
@@ -55,16 +56,23 @@ struct reflector{
      *
      *  @note - this method is not defined for non-reflected types.
      */
-    #ifdef DOXYGEN
     template<typename Visitor>
     static inline void visit( const Visitor& v );
     #endif // DOXYGEN
 };
 
+template<typename T, T value, uint32_t magic>
+struct reflect_default_value {
+   reflect_default_value(T v = value) : instance(v) {}
+   inline bool has_value() const { return instance != value; }
+   operator T() const { return instance; }
+   T instance;
+};
+
 [[noreturn]] void throw_bad_enum_cast( int64_t i, const char* e );
 [[noreturn]] void throw_bad_enum_cast( const char* k, const char* e );
-} // namespace fc
 
+} // namespace fc
 
 #ifndef DOXYGEN
 
@@ -89,30 +97,23 @@ static inline void visit( const Visitor& v ) { \
     BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_VISIT_MEMBER, v, MEMBERS ) \
 }
 
-#define FC_REFLECT_DERIVED_IMPL_EXT( TYPE, INHERITS, MEMBERS ) \
-template<typename Visitor>\
-void fc::reflector<TYPE>::visit( const Visitor& v ) { \
-    BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_VISIT_BASE, v, INHERITS ) \
-    BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_VISIT_MEMBER, v, MEMBERS ) \
-}
-
 #endif // DOXYGEN
-
 
 #define FC_REFLECT_VISIT_ENUM( r, enum_type, elem ) \
   v.template operator()<enum_type::elem>(BOOST_PP_STRINGIZE(elem));
+
 #define FC_REFLECT_ENUM_TO_STRING( r, enum_type, elem ) \
    case enum_type::elem: return BOOST_PP_STRINGIZE(elem);
+
 #define FC_REFLECT_ENUM_TO_FC_STRING( r, enum_type, elem ) \
    case enum_type::elem: return std::string(BOOST_PP_STRINGIZE(elem));
 
 #define FC_REFLECT_ENUM_FROM_STRING( r, enum_type, elem ) \
   if( strcmp( s, BOOST_PP_STRINGIZE(elem)  ) == 0 ) return enum_type::elem;
 
-
 #define FC_REFLECT_ENUM( ENUM, FIELDS ) \
 namespace fc { \
-template<> struct reflector<ENUM> { \
+  template<> struct reflector<ENUM> { \
     typedef std::true_type is_defined; \
     typedef std::true_type is_enum; \
     static const char* to_string(ENUM elem) { \
@@ -137,7 +138,7 @@ template<> struct reflector<ENUM> { \
         BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_ENUM_FROM_STRING, ENUM, FIELDS ) \
         fc::throw_bad_enum_cast( s, BOOST_PP_STRINGIZE(ENUM) ); \
     } \
-};  \
+  }; \
 }
 
 /*  Note: FC_REFLECT_ENUM previously defined this function, but I don't think it ever
@@ -159,33 +160,34 @@ template<> struct reflector<ENUM> { \
  *  @param MEMBERS - a sequence of member names.  (field1)(field2)(field3)
  */
 #define FC_REFLECT_DERIVED( TYPE, INHERITS, MEMBERS ) \
-namespace fc {  \
-  template<> struct get_typename<TYPE>  { static const char* name()  { return BOOST_PP_STRINGIZE(TYPE);  } }; \
-template<> struct reflector<TYPE> {\
+namespace fc { \
+  template<> struct get_typename<TYPE> { static const char* name() { return BOOST_PP_STRINGIZE(TYPE); } }; \
+  template<> struct reflector<TYPE> { \
     typedef TYPE type; \
     typedef std::true_type is_defined; \
     typedef std::false_type is_enum; \
-    enum  member_count_enum {  \
-      local_member_count = 0  BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_MEMBER_COUNT, +, MEMBERS ),\
-      total_member_count = local_member_count BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_BASE_MEMBER_COUNT, +, INHERITS )\
+    enum  member_count_enum { \
+      local_member_count = 0 BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_MEMBER_COUNT, +, MEMBERS ), \
+      total_member_count = local_member_count BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_BASE_MEMBER_COUNT, +, INHERITS ) \
     }; \
     FC_REFLECT_DERIVED_IMPL_INLINE( TYPE, INHERITS, MEMBERS ) \
-}; }
-#define FC_REFLECT_DERIVED_TEMPLATE( TEMPLATE_ARGS, TYPE, INHERITS, MEMBERS ) \
-namespace fc {  \
-  template<BOOST_PP_SEQ_ENUM(TEMPLATE_ARGS)> struct get_typename<TYPE>  { static const char* name()  { return BOOST_PP_STRINGIZE(TYPE);  } }; \
-template<BOOST_PP_SEQ_ENUM(TEMPLATE_ARGS)> struct reflector<TYPE> {\
-    typedef TYPE type; \
-    typedef std::true_type is_defined; \
-    typedef std::false_type is_enum; \
-    enum  member_count_enum {  \
-      local_member_count = 0  BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_MEMBER_COUNT, +, MEMBERS ),\
-      total_member_count = local_member_count BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_BASE_MEMBER_COUNT, +, INHERITS )\
-    }; \
-    FC_REFLECT_DERIVED_IMPL_INLINE( TYPE, INHERITS, MEMBERS ) \
-}; }
+  }; \
+}
 
-//BOOST_PP_SEQ_SIZE(MEMBERS),
+#define FC_REFLECT_DERIVED_TEMPLATE( TEMPLATE_ARGS, TYPE, INHERITS, MEMBERS ) \
+namespace fc { \
+  template<BOOST_PP_SEQ_ENUM(TEMPLATE_ARGS)> struct get_typename<TYPE> { static const char* name() { return BOOST_PP_STRINGIZE(TYPE); } }; \
+  template<BOOST_PP_SEQ_ENUM(TEMPLATE_ARGS)> struct reflector<TYPE> { \
+    typedef TYPE type; \
+    typedef std::true_type is_defined; \
+    typedef std::false_type is_enum; \
+    enum  member_count_enum { \
+      local_member_count = 0 BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_MEMBER_COUNT, +, MEMBERS ), \
+      total_member_count = local_member_count BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_BASE_MEMBER_COUNT, +, INHERITS ) \
+    }; \
+    FC_REFLECT_DERIVED_IMPL_INLINE( TYPE, INHERITS, MEMBERS ) \
+  }; \
+}
 
 /**
  *  @def FC_REFLECT(TYPE,MEMBERS)
@@ -206,25 +208,19 @@ template<BOOST_PP_SEQ_ENUM(TEMPLATE_ARGS)> struct reflector<TYPE> {\
 
 #define FC_REFLECT_TYPENAME( TYPE ) \
 namespace fc { \
-  template<> struct get_typename<TYPE>  { static const char* name()  { return BOOST_PP_STRINGIZE(TYPE);  } }; \
+  template<> struct get_typename<TYPE> { static const char* name() { return BOOST_PP_STRINGIZE(TYPE); } }; \
 }
 
 #define FC_REFLECT_FWD( TYPE ) \
 namespace fc { \
-  template<> struct get_typename<TYPE>  { static const char* name()  { return BOOST_PP_STRINGIZE(TYPE);  } }; \
-template<> struct reflector<TYPE> {\
+  template<> struct get_typename<TYPE> { static const char* name() { return BOOST_PP_STRINGIZE(TYPE); } }; \
+  template<> struct reflector<TYPE> { \
     typedef TYPE type; \
     typedef std::true_type is_defined; \
-    enum  member_count_enum {  \
+    enum member_count_enum { \
       local_member_count = BOOST_PP_SEQ_SIZE(MEMBERS), \
-      total_member_count = local_member_count BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_BASE_MEMBER_COUNT, +, INHERITS )\
+      total_member_count = local_member_count BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_BASE_MEMBER_COUNT, +, INHERITS ) \
     }; \
     template<typename Visitor> static void visit( const Visitor& v ); \
-}; }
-
-
-#define FC_REFLECT_DERIVED_IMPL( TYPE, MEMBERS ) \
-    FC_REFLECT_IMPL_DERIVED_EXT( TYPE, BOOST_PP_SEQ_NIL, MEMBERS )
-
-#define FC_REFLECT_IMPL( TYPE, MEMBERS ) \
-    FC_REFLECT_DERIVED_IMPL_EXT( TYPE, BOOST_PP_SEQ_NIL, MEMBERS )
+  }; \
+}
