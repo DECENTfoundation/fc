@@ -71,20 +71,10 @@ struct reflector{
 #define FC_REFLECT_VISIT_BASE(r, visitor, base) \
   fc::reflector<base>::visit( visitor );
 
-
-#ifndef _MSC_VER
-  #define TEMPLATE template
-#else
-  // Disable warning C4482: nonstandard extention used: enum 'enum_type::enum_value' used in qualified name
-  #pragma warning( disable: 4482 )
-  #define TEMPLATE
-#endif
-
-#define FC_REFLECT_VISIT_MEMBER( r, visitor, elem ) \
-{ typedef decltype(((type*)nullptr)->elem) member_type;  \
-  visitor.TEMPLATE operator()<member_type,type,&type::elem>( BOOST_PP_STRINGIZE(elem) ); \
+#define FC_REFLECT_VISIT_MEMBER( r, visitor, elem ) { \
+  typedef decltype(((type*)nullptr)->elem) member_type; \
+  visitor.template operator()<member_type,type,&type::elem>( BOOST_PP_STRINGIZE(elem) ); \
 }
-
 
 #define FC_REFLECT_BASE_MEMBER_COUNT( r, OP, elem ) \
   OP fc::reflector<elem>::total_member_count
@@ -110,7 +100,7 @@ void fc::reflector<TYPE>::visit( const Visitor& v ) { \
 
 
 #define FC_REFLECT_VISIT_ENUM( r, enum_type, elem ) \
-  v.TEMPLATE operator()<enum_type::elem>(BOOST_PP_STRINGIZE(elem));
+  v.template operator()<enum_type::elem>(BOOST_PP_STRINGIZE(elem));
 #define FC_REFLECT_ENUM_TO_STRING( r, enum_type, elem ) \
    case enum_type::elem: return BOOST_PP_STRINGIZE(elem);
 #define FC_REFLECT_ENUM_TO_FC_STRING( r, enum_type, elem ) \
