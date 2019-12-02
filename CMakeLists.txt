@@ -38,56 +38,21 @@ SET( CMAKE_DEBUG_POSTFIX _debug )
 SET( BUILD_SHARED_LIBS NO )
 
 # Configure secp256k1-zkp
-if ( WIN32 )
-    # autoconf won't work here, hard code the defines
-    set( SECP256K1_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp" )
+set( SECP256K1_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp" )
+file( GLOB SECP256K1_HEADERS "${SECP256K1_DIR}/*.h" "${SECP256K1_DIR}/include/*.h" )
+add_library( secp256k1 "${SECP256K1_DIR}/src/secp256k1.c" ${SECP256K1_HEADERS} )
 
-    file( GLOB SECP256K1_SOURCES "${SECP256K1_DIR}/src/secp256k1.c" )
-    add_library( secp256k1 ${SECP256K1_SOURCES} )
+target_include_directories( secp256k1 PRIVATE "${SECP256K1_DIR}" PUBLIC "${SECP256K1_DIR}/include" )
 
-    target_include_directories( secp256k1 PRIVATE "${SECP256K1_DIR}" PUBLIC "${SECP256K1_DIR}/include" )
-
-    set( SECP256K1_BUILD_DEFINES
-        USE_FIELD_10X26
-        USE_FIELD_INV_BUILTIN
-        USE_NUM_NONE
-        USE_SCALAR_8X32
-        USE_SCALAR_INV_BUILTIN )
-    set_target_properties( secp256k1 PROPERTIES COMPILE_DEFINITIONS "${SECP256K1_BUILD_DEFINES}" LINKER_LANGUAGE C )
-else ( WIN32 )
-    include(ExternalProject)
-    ExternalProject_Add( project_secp256k1
-     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/vendor/secp256k1-zkp
-     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp
-     CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp/configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/vendor/secp256k1-zkp --with-bignum=no --with-pic=yes
-     BUILD_COMMAND make
-     INSTALL_COMMAND true
-     BUILD_BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/vendor/secp256k1-zkp/src/project_secp256k1-build/.libs/libsecp256k1.a
-    )
-    ExternalProject_Add_Step(project_secp256k1 autogen
-     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp
-     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp/autogen.sh
-     DEPENDERS configure
-    )
-
-    ExternalProject_Get_Property(project_secp256k1 binary_dir)
-
-    add_library(secp256k1 STATIC IMPORTED)
-    set_property(TARGET secp256k1 PROPERTY IMPORTED_LOCATION ${binary_dir}/.libs/libsecp256k1${CMAKE_STATIC_LIBRARY_SUFFIX})
-    set_property(TARGET secp256k1 PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp/include)
-    add_dependencies(secp256k1 project_secp256k1)
-endif ( WIN32 )
-# End configure secp256k1-zkp
-
-IF( WIN32 )
+IF(WIN32)
   MESSAGE(STATUS "Configuring fc to build on Win32")
 
+  target_compile_definitions( secp256k1 PRIVATE USE_FIELD_10X26 USE_FIELD_INV_BUILTIN USE_NUM_NONE USE_SCALAR_8X32 USE_SCALAR_INV_BUILTIN )
   set( PLATFORM_SPECIFIC_LIBS WS2_32.lib Userenv.lib crypt32.lib )
-  # iphlpapi.lib
-
 ELSE(WIN32)
   MESSAGE(STATUS "Configuring fc to build on Unix/Apple")
 
+  target_compile_definitions( secp256k1 PRIVATE HAVE___INT128 USE_FIELD_5X52 USE_FIELD_INV_BUILTIN USE_NUM_NONE USE_SCALAR_4X64 USE_SCALAR_INV_BUILTIN )
 ENDIF(WIN32)
 
 IF(NOT "$ENV{OPENSSL_ROOT_DIR}" STREQUAL "")
