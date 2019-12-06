@@ -14,8 +14,6 @@ endif()
 CMAKE_MINIMUM_REQUIRED( VERSION 3.10.2 )
 PROJECT( fc LANGUAGES CXX C )
 
-MESSAGE(STATUS "Configuring project fc located in: ${CMAKE_CURRENT_SOURCE_DIR}")
-
 # Compile in C++14 mode
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -31,9 +29,6 @@ INCLUDE(GetPrerequisites)
 INCLUDE( VersionMacros )
 INCLUDE( SetupTargetMacros )
 
-SET( DEFAULT_HEADER_INSTALL_DIR include/\${target} )
-SET( DEFAULT_LIBRARY_INSTALL_DIR lib/ )
-SET( DEFAULT_EXECUTABLE_INSTALL_DIR bin/ )
 SET( CMAKE_DEBUG_POSTFIX _debug )
 SET( BUILD_SHARED_LIBS NO )
 
@@ -62,7 +57,6 @@ IF(NOT "$ENV{OPENSSL_ROOT_DIR}" STREQUAL "")
 ENDIF()
 
 find_package(OpenSSL 1.0 REQUIRED)
-message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
 
 SET(BOOST_COMPONENTS thread filesystem program_options serialization unit_test_framework coroutine iostreams)
 SET(Boost_USE_STATIC_LIBS ON CACHE BOOL "Use static Boost libraries")
@@ -243,7 +237,6 @@ target_link_libraries( ntp_test fc )
 add_executable( task_cancel_test tests/all_tests.cpp tests/thread/task_cancel.cpp )
 target_link_libraries( task_cancel_test fc )
 
-
 add_executable( bloom_test tests/all_tests.cpp tests/bloom_test.cpp )
 target_link_libraries( bloom_test fc )
 
@@ -252,7 +245,6 @@ target_link_libraries( hmac_test fc )
 
 add_executable( blinding_test tests/blinding_test.cpp )
 target_link_libraries( blinding_test fc )
-
 
 add_executable( udt_server tests/udts.cpp )
 target_link_libraries( udt_server fc udt )
@@ -287,5 +279,3 @@ add_executable( all_tests tests/all_tests.cpp
                           tests/utf8_test.cpp
                           )
 target_link_libraries( all_tests fc )
-
-MESSAGE(STATUS "Finished fc module configuration...")
