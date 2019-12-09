@@ -25,10 +25,6 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 # Setup module path to make visible used CMake extensions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 
-INCLUDE(GetPrerequisites)
-INCLUDE( VersionMacros )
-INCLUDE( SetupTargetMacros )
-
 SET( CMAKE_DEBUG_POSTFIX _debug )
 SET( BUILD_SHARED_LIBS NO )
 
@@ -77,6 +73,9 @@ find_package(Boost 1.65.1 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 # reimplement fc::zlib_compress() to call the real zlib, and remove miniz.c from our
 # repository.
 find_package( ZLIB REQUIRED )
+
+add_subdirectory( vendor/websocketpp EXCLUDE_FROM_ALL )
+add_subdirectory( vendor/udt4 )
 
 set( fc_sources
      src/uint128.cpp
@@ -159,14 +158,7 @@ set( fc_sources
      )
 
 file( GLOB_RECURSE fc_headers ${CMAKE_CURRENT_SOURCE_DIR} *.hpp *.h )
-list(APPEND fc_sources ${fc_headers})
-
-add_subdirectory( vendor/websocketpp EXCLUDE_FROM_ALL )
-add_subdirectory( vendor/udt4 )
-
-set( UNITY_BUILD OFF )
-setup_library( fc SOURCES ${fc_sources} LIBRARY_TYPE STATIC )
-install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION include )
+add_library( fc STATIC ${fc_sources} ${fc_headers} )
 
 # begin readline stuff
 find_package(Curses)
