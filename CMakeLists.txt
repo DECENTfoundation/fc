@@ -98,7 +98,6 @@ set( fc_sources
      src/utf8.cpp
      src/io/iostream.cpp
      src/io/datastream.cpp
-     src/io/buffered_iostream.cpp
      src/io/fstream.cpp
      src/io/sstream.cpp
      src/io/json.cpp

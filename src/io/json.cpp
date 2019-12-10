@@ -1,6 +1,5 @@
 #include <fc/io/json.hpp>
 #include <fc/io/iostream.hpp>
-#include <fc/io/buffered_iostream.hpp>
 #include <fc/io/fstream.hpp>
 #include <fc/io/sstream.hpp>
 #include <fc/log/logger.hpp>
@@ -360,7 +359,7 @@ namespace fc
         return variant();
       if( str == "true" )
         return true;
-      if( str == "false" ) 
+      if( str == "false" )
         return false;
       else
       {
@@ -454,7 +453,7 @@ namespace fc
          FC_ASSERT( open_object < 100 && open_array < 100, "object graph too deep", ("object depth",open_object)("array depth", open_array) );
       }
    }
-   
+
    variant json::from_string( const std::string& utf8_str, parse_type ptype )
    { try {
       check_string_depth( utf8_str );
@@ -772,22 +771,6 @@ namespace fc
               return json_relaxed::variant_from_stream<boost::filesystem::ifstream, true>( bi );
           case relaxed_parser:
               return json_relaxed::variant_from_stream<boost::filesystem::ifstream, false>( bi );
-          default:
-              FC_ASSERT( false, "Unknown JSON parser type {ptype}", ("ptype", ptype) );
-      }
-   }
-   variant json::from_stream( buffered_istream& in, parse_type ptype )
-   {
-      switch( ptype )
-      {
-          case legacy_parser:
-              return variant_from_stream<fc::buffered_istream, legacy_parser>( in );
-          case legacy_parser_with_string_doubles:
-              return variant_from_stream<fc::buffered_istream, legacy_parser_with_string_doubles>( in );
-          case strict_parser:
-              return json_relaxed::variant_from_stream<buffered_istream, true>( in );
-          case relaxed_parser:
-              return json_relaxed::variant_from_stream<buffered_istream, false>( in );
           default:
               FC_ASSERT( false, "Unknown JSON parser type {ptype}", ("ptype", ptype) );
       }

@@ -6,7 +6,6 @@
 #include <fc/io/json.hpp>
 #include <fc/exception.hpp>
 #include <fc/io/iostream.hpp>
-#include <fc/io/buffered_iostream.hpp>
 #include <fc/io/fstream.hpp>
 #include <fc/io/sstream.hpp>
 #include <fc/log/logger.hpp>
@@ -113,7 +112,7 @@ namespace fc { namespace json_relaxed
                else
                {
                    in.get();
-                   
+
                    while( true )
                    {
                        char c = in.peek();
@@ -148,7 +147,7 @@ namespace fc { namespace json_relaxed
                    }
                }
            }
-           
+
            while( true )
            {
                char c = in.peek();
@@ -172,7 +171,7 @@ namespace fc { namespace json_relaxed
                    token << c;
                }
            }
-           
+
        } FC_RETHROW_EXCEPTIONS( warn, "while parsing token '${token}'",
                                           ("token", token.str() ) );
    }
@@ -231,7 +230,7 @@ namespace fc { namespace json_relaxed
 
        } FC_RETHROW_EXCEPTIONS( warn, "while parsing string" );
    }
-   
+
    struct CharValueTable
    {
        public:
@@ -277,25 +276,25 @@ namespace fc { namespace json_relaxed
                c2v[(unsigned char)'z'] = c2v[(unsigned char)'Z'] = 35;
                return;
            }
-           
+
            uint8_t operator[]( char index ) const { return c2v[index & 0xFF]; }
-       
+
        uint8_t c2v[0x100];
    };
-   
+
    template<uint8_t base>
    fc::variant parseInt( const std::string& token, size_t start )
    {
        static const CharValueTable ctbl;
        static const uint64_t INT64_MAX_PLUS_ONE = static_cast<uint64_t>(INT64_MAX) + 1;
-       
+
        size_t i = start, n = token.length();
        if( i >= n )
            FC_THROW_EXCEPTION( parse_error_exception, "zero-length integer" );
-       
+
        uint64_t val = 0;
        uint64_t maxb4mul = UINT64_MAX / base;
-       
+
        while(true)
        {
            char c = token[i];
@@ -344,7 +343,7 @@ namespace fc { namespace json_relaxed
    template<bool strict>
    fc::variant parseNumberOrStr( const std::string& token )
    { try {
-       //ilog( (token) ); 
+       //ilog( (token) );
        size_t i = 0, n = token.length();
        if( n == 0 )
            FC_THROW_EXCEPTION( parse_error_exception, "expected: non-empty token, got: empty token" );
@@ -652,12 +651,12 @@ namespace fc { namespace json_relaxed
            FC_THROW_EXCEPTION( parse_error_exception, "expected: number" );
        return result;
    } FC_RETHROW() }
-   
+
    template<typename T, bool strict>
    variant wordFromStream( T& in )
    {
        std::string token = tokenFromStream(in);
-       
+
        FC_ASSERT( token.length() > 0 );
 
        switch( token[0] )
@@ -683,7 +682,7 @@ namespace fc { namespace json_relaxed
 
        FC_THROW_EXCEPTION( parse_error_exception, "expected: null|true|false" );
    }
-   
+
    template<typename T, bool strict>
    variant variant_from_stream( T& in )
    {
