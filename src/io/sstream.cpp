@@ -16,7 +16,7 @@ namespace fc {
     { ss.exceptions( std::stringstream::badbit ); }
 
     impl(){ss.exceptions( std::stringstream::badbit ); }
-    
+
     std::stringstream ss;
   };
 
@@ -28,7 +28,6 @@ namespace fc {
   }
   stringstream::stringstream(){}
   stringstream::~stringstream(){}
-
 
   std::string stringstream::str(){
     return my->ss.str();//.c_str();//*reinterpret_cast<fc::string*>(&st);
@@ -42,7 +41,6 @@ namespace fc {
     my->ss.clear();
   }
 
-
   bool     stringstream::eof()const {
     return my->ss.eof();
   }
@@ -54,10 +52,6 @@ namespace fc {
     }
     return len;
   }
-  size_t stringstream::writesome( const std::shared_ptr<const char>& buf, size_t len, size_t offset )
-  {
-    return writesome(buf.get() + offset, len);
-  }
 
   size_t   stringstream::readsome( char* buf, size_t len ) {
     size_t r = static_cast<size_t>(my->ss.readsome(buf,len));
@@ -67,11 +61,6 @@ namespace fc {
     }
     return r;
   }
-  size_t   stringstream::readsome( const std::shared_ptr<char>& buf, size_t len, size_t offset )
-  {
-    return readsome(buf.get() + offset, len);
-  }
-
 
   void     stringstream::close(){ my->ss.flush(); };
   void     stringstream::flush(){ my->ss.flush(); };
@@ -101,13 +90,13 @@ namespace fc {
   }
   */
 
-  char     stringstream::peek() 
-  { 
-    char c = my->ss.peek(); 
+  char     stringstream::peek()
+  {
+    char c = my->ss.peek();
     if( my->ss.eof() )
     {
        FC_THROW_EXCEPTION( eof_exception, "stringstream" );
     }
     return c;
   }
-} 
+}

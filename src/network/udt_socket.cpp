@@ -21,8 +21,8 @@ namespace fc {
          FC_CAPTURE_AND_THROW( udt_exception, (error_message) );
       }
    }
-   
-   class udt_epoll_service 
+
+   class udt_epoll_service
    {
       public:
          udt_epoll_service()
@@ -47,8 +47,8 @@ namespace fc {
             std::set<UDTSOCKET> write_ready;
             while( !_epoll_loop.canceled() )
             {
-               UDT::epoll_wait( _epoll_id, 
-                                &read_ready, 
+               UDT::epoll_wait( _epoll_id,
+                                &read_ready,
                                 &write_ready, 100000000 );
 
                { synchronized(_read_promises_mutex)
@@ -78,12 +78,12 @@ namespace fc {
          } // poll_loop
 
 
-         void notify_read( int udt_socket_id, 
+         void notify_read( int udt_socket_id,
                            const promise<void>::ptr& p )
          {
             int events = UDT_EPOLL_IN | UDT_EPOLL_ERR;
-            if( 0 != UDT::epoll_add_usock( _epoll_id, 
-                                           udt_socket_id, 
+            if( 0 != UDT::epoll_add_usock( _epoll_id,
+                                           udt_socket_id,
                                            &events ) )
             {
                check_udt_errors();
@@ -98,8 +98,8 @@ namespace fc {
                             const promise<void>::ptr& p )
          {
             int events = UDT_EPOLL_OUT | UDT_EPOLL_ERR;
-            if( 0 != UDT::epoll_add_usock( _epoll_id, 
-                                  udt_socket_id, 
+            if( 0 != UDT::epoll_add_usock( _epoll_id,
+                                  udt_socket_id,
                                   &events ) )
             {
               check_udt_errors();
@@ -167,7 +167,7 @@ namespace fc {
 
    void udt_socket::bind( const fc::ip::endpoint& local_endpoint )
    { try {
-      if( !is_open() ) 
+      if( !is_open() )
          open();
 
       sockaddr_in local_addr;
@@ -181,7 +181,7 @@ namespace fc {
 
    void udt_socket::connect_to( const ip::endpoint& remote_endpoint )
    { try {
-      if( !is_open() ) 
+      if( !is_open() )
          open();
 
       sockaddr_in serv_addr;
@@ -189,7 +189,7 @@ namespace fc {
       serv_addr.sin_port = htons(remote_endpoint.port());
       serv_addr.sin_addr.s_addr = htonl(remote_endpoint.get_address());
 
-      // UDT doesn't allow now blocking connects... 
+      // UDT doesn't allow now blocking connects...
       fc::thread connect_thread("connect_thread");
       connect_thread.async( [&](){
          if( UDT::ERROR == UDT::connect(_udt_socket_id, (sockaddr*)&serv_addr, sizeof(serv_addr)) )
@@ -244,18 +244,13 @@ namespace fc {
       return bytes_read;
    } FC_CAPTURE_AND_RETHROW( (max) ) }
 
-   size_t udt_socket::readsome( const std::shared_ptr<char>& buf, size_t len, size_t offset )
-   {
-     return readsome(buf.get() + offset, len);
-   }
-
    bool     udt_socket::eof()const
    {
-      // TODO... 
+      // TODO...
       return false;
    }
    /// @}
-   
+
    /// ostream interface
    /// @{
    size_t   udt_socket::writesome( const char* buffer, size_t len )
@@ -279,11 +274,6 @@ namespace fc {
       return bytes_sent;
    } FC_CAPTURE_AND_RETHROW( (len) ) }
 
-   size_t udt_socket::writesome( const std::shared_ptr<const char>& buf, size_t len, size_t offset )
-   {
-     return writesome(buf.get() + offset, len);
-   }
-
    void     udt_socket::flush(){}
 
    void     udt_socket::close()
@@ -301,7 +291,7 @@ namespace fc {
       }
    } FC_RETHROW() }
    /// @}
-   
+
    void udt_socket::open()
    {
       _udt_socket_id = UDT::socket(AF_INET, SOCK_STREAM, 0);
@@ -313,7 +303,7 @@ namespace fc {
    {
       return _udt_socket_id != UDT::INVALID_SOCK;
    }
-     
+
 
 
 
@@ -384,7 +374,7 @@ namespace fc {
       my_addr.sin_port = htons(ep.port());
       my_addr.sin_addr.s_addr = INADDR_ANY;
       memset(&(my_addr.sin_zero), '\0', 8);
-      
+
       if( UDT::ERROR == UDT::bind(_udt_socket_id, (sockaddr*)&my_addr, sizeof(my_addr)) )
         check_udt_errors();
 

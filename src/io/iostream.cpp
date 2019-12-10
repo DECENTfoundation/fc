@@ -14,10 +14,10 @@
 #include <fc/log/logger.hpp>
 
 namespace fc {
-  
+
   struct cin_buffer {
     cin_buffer():eof(false),write_pos(0),read_pos(0),cinthread("cin"){
-    
+
       cinthread.async( [=](){read();}, "cin_buffer::read" );
     }
 
@@ -38,31 +38,31 @@ namespace fc {
 
         fc::promise<void>::ptr tmp;
         { // copy read_ready because it is accessed from multiple threads
-          fc::scoped_lock<boost::mutex> lock( read_ready_mutex ); 
-          tmp = read_ready; 
+          fc::scoped_lock<boost::mutex> lock( read_ready_mutex );
+          tmp = read_ready;
         }
 
-        if( tmp && !tmp->ready() ) { 
-          tmp->set_value(); 
+        if( tmp && !tmp->ready() ) {
+          tmp->set_value();
         }
         std::cin.read(&c,1);
       }
       eof = true;
       fc::promise<void>::ptr tmp;
       {  // copy read_ready because it is accessed from multiple threads
-        fc::scoped_lock<boost::mutex> lock( read_ready_mutex ); 
+        fc::scoped_lock<boost::mutex> lock( read_ready_mutex );
         tmp = read_ready;
       }
-      if( tmp && !tmp->ready() ) { 
-        tmp->set_exception( exception_ptr( new eof_exception() )); 
+      if( tmp && !tmp->ready() ) {
+        tmp->set_exception( exception_ptr( new eof_exception() ));
       }
     }
     boost::mutex              read_ready_mutex;
     fc::promise<void>::ptr read_ready;
     fc::promise<void>::ptr write_ready;
-    
+
     volatile bool     eof;
-    
+
     volatile uint64_t write_pos;
              char     buf[0xfffff+1]; // 1 mb buffer
     volatile uint64_t read_pos;
@@ -78,7 +78,7 @@ namespace fc {
   fc::thread& cin_thread() { static fc::thread i("cin"); return i; }
 
   fc::istream& getline( fc::istream& i, std::string& s, char delim  ) {
-    fc::stringstream ss; 
+    fc::stringstream ss;
     char c;
     i.read( &c, 1 );
     while( true ) {
@@ -92,12 +92,10 @@ namespace fc {
 
 
   size_t cout_t::writesome( const char* buf, size_t len ) { std::cout.write(buf,len); return len; }
-  size_t cout_t::writesome( const std::shared_ptr<const char>& buf, size_t len, size_t offset ) { return writesome(buf.get() + offset, len); }
   void   cout_t::close() {}
   void   cout_t::flush() { std::cout.flush(); }
 
   size_t cerr_t::writesome( const char* buf, size_t len ) { std::cerr.write(buf,len); return len; }
-  size_t cerr_t::writesome( const std::shared_ptr<const char>& buf, size_t len, size_t offset ) { return writesome(buf.get() + offset, len); }
   void   cerr_t::close() {};
   void   cerr_t::flush() { std::cerr.flush(); }
 
@@ -116,7 +114,7 @@ namespace fc {
     }
 
     while( (avail>0) && (len>0) ) {
-      *buf = b.buf[b.read_pos&0xfffff]; 
+      *buf = b.buf[b.read_pos&0xfffff];
       ++b.read_pos;
       ++buf;
       --avail;
@@ -125,7 +123,6 @@ namespace fc {
     }
     return size_t(u);
   }
-  size_t cin_t::readsome( const std::shared_ptr<char>& buf, size_t len, size_t offset ) { return readsome(buf.get() + offset, len); }
 
   cin_t::~cin_t() {
     /*
@@ -138,11 +135,11 @@ namespace fc {
   istream& cin_t::read( char* buf, size_t len ) {
     cin_buffer& b = get_cin_buffer();
     do {
-        while( !b.eof &&  (b.write_pos - b.read_pos)==0 ){ 
-           // wait for more... 
+        while( !b.eof &&  (b.write_pos - b.read_pos)==0 ){
+           // wait for more...
            fc::promise<void>::ptr rr( new fc::promise<void>("cin_buffer::read_ready") );
            {  // copy read_ready because it is accessed from multiple threads
-             fc::scoped_lock<boost::mutex> lock( b.read_ready_mutex ); 
+             fc::scoped_lock<boost::mutex> lock( b.read_ready_mutex );
              b.read_ready = rr;
            }
            if( b.write_pos - b.read_pos == 0 ) {
@@ -150,7 +147,7 @@ namespace fc {
            }
          //  b.read_ready.reset();
            {  // copy read_ready because it is accessed from multiple threads
-             fc::scoped_lock<boost::mutex> lock( b.read_ready_mutex ); 
+             fc::scoped_lock<boost::mutex> lock( b.read_ready_mutex );
              b.read_ready.reset();
            }
         }
@@ -160,8 +157,8 @@ namespace fc {
         len -= r;
 
         auto tmp = b.write_ready; // copy write_writey because it is accessed from multiple thwrites
-        if( tmp && !tmp->ready() ) { 
-          tmp->set_value(); 
+        if( tmp && !tmp->ready() ) {
+          tmp->set_value();
         }
     } while( len > 0 && !b.eof );
     if( b.eof ) FC_THROW_EXCEPTION( eof_exception, "cin" );
@@ -170,7 +167,7 @@ namespace fc {
 
   bool cin_t::eof()const { return get_cin_buffer().eof; }
 
-  
+
   std::shared_ptr<cin_t>  cin_ptr = std::make_shared<cin_t>();
   std::shared_ptr<cout_t> cout_ptr = std::make_shared<cout_t>();
   std::shared_ptr<cerr_t> cerr_ptr = std::make_shared<cerr_t>();
@@ -326,7 +323,6 @@ namespace fc {
      return o;
   }
 
-
   char istream::get()
   {
     char tmp;
@@ -342,28 +338,12 @@ namespace fc {
       return *this;
   }
 
-  istream& istream::read( const std::shared_ptr<char>& buf, size_t len, size_t offset )
-  {
-    size_t bytes_read = 0;
-    while( bytes_read < len )
-      bytes_read += readsome(buf, len - bytes_read, bytes_read + offset);
-    return *this;
-  }
-
   ostream& ostream::write( const char* buf, size_t len )
   {
       const char* pos = buf;
       while( size_t(pos-buf) < len )
          pos += writesome( pos, len - (pos - buf) );
       return *this;
-  }
-
-  ostream& ostream::write( const std::shared_ptr<const char>& buf, size_t len, size_t offset )
-  {
-    size_t bytes_written = 0;
-    while( bytes_written < len )
-      bytes_written += writesome(buf, len - bytes_written, bytes_written + offset);
-    return *this;
   }
 
 } // namespace fc

@@ -59,17 +59,17 @@ namespace fc {
       impl(const std::string& cert_file)
         : _ctx(detail::get_client_context(cert_file)),
           _sock(fc::asio::default_io_service(), _ctx),
-          _need_ssl(!cert_file.empty()),
+          _uses_ssl(!cert_file.empty()),
           _io_hooks(this)
       {
-        if (_need_ssl)
+        if (_uses_ssl)
           _sock.set_verify_mode(boost::asio::ssl::verify_peer);
       }
 
       impl(const std::string& cert_file, const std::string& key_file, const std::string& key_password)
         : _ctx(detail::get_server_context(cert_file, key_file, key_password)),
           _sock(fc::asio::default_io_service(), _ctx),
-          _need_ssl(!cert_file.empty()),
+          _uses_ssl(!cert_file.empty()),
           _io_hooks(this)
       {
       }
@@ -106,19 +106,9 @@ namespace fc {
         return (_read_in_progress = fc::asio::read_some(socket, buffer, length)).wait();
       }
 
-      virtual size_t readsome(boost::asio::ip::tcp::socket& socket, const std::shared_ptr<char>& buffer, size_t length, size_t offset) override
-      {
-        return (_read_in_progress = fc::asio::read_some(socket, buffer, length, offset)).wait();
-      }
-
       virtual size_t writesome(boost::asio::ip::tcp::socket& socket, const char* buffer, size_t length) override
       {
         return (_write_in_progress = fc::asio::write_some(socket, buffer, length)).wait();
-      }
-
-      virtual size_t writesome(boost::asio::ip::tcp::socket& socket, const std::shared_ptr<const char>& buffer, size_t length, size_t offset) override
-      {
-        return (_write_in_progress = fc::asio::write_some(socket, buffer, length, offset)).wait();
       }
 
       virtual size_t readsome(boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket, char* buffer, size_t length) override
@@ -126,38 +116,18 @@ namespace fc {
         return (_read_in_progress = fc::asio::read_some(socket, buffer, length)).wait();
       }
 
-      virtual size_t readsome(boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<char>& buffer, size_t length, size_t offset) override
-      {
-        return (_read_in_progress = fc::asio::read_some(socket, buffer, length, offset)).wait();
-      }
-
       virtual size_t writesome(boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket, const char* buffer, size_t length) override
       {
         return (_write_in_progress = fc::asio::write_some(socket, buffer, length)).wait();
-      }
-
-      virtual size_t writesome(boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<const char>& buffer, size_t length, size_t offset) override
-      {
-        return (_write_in_progress = fc::asio::write_some(socket, buffer, length, offset)).wait();
       }
 
       fc::future<size_t> _write_in_progress;
       fc::future<size_t> _read_in_progress;
       boost::asio::ssl::context _ctx;
       boost::asio::ssl::stream<boost::asio::ip::tcp::socket> _sock;
-      bool _need_ssl;
+      bool _uses_ssl;
       tcp_socket_io_hooks* _io_hooks;
   };
-
-  void tcp_socket::open()
-  {
-    my->_sock.next_layer().open(boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 0).protocol());
-  }
-
-  bool tcp_socket::is_open()const
-  {
-    return my->_sock.next_layer().is_open();
-  }
 
   tcp_socket::tcp_socket(const std::string& cert_file)
     : my(new impl(cert_file))
@@ -171,6 +141,21 @@ namespace fc {
 
   tcp_socket::~tcp_socket()
   {
+  }
+
+  void tcp_socket::open()
+  {
+    my->_sock.next_layer().open(boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 0).protocol());
+  }
+
+  bool tcp_socket::is_open() const
+  {
+    return my->_sock.next_layer().is_open();
+  }
+
+  bool tcp_socket::uses_ssl() const
+  {
+    return my->_uses_ssl;
   }
 
   void tcp_socket::flush()
@@ -192,22 +177,12 @@ namespace fc {
 
   size_t tcp_socket::readsome( char* buf, size_t len )
   {
-    return my->_need_ssl ? my->_io_hooks->readsome(my->_sock, buf, len) : my->_io_hooks->readsome(my->_sock.next_layer(), buf, len);
-  }
-
-  size_t tcp_socket::readsome( const std::shared_ptr<char>& buf, size_t len, size_t offset )
-  {
-    return my->_need_ssl ? my->_io_hooks->readsome(my->_sock, buf, len, offset) : my->_io_hooks->readsome(my->_sock.next_layer(), buf, len, offset);
+    return my->_uses_ssl ? my->_io_hooks->readsome(my->_sock, buf, len) : my->_io_hooks->readsome(my->_sock.next_layer(), buf, len);
   }
 
   size_t tcp_socket::writesome(const char* buf, size_t len)
   {
-    return my->_need_ssl ? my->_io_hooks->writesome(my->_sock, buf, len) : my->_io_hooks->writesome(my->_sock.next_layer(), buf, len);
-  }
-
-  size_t tcp_socket::writesome(const std::shared_ptr<const char>& buf, size_t len, size_t offset)
-  {
-    return my->_need_ssl ? my->_io_hooks->writesome(my->_sock, buf, len, offset) : my->_io_hooks->writesome(my->_sock.next_layer(), buf, len, offset);
+    return my->_uses_ssl ? my->_io_hooks->writesome(my->_sock, buf, len) : my->_io_hooks->writesome(my->_sock.next_layer(), buf, len);
   }
 
   fc::ip::endpoint tcp_socket::remote_endpoint()const
@@ -233,7 +208,7 @@ namespace fc {
   void tcp_socket::connect_to( const fc::ip::endpoint& remote_endpoint )
   {
     fc::asio::tcp::connect(my->_sock.next_layer(), boost::asio::ip::tcp::endpoint( boost::asio::ip::address_v4(remote_endpoint.get_address()), remote_endpoint.port() ) );
-    if (my->_need_ssl)
+    if (my->_uses_ssl)
     {
       //my->_sock.set_verify_callback(boost::asio::ssl::rfc2818_verification(remote_endpoint.get_address()));
       fc::asio::ssl::handshake(my->_sock, boost::asio::ssl::stream_base::client);
@@ -368,10 +343,8 @@ namespace fc {
     try
     {
       fc::asio::tcp::accept(my->_accept, s.my->_sock.next_layer());
-      if (s.my->_need_ssl)
-      {
+      if( s.my->_uses_ssl )
         fc::asio::ssl::handshake(s.my->_sock, boost::asio::ssl::stream_base::server);
-      }
     } FC_RETHROW_EXCEPTIONS( warn, "Unable to accept connection on socket." );
   }
 

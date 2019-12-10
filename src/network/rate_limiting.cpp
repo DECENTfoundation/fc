@@ -52,29 +52,12 @@ namespace fc
         socket(socket),
         raw_buffer(buffer)
       {
-        assert(false);
       }
-
-      rate_limited_tcp_write_operation(SocketType& socket,
-                                       const std::shared_ptr<const char>& buffer,
-                                       size_t length,
-                                       size_t offset,
-                                       promise<size_t>::ptr completion_promise) :
-        rate_limited_operation(length, offset, std::move(completion_promise)),
-        socket(socket),
-        raw_buffer(nullptr),
-        shared_buffer(buffer)
-      {}
 
       virtual void perform_operation() override
       {
-        if (raw_buffer)
           asio::async_write_some(socket,
                                  raw_buffer, permitted_length,
-                                 completion_promise);
-        else
-          asio::async_write_some(socket,
-                                 shared_buffer, permitted_length, offset,
                                  completion_promise);
       }
     };
@@ -97,28 +80,11 @@ namespace fc
         raw_buffer(buffer)
       {}
 
-      rate_limited_tcp_read_operation(SocketType& socket,
-                                      const std::shared_ptr<char>& buffer,
-                                      size_t length,
-                                      size_t offset,
-                                      promise<size_t>::ptr completion_promise) :
-        rate_limited_operation(length, offset, std::move(completion_promise)),
-        socket(socket),
-        raw_buffer(nullptr),
-        shared_buffer(buffer)
-      {}
-
       virtual void perform_operation() override
       {
-        if (raw_buffer)
           asio::async_read_some(socket,
                                 raw_buffer, permitted_length,
                                 completion_promise);
-        else
-          asio::async_read_some(socket,
-                                shared_buffer, permitted_length, offset,
-                                completion_promise);
-
       }
     };
 
@@ -232,19 +198,9 @@ namespace fc
         return readsome_impl(socket, buffer, length, 0);
       }
 
-      virtual size_t readsome(boost::asio::ip::tcp::socket& socket, const std::shared_ptr<char>& buffer, size_t length, size_t offset) override
-      {
-        return readsome_impl(socket, buffer, length, offset);
-      }
-
       virtual size_t writesome(boost::asio::ip::tcp::socket& socket, const char* buffer, size_t length) override
       {
         return writesome_impl(socket, buffer, length, 0);
-      }
-
-      virtual size_t writesome(boost::asio::ip::tcp::socket& socket, const std::shared_ptr<const char>& buffer, size_t length, size_t offset) override
-      {
-        return writesome_impl(socket, buffer, length, offset);
       }
 
       virtual size_t readsome(boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket, char* buffer, size_t length) override
@@ -252,19 +208,9 @@ namespace fc
         return readsome_impl(socket, buffer, length, 0);
       }
 
-      virtual size_t readsome(boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<char>& buffer, size_t length, size_t offset) override
-      {
-        return readsome_impl(socket, buffer, length, offset);
-      }
-
       virtual size_t writesome(boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket, const char* buffer, size_t length) override
       {
         return writesome_impl(socket, buffer, length, 0);
-      }
-
-      virtual size_t writesome(boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& socket, const std::shared_ptr<const char>& buffer, size_t length, size_t offset) override
-      {
-        return writesome_impl(socket, buffer, length, offset);
       }
 
       template<typename SocketType, typename BufferType>

@@ -114,15 +114,6 @@ namespace asio {
       return completion_promise;//->wait();
     }
 
-    template<typename AsyncReadStream>
-    future<size_t> read_some(AsyncReadStream& s, const std::shared_ptr<char>& buffer, size_t length, size_t offset)
-    {
-      promise<size_t>::ptr completion_promise(new promise<size_t>("fc::asio::async_read_some"));
-      s.async_read_some(boost::asio::buffer(buffer.get() + offset, length),
-                        detail::read_write_handler_with_buffer(completion_promise, buffer));
-      return completion_promise;//->wait();
-    }
-
     template<typename AsyncReadStream, typename MutableBufferSequence>
     void async_read_some(AsyncReadStream& s, const MutableBufferSequence& buf, promise<size_t>::ptr completion_promise)
     {
@@ -134,13 +125,6 @@ namespace asio {
                          size_t length, promise<size_t>::ptr completion_promise)
     {
       s.async_read_some(boost::asio::buffer(buffer, length), detail::read_write_handler(completion_promise));
-    }
-
-    template<typename AsyncReadStream>
-    void async_read_some(AsyncReadStream& s, const std::shared_ptr<char>& buffer,
-                         size_t length, size_t offset, promise<size_t>::ptr completion_promise)
-    {
-      s.async_read_some(boost::asio::buffer(buffer.get() + offset, length), detail::read_write_handler_with_buffer(completion_promise, buffer));
     }
 
     template<typename AsyncReadStream>
@@ -182,14 +166,6 @@ namespace asio {
         return p; //->wait();
     }
 
-    template<typename AsyncWriteStream>
-    future<size_t> write_some( AsyncWriteStream& s, const std::shared_ptr<const char>& buffer,
-                               size_t length, size_t offset ) {
-        promise<size_t>::ptr p(new promise<size_t>("fc::asio::write_some"));
-        s.async_write_some( boost::asio::buffer(buffer.get() + offset, length), detail::read_write_handler_with_buffer(p, buffer));
-        return p; //->wait();
-    }
-
     /**
     *  @pre s.non_blocking() == true
     *  @brief wraps boost::asio::async_write_some
@@ -205,13 +181,6 @@ namespace asio {
                           size_t length, promise<size_t>::ptr completion_promise) {
       s.async_write_some(boost::asio::buffer(buffer, length),
                          detail::read_write_handler(completion_promise));
-    }
-
-    template<typename AsyncWriteStream>
-    void async_write_some(AsyncWriteStream& s, const std::shared_ptr<const char>& buffer,
-                          size_t length, size_t offset, promise<size_t>::ptr completion_promise) {
-      s.async_write_some(boost::asio::buffer(buffer.get() + offset, length),
-                         detail::read_write_handler_with_buffer(completion_promise, buffer));
     }
 
     namespace tcp {
@@ -275,13 +244,9 @@ namespace asio {
           istream( std::shared_ptr<AsyncReadStream> str )
           :_stream( std::move(str) ){}
 
-          virtual size_t readsome( char* buf, size_t len )
+          virtual size_t readsome( char* buf, size_t len ) override
           {
              return fc::asio::read_some(*_stream, buf, len).wait();
-          }
-          virtual size_t readsome( const std::shared_ptr<char>& buf, size_t len, size_t offset )
-          {
-             return fc::asio::read_some(*_stream, buf, len, offset).wait();
           }
 
        private:
@@ -295,21 +260,15 @@ namespace asio {
           ostream( std::shared_ptr<AsyncWriteStream> str )
           :_stream( std::move(str) ){}
 
-          virtual size_t writesome( const char* buf, size_t len )
+          virtual size_t writesome( const char* buf, size_t len ) override
           {
              return fc::asio::write_some(*_stream, buf, len).wait();
           }
 
-          virtual size_t     writesome( const std::shared_ptr<const char>& buf, size_t len, size_t offset )
-          {
-             return fc::asio::write_some(*_stream, buf, len, offset).wait();
-          }
-
-          virtual void       close(){ _stream->close(); }
-          virtual void       flush() {}
+          virtual void       close() override { _stream->close(); }
+          virtual void       flush() override {}
        private:
           std::shared_ptr<AsyncWriteStream> _stream;
     };
-
 
 } } // namespace fc::asio

@@ -30,21 +30,20 @@ namespace fc {
 
       /// istream interface
       /// @{
-      virtual size_t   readsome( char* buffer, size_t max );
-      virtual size_t   readsome(const std::shared_ptr<char>& buffer, size_t max, size_t offset);
+      virtual size_t   readsome( char* buffer, size_t max ) override;
       virtual bool     eof()const;
       /// @}
 
       /// ostream interface
       /// @{
-      virtual size_t   writesome( const char* buffer, size_t len );
-      virtual size_t   writesome(const std::shared_ptr<const char>& buffer, size_t len, size_t offset);
-      virtual void     flush();
-      virtual void     close();
+      virtual size_t   writesome( const char* buffer, size_t len ) override;
+      virtual void     flush() override;
+      virtual void     close() override;
       /// @}
 
       void open();
-      bool   is_open()const;
+      bool is_open() const;
+      bool uses_ssl() const;
 
     private:
       friend class tcp_server;

@@ -18,11 +18,10 @@ namespace fc {
       ~ofstream();
 
       void open(const boost::filesystem::path& file, std::ios_base::openmode mode = std::ios::binary);
-      size_t writesome( const char* buf, size_t len );
-      size_t writesome(const std::shared_ptr<const char>& buffer, size_t len, size_t offset);
+      size_t writesome( const char* buf, size_t len ) override;
       void   put( char c );
-      void   close();
-      void   flush();
+      void   close() override;
+      void   flush() override;
 
     private:
       class impl;
@@ -38,8 +37,7 @@ namespace fc {
       ~ifstream();
 
       void      open(const boost::filesystem::path& file, std::ios_base::openmode mode = std::ios::binary);
-      size_t    readsome( char* buf, size_t len );
-      size_t    readsome(const std::shared_ptr<char>& buffer, size_t max, size_t offset);
+      size_t    readsome( char* buf, size_t len ) override;
       ifstream& read( char* buf, size_t len );
       ifstream& seekg( size_t p, seekdir d = beg );
       using istream::get;

@@ -1,30 +1,26 @@
 #pragma once
 #include <fc/io/iostream.hpp>
 
-namespace fc 
+namespace fc
 {
-
-  class cout_t : virtual public ostream { 
+  class cout_t : virtual public ostream {
      public:
-      virtual size_t writesome( const char* buf, size_t len );
-      virtual size_t writesome( const std::shared_ptr<const char>& buf, size_t len, size_t offset );
-      virtual void   close();
-      virtual void   flush();
+      virtual size_t writesome( const char* buf, size_t len ) override;
+      virtual void   close() override;
+      virtual void   flush() override;
   };
 
-  class cerr_t : virtual public ostream { 
+  class cerr_t : virtual public ostream {
      public:
-      virtual size_t writesome( const char* buf, size_t len );
-      virtual size_t writesome( const std::shared_ptr<const char>& buf, size_t len, size_t offset );
-      virtual void   close();
-      virtual void   flush();
+      virtual size_t writesome( const char* buf, size_t len ) override;
+      virtual void   close() override;
+      virtual void   flush() override;
   };
 
-  class cin_t : virtual public istream { 
+  class cin_t : virtual public istream {
      public:
       ~cin_t();
-      virtual size_t readsome( char* buf, size_t len );
-      virtual size_t readsome( const std::shared_ptr<char>& buf, size_t len, size_t offset );
+      virtual size_t readsome( char* buf, size_t len ) override;
       virtual istream& read( char* buf, size_t len );
       virtual bool eof()const;
   };
