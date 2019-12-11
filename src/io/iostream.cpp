@@ -4,16 +4,25 @@
 #include <iostream>
 #include <algorithm>
 #include <string.h>
-//#include <fc/log.hpp>
 #include <fc/thread/mutex.hpp>
 #include <fc/thread/scoped_lock.hpp>
 #include <string>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/mutex.hpp>
-#include <fc/io/stdio.hpp>
 #include <fc/log/logger.hpp>
 
 namespace fc {
+
+  class cin_t : virtual public istream {
+     public:
+      ~cin_t();
+      virtual size_t readsome( char* buf, size_t len ) override;
+      virtual istream& read( char* buf, size_t len );
+      virtual bool eof()const;
+  };
+
+  std::shared_ptr<cin_t>  cin_ptr = std::make_shared<cin_t>();
+  cin_t& cin  = *cin_ptr;
 
   struct cin_buffer {
     cin_buffer():eof(false),write_pos(0),read_pos(0),cinthread("cin"){
@@ -74,31 +83,19 @@ namespace fc {
     return *b;
   }
 
-
   fc::thread& cin_thread() { static fc::thread i("cin"); return i; }
 
-  fc::istream& getline( fc::istream& i, std::string& s, char delim  ) {
+  void getline( std::string& s, char delim  ) {
     fc::stringstream ss;
     char c;
-    i.read( &c, 1 );
+    cin.read( &c, 1 );
     while( true ) {
-      if( c == delim ) { s = ss.str();  return i; }
+      if( c == delim ) { s = ss.str(); return; }
       if( c != '\r' ) ss.write(&c,1);
-      i.read( &c, 1 );
+      cin.read( &c, 1 );
     }
     s = ss.str();
-    return i;
   }
-
-
-  size_t cout_t::writesome( const char* buf, size_t len ) { std::cout.write(buf,len); return len; }
-  void   cout_t::close() {}
-  void   cout_t::flush() { std::cout.flush(); }
-
-  size_t cerr_t::writesome( const char* buf, size_t len ) { std::cerr.write(buf,len); return len; }
-  void   cerr_t::close() {};
-  void   cerr_t::flush() { std::cerr.flush(); }
-
 
   size_t cin_t::readsome( char* buf, size_t len ) {
     cin_buffer& b = get_cin_buffer();
@@ -166,15 +163,6 @@ namespace fc {
   }
 
   bool cin_t::eof()const { return get_cin_buffer().eof; }
-
-
-  std::shared_ptr<cin_t>  cin_ptr = std::make_shared<cin_t>();
-  std::shared_ptr<cout_t> cout_ptr = std::make_shared<cout_t>();
-  std::shared_ptr<cerr_t> cerr_ptr = std::make_shared<cerr_t>();
-  cout_t& cout = *cout_ptr;
-  cerr_t& cerr = *cerr_ptr;
-  cin_t&  cin  = *cin_ptr;
-
 
   ostream& operator<<( ostream& o, const char v )
   {

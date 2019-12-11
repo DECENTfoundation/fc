@@ -1,6 +1,7 @@
 #include <fc/rpc/cli.hpp>
 #include <fc/thread/thread.hpp>
 #include <fc/io/console.hpp>
+#include <fc/io/iostream.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -180,7 +181,7 @@ char* my_generator(const char* text, int state)
 
    auto& cmd = cli_commands();
 
-   while( list_index < cmd.size() ) 
+   while( list_index < cmd.size() )
    {
       name = cmd[list_index].c_str();
       list_index++;
@@ -215,7 +216,7 @@ void cli::get_line( const std::string& prompt, std::string& line, bool allow_his
    // getting file descriptor for C++ streams is near impossible
    // so we just assume it's the same as the C stream...
 #ifdef HAVE_READLINE
-#ifndef WIN32   
+#ifndef WIN32
    if( isatty( fileno( stdin ) ) )
 #else
    // it's implied by
@@ -247,7 +248,7 @@ void cli::get_line( const std::string& prompt, std::string& line, bool allow_his
    {
       std::cout << prompt;
       // sync_call( cin_thread, [&](){ std::getline( *input_stream, line ); }, "getline");
-      fc::getline(fc::cin, line);
+      fc::getline(line);
    }
 }
 

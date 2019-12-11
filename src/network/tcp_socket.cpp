@@ -3,7 +3,6 @@
 #include <fc/network/tcp_socket_io_hooks.hpp>
 #include <fc/asio.hpp>
 #include <fc/log/logger.hpp>
-#include <fc/io/stdio.hpp>
 
 #if defined _WIN32 || defined WIN32 || defined OS_WIN64 || defined _WIN64 || defined WIN64 || defined WINNT
 # include <MSTcpIP.h>

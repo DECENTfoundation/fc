@@ -1,5 +1,4 @@
 #pragma once
-#include <fc/io/stdio.hpp>
 #include <fc/io/json.hpp>
 #include <fc/io/sstream.hpp>
 #include <fc/rpc/api_connection.hpp>

@@ -57,7 +57,7 @@ namespace fc {
 
   class iostream : public virtual ostream, public virtual istream {};
 
-  fc::istream& getline( fc::istream&, std::string&, char delim = '\n' );
+  void getline( std::string& s, char delim = '\n' );
 
   template<size_t N>
   ostream& operator<<( ostream& o, char (&array)[N] )

@@ -1,5 +1,5 @@
 #include <fc/io/console.hpp>
-#include <fc/io/stdio.hpp>
+#include <fc/io/iostream.hpp>
 #include <fc/thread/thread.hpp>
 
 #ifndef _WIN32
@@ -67,7 +67,7 @@ void get_line_password( const std::string& prompt, std::string& line, bool allow
    {
       std::cout << prompt;
       // sync_call( cin_thread, [&](){ std::getline( *input_stream, line ); }, "getline");
-      fc::getline(fc::cin, line);
+      fc::getline(line);
    }
 }
 
@@ -114,8 +114,7 @@ std::string get_password_hidden(const std::string& current_line)
    bytesWritten = 0;
 
    std::string redudant_line;
-   fc::getline(fc::cin, redudant_line);
-
+   fc::getline(redudant_line);
 #endif
 
    try
@@ -156,7 +155,7 @@ std::string get_password_hidden(const std::string& current_line)
    ir[1].Event.KeyEvent.wRepeatCount = 1;
 
    res = WriteConsoleInput(GetStdHandle(STD_INPUT_HANDLE), ir, 2, &bytesWritten);
-   fc::getline(fc::cin, redudant_line);
+   fc::getline(redudant_line);
 #endif
    return line;
 }

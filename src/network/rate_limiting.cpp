@@ -7,7 +7,6 @@
 #include <fc/fwd_impl.hpp>
 #include <fc/asio.hpp>
 #include <fc/log/logger.hpp>
-#include <fc/io/stdio.hpp>
 #include <fc/thread/thread.hpp>
 
 namespace fc

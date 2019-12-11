@@ -3,12 +3,11 @@
 #include <fc/io/json.hpp>
 #include <fc/filesystem.hpp>
 #include <unordered_map>
-#include <string>
+#include <iostream>
 #include <fc/log/console_appender.hpp>
 #include <fc/log/file_appender.hpp>
 #include <fc/reflect/variant.hpp>
 #include <fc/exception.hpp>
-#include <fc/io/stdio.hpp>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -47,12 +46,12 @@ namespace fc {
          }
          lgr.set_name(cfg.loggers[i].name);
          if( cfg.loggers[i].level.valid() ) lgr.set_log_level( *cfg.loggers[i].level );
-         
+
 
          for( auto a = cfg.loggers[i].appenders.begin(); a != cfg.loggers[i].appenders.end(); ++a ){
             auto ap = appender::get( *a );
-            if( ap )  
-               lgr.add_appender(ap); 
+            if( ap )
+               lgr.add_appender(ap);
             else {
                if((*a).size())
                   FC_THROW_EXCEPTION(parse_error_exception, "Bad appender name: ${ba}\r\nin settings for logger : ${l}",("ba", *a)("l", cfg.loggers[i].name));
@@ -64,7 +63,7 @@ namespace fc {
       return reg_console_appender || reg_file_appender;
       } catch ( exception& e )
       {
-         fc::cerr<<e.to_detail_string()<<"\n";
+         std::cerr << e.to_detail_string() << std::endl;
       }
       return false;
    }
@@ -78,19 +77,19 @@ namespace fc {
                c.push_back(  mutable_variant_object( "level","warn")("color", "brown") );
                c.push_back(  mutable_variant_object( "level","error")("color", "red") );
 
-      cfg.appenders.push_back( 
-             appender_config( "stderr", "console", 
+      cfg.appenders.push_back(
+             appender_config( "stderr", "console",
                  mutable_variant_object()
                      ( "stream","std_error")
-                     ( "level_colors", c ) 
-                 ) ); 
-      cfg.appenders.push_back( 
-             appender_config( "stdout", "console", 
+                     ( "level_colors", c )
+                 ) );
+      cfg.appenders.push_back(
+             appender_config( "stdout", "console",
                  mutable_variant_object()
-                     ( "stream","std_out") 
-                     ( "level_colors", c ) 
-                 ) ); 
-      
+                     ( "stream","std_out")
+                     ( "level_colors", c )
+                 ) );
+
       logger_config dlc;
       dlc.name = "default";
       dlc.level = log_level::debug;

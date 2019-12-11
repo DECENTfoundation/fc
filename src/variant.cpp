@@ -3,7 +3,6 @@
 #include <fc/exception.hpp>
 #include <fc/io/sstream.hpp>
 #include <fc/io/json.hpp>
-#include <fc/io/stdio.hpp>
 #include <string.h>
 #include <fc/crypto/base64.hpp>
 #include <fc/crypto/hex.hpp>
@@ -161,9 +160,9 @@ variant::variant( variants arr )
 }
 
 
-typedef const variant_object* const_variant_object_ptr; 
-typedef const variants* const_variants_ptr; 
-typedef const blob*   const_blob_ptr; 
+typedef const variant_object* const_variant_object_ptr;
+typedef const variants* const_variants_ptr;
+typedef const blob*   const_blob_ptr;
 typedef const std::string* const_string_ptr;
 
 void variant::clear()
@@ -190,17 +189,17 @@ variant::variant( const variant& v )
    switch( v.get_type() )
    {
        case object_type:
-          *reinterpret_cast<variant_object**>(this)  = 
+          *reinterpret_cast<variant_object**>(this)  =
              new variant_object(**reinterpret_cast<const const_variant_object_ptr*>(&v));
           set_variant_type( this, object_type );
           return;
        case array_type:
-          *reinterpret_cast<variants**>(this)  = 
+          *reinterpret_cast<variants**>(this)  =
              new variants(**reinterpret_cast<const const_variants_ptr*>(&v));
           set_variant_type( this,  array_type );
           return;
        case string_type:
-          *reinterpret_cast<std::string**>(this)  = 
+          *reinterpret_cast<std::string**>(this)  =
              new std::string(**reinterpret_cast<const const_string_ptr*>(&v) );
           set_variant_type( this, string_type );
           return;
@@ -225,24 +224,24 @@ variant& variant::operator=( variant&& v )
    if( this == &v ) return *this;
    clear();
    memcpy( (char*)this, (char*)&v, sizeof(v) );
-   set_variant_type( &v, null_type ); 
+   set_variant_type( &v, null_type );
    return *this;
 }
 
 variant& variant::operator=( const variant& v )
 {
-   if( this == &v ) 
+   if( this == &v )
       return *this;
 
    clear();
    switch( v.get_type() )
    {
       case object_type:
-         *reinterpret_cast<variant_object**>(this)  = 
+         *reinterpret_cast<variant_object**>(this)  =
             new variant_object((**reinterpret_cast<const const_variant_object_ptr*>(&v)));
          break;
       case array_type:
-         *reinterpret_cast<variants**>(this)  = 
+         *reinterpret_cast<variants**>(this)  =
             new variants((**reinterpret_cast<const const_variants_ptr*>(&v)));
          break;
       case string_type:
@@ -367,7 +366,7 @@ int64_t variant::as_int64()const
    switch( get_type() )
    {
       case string_type:
-          return to_int64(**reinterpret_cast<const const_string_ptr*>(this)); 
+          return to_int64(**reinterpret_cast<const const_string_ptr*>(this));
       case double_type:
           return int64_t(*reinterpret_cast<const double*>(this));
       case int64_type:
@@ -388,7 +387,7 @@ uint64_t variant::as_uint64()const
    switch( get_type() )
    {
       case string_type:
-          return to_uint64(**reinterpret_cast<const const_string_ptr*>(this)); 
+          return to_uint64(**reinterpret_cast<const const_string_ptr*>(this));
       case double_type:
           return static_cast<uint64_t>(*reinterpret_cast<const double*>(this));
       case int64_type:
@@ -410,7 +409,7 @@ double  variant::as_double()const
    switch( get_type() )
    {
       case string_type:
-          return to_double(**reinterpret_cast<const const_string_ptr*>(this)); 
+          return to_double(**reinterpret_cast<const const_string_ptr*>(this));
       case double_type:
           return *reinterpret_cast<const double*>(this);
       case int64_type:
@@ -459,13 +458,13 @@ std::string variant::as_string()const
    switch( get_type() )
    {
       case string_type:
-          return **reinterpret_cast<const const_string_ptr*>(this); 
+          return **reinterpret_cast<const const_string_ptr*>(this);
       case double_type:
-          return to_string(*reinterpret_cast<const double*>(this)); 
+          return to_string(*reinterpret_cast<const double*>(this));
       case int64_type:
-          return to_string(*reinterpret_cast<const int64_t*>(this)); 
+          return to_string(*reinterpret_cast<const int64_t*>(this));
       case uint64_type:
-          return to_string(*reinterpret_cast<const uint64_t*>(this)); 
+          return to_string(*reinterpret_cast<const uint64_t*>(this));
       case bool_type:
           return *reinterpret_cast<const bool*>(this) ? "true" : "false";
       case blob_type:
@@ -479,27 +478,27 @@ std::string variant::as_string()const
    }
 }
 
-                            
+
 /// @throw if get_type() != array_type | null_type
 variants&         variant::get_array()
 {
   if( get_type() == array_type )
      return **reinterpret_cast<variants**>(this);
-   
+
   FC_THROW_EXCEPTION( bad_cast_exception, "Invalid cast from ${type} to Array", ("type",get_type()) );
 }
 blob&         variant::get_blob()
 {
   if( get_type() == blob_type )
      return **reinterpret_cast<blob**>(this);
-   
+
   FC_THROW_EXCEPTION( bad_cast_exception, "Invalid cast from ${type} to Blob", ("type",get_type()) );
 }
 const blob&         variant::get_blob()const
 {
   if( get_type() == blob_type )
      return **reinterpret_cast<const const_blob_ptr*>(this);
-   
+
   FC_THROW_EXCEPTION( bad_cast_exception, "Invalid cast from ${type} to Blob", ("type",get_type()) );
 }
 
@@ -529,7 +528,7 @@ blob variant::as_blob()const
 }
 
 
-/// @throw if get_type() != array_type 
+/// @throw if get_type() != array_type
 const variants&       variant::get_array()const
 {
   if( get_type() == array_type )
@@ -567,7 +566,7 @@ const std::string& variant::get_string()const
   FC_THROW_EXCEPTION( bad_cast_exception, "Invalid cast from type '${type}' to Object", ("type",get_type()) );
 }
 
-/// @throw if get_type() != object_type 
+/// @throw if get_type() != object_type
 const variant_object&  variant::get_object()const
 {
   if( get_type() == object_type )
@@ -675,23 +674,23 @@ std::string format_string( const std::string& format, const variant_object& args
    stringstream ss;
    size_t prev = 0;
    auto next = format.find( '$' );
-   while( prev != size_t(std::string::npos) && prev < size_t(format.size()) ) 
+   while( prev != size_t(std::string::npos) && prev < size_t(format.size()) )
    {
      ss << format.substr( prev, size_t(next-prev) );
-   
+
      // if we got to the end, return it.
-     if( next == size_t(std::string::npos) ) 
-        return ss.str(); 
-   
+     if( next == size_t(std::string::npos) )
+        return ss.str();
+
      // if we are not at the end, then update the start
      prev = next + 1;
-   
-     if( format[prev] == '{' ) 
-     { 
+
+     if( format[prev] == '{' )
+     {
         // if the next char is a open, then find close
          next = format.find( '}', prev );
-         // if we found close... 
-         if( next != size_t(std::string::npos) ) 
+         // if we found close...
+         if( next != size_t(std::string::npos) )
          {
            // the key is between prev and next
            std::string key = format.substr( prev+1, (next-prev-1) );
@@ -702,26 +701,26 @@ std::string format_string( const std::string& format, const variant_object& args
               if( val->value().is_object() || val->value().is_array() )
               {
                 ss << json::to_string( val->value() );
-              } 
-              else 
+              }
+              else
               {
                 ss << val->value().as_string();
               }
-           } 
-           else 
+           }
+           else
            {
               ss << "${"<<key<<"}";
            }
            prev = next + 1;
            // find the next $
            next = format.find( '$', prev );
-         } 
-         else 
+         }
+         else
          {
            // we didn't find it.. continue to while...
          }
-     } 
-     else  
+     }
+     else
      {
         ss << format[prev];
         ++prev;

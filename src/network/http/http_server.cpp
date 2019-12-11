@@ -3,9 +3,7 @@
 #include <fc/network/tcp_socket.hpp>
 #include <fc/io/sstream.hpp>
 #include <fc/network/ip.hpp>
-#include <fc/io/stdio.hpp>
 #include <fc/log/logger.hpp>
-
 
 namespace fc { namespace http {
 
@@ -44,19 +42,19 @@ namespace fc { namespace http {
   };
 
 
-  class server::impl 
+  class server::impl
   {
     public:
       impl(){}
 
-      impl(const fc::ip::endpoint& p ) 
+      impl(const fc::ip::endpoint& p )
       {
         tcp_serv.set_reuse_address();
         tcp_serv.listen(p);
         accept_complete = fc::async([this](){ this->accept_loop(); }, "http_server accept_loop");
       }
 
-      ~impl() 
+      ~impl()
       {
         try
         {
@@ -64,7 +62,7 @@ namespace fc { namespace http {
           if (accept_complete.valid())
             accept_complete.wait();
         }
-        catch (...) 
+        catch (...)
         {
         }
 
@@ -90,7 +88,7 @@ namespace fc { namespace http {
         requests_in_progress.clear();
       }
 
-      void accept_loop() 
+      void accept_loop()
       {
         while( !accept_complete.canceled() )
         {
@@ -107,21 +105,21 @@ namespace fc { namespace http {
         }
       }
 
-      void handle_connection( const http::connection_ptr& c,  
-                              std::function<void(const http::request&, const server::response& s )> do_on_req ) 
+      void handle_connection( const http::connection_ptr& c,
+                              std::function<void(const http::request&, const server::response& s )> do_on_req )
       {
-        try 
+        try
         {
           http::server::response rep( std::shared_ptr<response::impl>( new response::impl(c) ) );
           if (!cors_domains.empty())
             rep.add_header("Access-Control-Allow-Origin", cors_domains);
 
           request req = c->read_request();
-          if( do_on_req ) 
+          if( do_on_req )
             do_on_req( req, rep );
           c->get_socket().close();
-        } 
-        catch ( fc::exception& e ) 
+        }
+        catch ( fc::exception& e )
         {
           wlog( "unable to read request ${1}", ("1", e.to_detail_string() ) );//fc::except_str().c_str());
         }
@@ -150,7 +148,7 @@ namespace fc { namespace http {
 
   server::~server(){}
 
-  void server::listen( const fc::ip::endpoint& p ) 
+  void server::listen( const fc::ip::endpoint& p )
   {
     my.reset( new impl(p) );
   }
@@ -182,7 +180,7 @@ namespace fc { namespace http {
     if( my->body_bytes_sent != 0 ) {
       wlog( "Attempt to set length after sending headers" );
     }
-    my->body_length = s; 
+    my->body_length = s;
   }
   void server::response::write( const char* data, uint64_t len )const {
     if( my->body_bytes_sent + len > my->body_length ) {
@@ -193,7 +191,7 @@ namespace fc { namespace http {
       my->send_header();
     }
     my->body_bytes_sent += len;
-    my->con->get_socket().write( data, static_cast<size_t>(len) ); 
+    my->con->get_socket().write( data, static_cast<size_t>(len) );
     if( my->body_bytes_sent == int64_t(my->body_length) ) {
       if( false || my->handle_next_req ) {
         ilog( "handle next request..." );
@@ -211,8 +209,8 @@ namespace fc { namespace http {
   }
 
   void server::on_request( const std::function<void(const http::request&, const server::response& s )>& cb )
-  { 
-     my->on_req = cb; 
+  {
+     my->on_req = cb;
   }
 
 
