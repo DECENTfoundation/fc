@@ -1,8 +1,6 @@
 #include <boost/test/unit_test.hpp>
 
 #include <fc/crypto/hex.hpp>
-#include <fc/crypto/base32.hpp>
-#include <fc/crypto/base36.hpp>
 #include <fc/crypto/base58.hpp>
 #include <fc/crypto/base64.hpp>
 #include <fc/exception.hpp>
@@ -43,53 +41,6 @@ BOOST_AUTO_TEST_CASE(hex_test)
     test_16( TEST5, "000000" );
 }
 
-
-static void test_32( const std::string& test, const std::string& expected )
-{
-    std::vector<char> vec( test.begin(), test.end() );
-    std::string enc1 = fc::to_base32( vec );
-    std::string enc2 = fc::to_base32( test.c_str(), test.size() );
-    BOOST_CHECK_EQUAL( enc1, enc2 );
-    BOOST_CHECK_EQUAL( expected, enc2 );
-
-    std::vector<char> dec = fc::from_base32( enc1 );
-    BOOST_CHECK_EQUAL( vec.size(), dec.size() );
-    BOOST_CHECK( !memcmp( vec.data(), dec.data(), vec.size() ) );
-}
-
-BOOST_AUTO_TEST_CASE(base32_test)
-{
-    test_32( TEST1, "" );
-    test_32( TEST2, "AAATAMI=" );
-    test_32( TEST3, "IFBEGRCFIZDUQSKKJNGE2TSPKBIVEU2UKVLFOWCZLI======" );
-    test_32( TEST4, "777AB7IB7Q======" );
-    test_32( TEST5, "AAAAA===" );
-}
-
-
-static void test_36( const std::string& test, const std::string& expected )
-{
-    std::vector<char> vec( test.begin(), test.end() );
-    std::string enc1 = fc::to_base36( vec );
-    std::string enc2 = fc::to_base36( test.c_str(), test.size() );
-    BOOST_CHECK_EQUAL( enc1, enc2 );
-    BOOST_CHECK_EQUAL( expected, enc2 );
-
-    std::vector<char> dec = fc::from_base36( enc1 );
-    BOOST_CHECK_EQUAL( vec.size(), dec.size() );
-    BOOST_CHECK( !memcmp( vec.data(), dec.data(), vec.size() ) );
-}
-
-BOOST_AUTO_TEST_CASE(base36_test)
-{
-    test_36( TEST1, "" );
-    test_36( TEST2, "01o35" );
-    test_36( TEST3, "l4ksdleyi5pnl0un5raue268ptj43dwjwmz15ie2" );
-    test_36( TEST4, "2rrrvpb7y4" );
-    test_36( TEST5, "000" );
-}
-
-
 static void test_58( const std::string& test, const std::string& expected )
 {
     std::vector<char> vec( test.begin(), test.end() );
@@ -112,7 +63,6 @@ static void test_58( const std::string& test, const std::string& expected )
             BOOST_CHECK( len <= 10 );
         } catch ( fc::exception expected ) {}
     }
-
 }
 
 BOOST_AUTO_TEST_CASE(base58_test)
@@ -123,7 +73,6 @@ BOOST_AUTO_TEST_CASE(base58_test)
     test_58( TEST4, "3CUeREErf" );
     test_58( TEST5, "111" );
 }
-
 
 static void test_64( const std::string& test, const std::string& expected )
 {
@@ -145,6 +94,5 @@ BOOST_AUTO_TEST_CASE(base64_test)
     test_64( TEST4, "//4A/QH8" );
     test_64( TEST5, "AAAA" );
 }
-
 
 BOOST_AUTO_TEST_SUITE_END()

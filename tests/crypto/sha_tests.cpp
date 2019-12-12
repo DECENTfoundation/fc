@@ -1,6 +1,5 @@
 #include <boost/test/unit_test.hpp>
 
-#include <fc/crypto/digest.hpp>
 #include <fc/crypto/ripemd160.hpp>
 #include <fc/crypto/sha1.hpp>
 #include <fc/crypto/sha224.hpp>
@@ -9,6 +8,14 @@
 #include <fc/exception.hpp>
 
 #include <iostream>
+
+template<typename T>
+fc::sha256 digest( const T& value )
+{
+    fc::sha256::encoder enc;
+    fc::raw::pack( enc, value );
+    return enc.result();
+}
 
 // SHA test vectors taken from http://www.di-mgt.com.au/sha_testvectors.html
 static const std::string TEST1("abc");
