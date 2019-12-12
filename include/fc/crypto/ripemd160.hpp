@@ -26,14 +26,14 @@ class ripemd160
     static ripemd160 hash( const std::string& );
 
     template<typename T>
-    static ripemd160 hash( const T& t ) 
-    { 
-      ripemd160::encoder e; 
+    static ripemd160 hash( const T& t )
+    {
+      ripemd160::encoder e;
       fc::raw::pack(e,t);
-      return e.result(); 
-    } 
+      return e.result();
+    }
 
-    class encoder 
+    class encoder
     {
       public:
         encoder();
@@ -76,7 +76,6 @@ class ripemd160
   void from_variant( const variant& v, ripemd160& bi );
 
   typedef ripemd160 uint160_t;
-  typedef ripemd160 uint160;
 
   template<> struct get_typename<uint160_t>    { static const char* name()  { return "uint160_t";  } };
 

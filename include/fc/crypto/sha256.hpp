@@ -1,13 +1,11 @@
 #pragma once
 #include <fc/fwd.hpp>
-#include <fc/string.hpp>
-#include <fc/platform_independence.hpp>
 #include <fc/io/raw_fwd.hpp>
 
 namespace fc
 {
 
-class sha256 
+class sha256
 {
   public:
     sha256();
@@ -25,14 +23,14 @@ class sha256
     static sha256 hash( const sha256& );
 
     template<typename T>
-    static sha256 hash( const T& t ) 
-    { 
-      sha256::encoder e; 
+    static sha256 hash( const T& t )
+    {
+      sha256::encoder e;
       fc::raw::pack(e,t);
-      return e.result(); 
-    } 
+      return e.result();
+    }
 
-    class encoder 
+    class encoder
     {
       public:
         encoder();
@@ -65,29 +63,20 @@ class sha256
     friend bool   operator != ( const sha256& h1, const sha256& h2 );
     friend sha256 operator ^  ( const sha256& h1, const sha256& h2 );
     friend bool   operator >= ( const sha256& h1, const sha256& h2 );
-    friend bool   operator >  ( const sha256& h1, const sha256& h2 ); 
-    friend bool   operator <  ( const sha256& h1, const sha256& h2 ); 
+    friend bool   operator >  ( const sha256& h1, const sha256& h2 );
+    friend bool   operator <  ( const sha256& h1, const sha256& h2 );
 
-    uint32_t pop_count()
-    {
-       return (uint32_t)(__builtin_popcountll(_hash[0]) +
-                         __builtin_popcountll(_hash[1]) +
-                         __builtin_popcountll(_hash[2]) +
-                         __builtin_popcountll(_hash[3])); 
-    }
-                             
-    uint64_t _hash[4]; 
+    uint64_t _hash[4];
 };
-
-  typedef sha256 uint256;
 
   class variant;
   void to_variant( const sha256& bi, variant& v );
   void from_variant( const variant& v, sha256& bi );
 
-  uint64_t hash64(const char* buf, size_t len);    
+  uint64_t hash64(const char* buf, size_t len);
 
 } // fc
+
 namespace std
 {
     template<>
@@ -99,5 +88,6 @@ namespace std
        }
     };
 }
+
 #include <fc/reflect/reflect.hpp>
 FC_REFLECT_TYPENAME( fc::sha256 )

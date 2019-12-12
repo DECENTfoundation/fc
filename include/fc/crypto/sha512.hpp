@@ -1,11 +1,11 @@
 #pragma once
 #include <fc/fwd.hpp>
-#include <fc/string.hpp>
+#include <string>
 
 namespace fc
 {
 
-class sha512 
+class sha512
 {
   public:
     sha512();
@@ -21,14 +21,14 @@ class sha512
     static sha512 hash( const std::string& );
 
     template<typename T>
-    static sha512 hash( const T& t ) 
-    { 
-      sha512::encoder e; 
-      e << t; 
-      return e.result(); 
-    } 
+    static sha512 hash( const T& t )
+    {
+      sha512::encoder e;
+      e << t;
+      return e.result();
+    }
 
-    class encoder 
+    class encoder
     {
       public:
         encoder();
@@ -60,13 +60,11 @@ class sha512
     friend bool   operator != ( const sha512& h1, const sha512& h2 );
     friend sha512 operator ^  ( const sha512& h1, const sha512& h2 );
     friend bool   operator >= ( const sha512& h1, const sha512& h2 );
-    friend bool   operator >  ( const sha512& h1, const sha512& h2 ); 
-    friend bool   operator <  ( const sha512& h1, const sha512& h2 ); 
-                             
-    uint64_t _hash[8]; 
-};
+    friend bool   operator >  ( const sha512& h1, const sha512& h2 );
+    friend bool   operator <  ( const sha512& h1, const sha512& h2 );
 
-  typedef fc::sha512 uint512;
+    uint64_t _hash[8];
+};
 
   class variant;
   void to_variant( const sha512& bi, variant& v );

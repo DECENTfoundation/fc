@@ -1,6 +1,6 @@
 #pragma once
-#include <fc/string.hpp>
 #include <vector>
+#include <string>
 
 namespace fc {
     uint8_t from_hex( char c );
@@ -11,4 +11,4 @@ namespace fc {
      *  @return the number of bytes decoded
      */
     size_t from_hex( const std::string& hex_str, char* out_data, size_t out_data_len );
-} 
+}

@@ -1,12 +1,11 @@
 #pragma once
 #include <fc/fwd.hpp>
 #include <fc/io/raw_fwd.hpp>
-#include <fc/string.hpp>
 
 namespace fc
 {
 
-class sha224 
+class sha224
 {
   public:
     sha224();
@@ -22,14 +21,14 @@ class sha224
     static sha224 hash( const std::string& );
 
     template<typename T>
-    static sha224 hash( const T& t ) 
-    { 
-      sha224::encoder e; 
+    static sha224 hash( const T& t )
+    {
+      sha224::encoder e;
       fc::raw::pack(e,t);
-      return e.result(); 
-    } 
+      return e.result();
+    }
 
-    class encoder 
+    class encoder
     {
       public:
         encoder();
@@ -62,11 +61,11 @@ class sha224
     friend bool   operator != ( const sha224& h1, const sha224& h2 );
     friend sha224 operator ^  ( const sha224& h1, const sha224& h2 );
     friend bool   operator >= ( const sha224& h1, const sha224& h2 );
-    friend bool   operator >  ( const sha224& h1, const sha224& h2 ); 
-    friend bool   operator <  ( const sha224& h1, const sha224& h2 ); 
+    friend bool   operator >  ( const sha224& h1, const sha224& h2 );
+    friend bool   operator <  ( const sha224& h1, const sha224& h2 );
     friend std::size_t hash_value( const sha224& v ) { return uint64_t(v._hash[1])<<32 | v._hash[2]; }
-                             
-    uint32_t _hash[7]; 
+
+    uint32_t _hash[7];
 };
 
   class variant;
@@ -74,6 +73,7 @@ class sha224
   void from_variant( const variant& v, sha224& bi );
 
 } // fc
+
 namespace std
 {
     template<>
@@ -85,5 +85,6 @@ namespace std
        }
     };
 }
+
 #include <fc/reflect/reflect.hpp>
 FC_REFLECT_TYPENAME( fc::sha224 )
