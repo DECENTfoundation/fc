@@ -75,7 +75,6 @@ find_package(Boost 1.65.1 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 find_package( ZLIB REQUIRED )
 
 add_subdirectory( vendor/websocketpp EXCLUDE_FROM_ALL )
-add_subdirectory( vendor/udt4 )
 
 set( fc_sources
      src/uint128.cpp
@@ -137,7 +136,6 @@ set( fc_sources
      src/crypto/rand.cpp
      src/network/tcp_socket.cpp
      src/network/udp_socket.cpp
-     src/network/udt_socket.cpp
      src/network/http/http_connection.cpp
      src/network/http/http_server.cpp
      src/network/http/websocket.cpp
@@ -197,14 +195,15 @@ target_include_directories(fc
     "${readline_includes}"
 
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/cyoencode-1.0.2/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/udt4/src
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/websocketpp
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp
     ${ZLIB_INCLUDE_DIR}
   )
 
-target_link_libraries( fc PUBLIC udt Boost::thread Boost::filesystem Boost::program_options Boost::serialization Boost::coroutine Boost::iostreams Boost::disable_autolinking ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES} ${PLATFORM_SPECIFIC_LIBS} ${readline_libraries} secp256k1 )
+target_link_libraries(fc
+  PUBLIC Boost::thread Boost::filesystem Boost::program_options Boost::serialization Boost::coroutine Boost::iostreams Boost::disable_autolinking
+    ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES} ${PLATFORM_SPECIFIC_LIBS} ${readline_libraries} secp256k1
+  )
 
 if(MSVC)
   set_source_files_properties( src/network/http/websocket.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
@@ -230,12 +229,6 @@ target_link_libraries( hmac_test fc )
 
 add_executable( blinding_test tests/blinding_test.cpp )
 target_link_libraries( blinding_test fc )
-
-add_executable( udt_server tests/udts.cpp )
-target_link_libraries( udt_server fc udt )
-
-add_executable( udt_client tests/udtc.cpp )
-target_link_libraries( udt_client fc udt )
 
 add_executable( ecc_test tests/crypto/ecc_test.cpp )
 target_link_libraries( ecc_test fc )
