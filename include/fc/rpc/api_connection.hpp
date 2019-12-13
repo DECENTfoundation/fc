@@ -6,7 +6,6 @@
 #include <vector>
 #include <functional>
 #include <utility>
-#include <boost/any.hpp>
 #include <boost/signals2/signal.hpp>
 
 namespace fc {
@@ -166,11 +165,11 @@ namespace fc {
          {
             api_visitor( generic_api& a, const std::weak_ptr<fc::api_connection>& s ):api(a),_api_con(s){ }
 
-            template<typename Interface, typename Adaptor, typename ... Args>
-            std::function<variant(const fc::variants&)> to_generic( const std::function<api<Interface,Adaptor>(Args...)>& f )const;
+            template<typename Interface, typename ... Args>
+            std::function<variant(const fc::variants&)> to_generic( const std::function<api<Interface>(Args...)>& f )const;
 
-            template<typename Interface, typename Adaptor, typename ... Args>
-            std::function<variant(const fc::variants&)> to_generic( const std::function<fc::optional<api<Interface,Adaptor>>(Args...)>& f )const;
+            template<typename Interface, typename ... Args>
+            std::function<variant(const fc::variants&)> to_generic( const std::function<fc::optional<api<Interface>>(Args...)>& f )const;
 
             template<typename R, typename ... Args>
             std::function<variant(const fc::variants&)> to_generic( const std::function<R(Args...)>& f )const;
@@ -232,7 +231,7 @@ namespace fc {
          template<typename Interface>
          api_id_type register_api( const Interface& a )
          {
-            auto handle = (uint64_t)a.instance();
+            auto handle = a.handle();
             auto itr = _handle_to_id.find(handle);
             if( itr != _handle_to_id.end() ) return itr->second;
 
@@ -368,9 +367,8 @@ namespace fc {
       boost::any_cast<const Api&>(a)->visit( api_visitor( *this, c ) );
    }
 
-   template<typename Interface, typename Adaptor, typename ... Args>
-   std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic(
-                                               const std::function<fc::api<Interface,Adaptor>(Args...)>& f )const
+   template<typename Interface, typename ... Args>
+   std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic( const std::function<fc::api<Interface>(Args...)>& f )const
    {
       auto api_con = _api_con;
       auto gapi = &api;
@@ -384,9 +382,8 @@ namespace fc {
       };
    }
 
-   template<typename Interface, typename Adaptor, typename ... Args>
-   std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic(
-                                               const std::function<fc::optional<fc::api<Interface,Adaptor>>(Args...)>& f )const
+   template<typename Interface, typename ... Args>
+   std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic( const std::function<fc::optional<fc::api<Interface>>(Args...)>& f )const
    {
       auto api_con = _api_con;
       auto gapi = &api;

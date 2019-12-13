@@ -2,6 +2,7 @@
 #include <functional>
 #include <fc/exception.hpp>
 #include <boost/type_index.hpp>
+#include <boost/any.hpp>
 
 namespace fc {
 
@@ -23,42 +24,43 @@ namespace fc {
       static std::function<R(Args...)> functor( R (C::*mem_func)(Args...)const );
   };
 
-  template< typename Interface, typename Transform >
-  struct vtable  : public std::enable_shared_from_this<vtable<Interface,Transform>>
+  template<typename Interface, typename Transform = identity_member>
+  struct vtable : public std::enable_shared_from_this<vtable<Interface,Transform>>
   { private: vtable(); };
 
-  template<typename Interface>
+  template<typename Adaptor>
   struct vtable_copy_visitor {
-      typedef Interface other_type;
-      vtable_copy_visitor( Interface* s):_source( s ){}
+      typedef Adaptor other_type;
+      vtable_copy_visitor( Adaptor& s):_source( s ){}
 
       template<typename R, typename MemberPtr, typename... Args>
       void operator()( const char* name, std::function<R(Args...)>& memb, MemberPtr m )const
       {
-        Interface* src = _source;
-        memb = [=]( Args... args ){ return (src->*m)(args...); };
+        memb = [=, src = &_source]( Args... args ){ return (src->*m)(args...); };
       }
-      Interface* _source;
+      Adaptor& _source;
   };
 
-  template<typename Interface, typename Transform = identity_member >
+  template<typename Interface>
   class api {
     public:
-      typedef vtable<Interface,Transform> vtable_type;
+      typedef vtable<Interface> vtable_type;
 
       api():_vtable( std::make_shared<vtable_type>() ) {}
 
-      api( const std::shared_ptr<Interface>& p ) :_vtable( std::make_shared<vtable_type>() )
+      template<typename Adaptor>
+      api( const Adaptor& p ) :_vtable( std::make_shared<vtable_type>() )
       {
-         _instance = p;
-         _vtable->visit_other( vtable_copy_visitor<Interface>(_instance.get()) );
+         _instance = std::make_shared<boost::any>(p);
+         Adaptor& ptr = boost::any_cast<Adaptor&>(*_instance);
+         _vtable->visit_other( vtable_copy_visitor<std::remove_reference_t<decltype(*ptr)>>(*ptr) );
       }
 
       api( const api& cpy ):_vtable(cpy._vtable),_instance(cpy._instance) {}
 
       friend bool operator == ( const api& a, const api& b ) { return a._instance == b._instance && a._vtable == b._vtable; }
       friend bool operator != ( const api& a, const api& b ) { return !(a._instance == b._instance && a._vtable == b._vtable); }
-      Interface* instance()const { return _instance.get(); }
+      uint64_t handle() const { return uint64_t(_instance.get()); }
 
       vtable_type& operator*()const  { FC_ASSERT( _vtable ); return *_vtable; }
       vtable_type* operator->()const {  FC_ASSERT( _vtable ); return _vtable.get(); }
@@ -67,7 +69,7 @@ namespace fc {
 
     private:
       std::shared_ptr<vtable_type>    _vtable;
-      std::shared_ptr<Interface>      _instance;
+      std::shared_ptr<boost::any>     _instance;
   };
 
 } // namespace fc
