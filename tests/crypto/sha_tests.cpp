@@ -5,16 +5,18 @@
 #include <fc/crypto/sha224.hpp>
 #include <fc/crypto/sha256.hpp>
 #include <fc/crypto/sha512.hpp>
-#include <fc/exception.hpp>
+#include <fc/io/raw.hpp>
 
 #include <iostream>
 
+namespace fc {
 template<typename T>
 fc::sha256 digest( const T& value )
 {
     fc::sha256::encoder enc;
     fc::raw::pack( enc, value );
     return enc.result();
+}
 }
 
 // SHA test vectors taken from http://www.di-mgt.com.au/sha_testvectors.html

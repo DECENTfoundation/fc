@@ -64,6 +64,7 @@ static void interop_file(const char * const name) {
 
 int main( int argc, char** argv )
 {
+   FC_ASSERT( argc > 1 );
     if (argc > 2) {
         interop_file(argv[2]);
     }
@@ -73,7 +74,6 @@ int main( int argc, char** argv )
    for( uint32_t i = 0; i < 3000; ++ i )
    {
    try {
-   FC_ASSERT( argc > 1 );
 
    std::string  pass(argv[1]);
    fc::sha256   h = fc::sha256::hash( pass.c_str(), pass.size() );
@@ -106,7 +106,7 @@ int main( int argc, char** argv )
    interop_do(recover.serialize());
    interop_do(recover.serialize_ecc_point());
    FC_ASSERT( recover == pub );
-   } 
+   }
    catch ( const fc::exception& e )
    {
       edump( (e.to_detail_string()) );

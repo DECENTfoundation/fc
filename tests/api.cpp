@@ -3,21 +3,17 @@
 #include <fc/rpc/api_connection.hpp>
 #include <fc/rpc/websocket_api.hpp>
 
-class calculator
+struct calculator : public fc::api_base<calculator>
 {
-   public:
       int32_t add( int32_t a, int32_t b ); // not implemented
       int32_t sub( int32_t a, int32_t b ); // not implemented
       void    on_result( const std::function<void(int32_t)>& cb );
-      void    on_result2( const std::function<void(int32_t)>& cb, int test );
 };
 
-FC_API( calculator, (add)(sub)(on_result)(on_result2) )
+FC_API( calculator, (add)(sub)(on_result) )
 
-
-class login_api
+struct login_api : public fc::api_base<login_api>
 {
-   public:
       fc::api<calculator> get_calc()const
       {
          FC_ASSERT( calc );
@@ -26,31 +22,26 @@ class login_api
       fc::optional<fc::api<calculator>> calc;
       std::set<std::string> test( const std::string&, const std::string& ) { return std::set<std::string>(); }
 };
-FC_API( login_api, (get_calc)(test) );
 
-using namespace fc;
+FC_API( login_api, (get_calc)(test) );
 
 class some_calculator
 {
    public:
-      int32_t add( int32_t a, int32_t b ) { wlog("."); if( _cb ) _cb(a+b); return a+b; }
-      int32_t sub( int32_t a, int32_t b ) {  wlog(".");if( _cb ) _cb(a-b); return a-b; }
-      void    on_result( const std::function<void(int32_t)>& cb ) { wlog( "set callback" ); _cb = cb;  return ; }
-      void    on_result2(  const std::function<void(int32_t)>& cb, int test ){}
+      int32_t add( int32_t a, int32_t b ) { ilog("."); if( _cb ) _cb(a+b); return a+b; }
+      int32_t sub( int32_t a, int32_t b ) { ilog("."); if( _cb ) _cb(a-b); return a-b; }
+      void    on_result( const std::function<void(int32_t)>& cb ) { ilog( "set callback" ); _cb = cb; }
       std::function<void(int32_t)> _cb;
 };
+
 class variant_calculator
 {
    public:
       double add( fc::variant a, fc::variant b ) { return a.as_double()+b.as_double(); }
       double sub( fc::variant a, fc::variant b ) { return a.as_double()-b.as_double(); }
       void    on_result( const std::function<void(int32_t)>& cb ) { wlog("set callback"); _cb = cb; return ; }
-      void    on_result2(  const std::function<void(int32_t)>& cb, int test ){}
       std::function<void(int32_t)> _cb;
 };
-
-using namespace fc::http;
-using namespace fc::rpc;
 
 int main( int argc, char** argv )
 {
@@ -58,12 +49,13 @@ int main( int argc, char** argv )
       fc::api<calculator> calc_api( std::make_shared<some_calculator>() );
 
       fc::http::websocket_server server;
-      server.on_connection([&]( const websocket_connection_ptr& c ){
-               auto wsc = std::make_shared<websocket_api_connection>(*c);
+      server.on_connection([&]( const fc::http::websocket_connection_ptr& c, bool& is_tls ){
+               auto wsc = std::make_shared<fc::rpc::websocket_api_connection>(*c);
                auto login = std::make_shared<login_api>();
                login->calc = calc_api;
                wsc->register_api(fc::api<login_api>(login));
                c->set_session_data( wsc );
+               is_tls = false;
           });
 
       server.listen( 8090 );
@@ -71,29 +63,27 @@ int main( int argc, char** argv )
 
       for( uint32_t i = 0; i < 5000; ++i )
       {
-         try { 
+         try {
             fc::http::websocket_client client;
             auto con  = client.connect( "ws://localhost:8090" );
-            auto apic = std::make_shared<websocket_api_connection>(*con);
+            auto apic = std::make_shared<fc::rpc::websocket_api_connection>(*con);
             auto remote_login_api = apic->get_remote_api<login_api>();
             auto remote_calc = remote_login_api->get_calc();
-            remote_calc->on_result( []( uint32_t r ) { elog( "callback result ${r}", ("r",r) ); } );
-            wdump((remote_calc->add( 4, 5 )));
+            remote_calc->on_result( []( uint32_t r ) { ilog( "callback result ${r}", ("r",r) ); } );
+            idump((remote_calc->add( 4, 5 )));
          } catch ( const fc::exception& e )
          {
             edump((e.to_detail_string()));
          }
       }
-      wlog( "exit scope" );
-   } 
+      ilog( "exit scope" );
+   }
    catch( const fc::exception& e )
    {
       edump((e.to_detail_string()));
    }
-   wlog( "returning now..." );
-   
-   return 0;
 
+   ilog( "------------------ NESTED TEST --------------" );
    some_calculator calc;
    variant_calculator vcalc;
 
@@ -101,12 +91,12 @@ int main( int argc, char** argv )
    fc::api<calculator> api_vcalc( &vcalc );
    fc::api<calculator> api_nested_calc( api_calc );
 
-   wdump( (api_calc->add(5,4)) );
-   wdump( (api_calc->sub(5,4)) );
-   wdump( (api_vcalc->add(5,4)) );
-   wdump( (api_vcalc->sub(5,4)) );
-   wdump( (api_nested_calc->sub(5,4)) );
-   wdump( (api_nested_calc->sub(5,4)) );
+   idump( (api_calc->add(5,4)) );
+   idump( (api_calc->sub(5,4)) );
+   idump( (api_vcalc->add(5,4)) );
+   idump( (api_vcalc->sub(5,4)) );
+   idump( (api_nested_calc->sub(5,4)) );
+   idump( (api_nested_calc->sub(5,4)) );
 
    /*
    variants v = { 4, 5 };
@@ -160,15 +150,13 @@ int main( int argc, char** argv )
    }
    */
 
-   ilog( "------------------ NESTED TEST --------------" );
    try {
       login_api napi_impl;
       napi_impl.calc = api_calc;
       fc::api<login_api>  napi(&napi_impl);
 
-
-      auto client_side = std::make_shared<local_api_connection>();
-      auto server_side = std::make_shared<local_api_connection>();
+      auto client_side = std::make_shared<fc::local_api_connection>();
+      auto server_side = std::make_shared<fc::local_api_connection>();
       server_side->set_remote_connection( client_side );
       client_side->set_remote_connection( server_side );
 

@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE BlindingTest
 #include <boost/test/unit_test.hpp>
 #include <fc/array.hpp>
 #include <fc/crypto/base58.hpp>
@@ -274,13 +273,14 @@ BOOST_AUTO_TEST_CASE(openssl_blinding)
     BN_mod_mul(blind_sig, p, blinded, n, ctx);
     BN_mod_add(blind_sig, blind_sig, q, n, ctx);
 
+    fc::ssl_bignum s;
     fc::ecdsa_sig sig(ECDSA_SIG_new());
-    BN_copy(sig->r, Kx);
-    BN_mod_mul(sig->s, c, blind_sig, n, ctx);
-    BN_mod_add(sig->s, sig->s, d, n, ctx);
+    ECDSA_SIG_set0(sig, Kx, NULL);
+    BN_mod_mul(s, c, blind_sig, n, ctx);
+    BN_mod_add(s, s, d, n, ctx);
 
-    if (BN_cmp(sig->s, n_half) > 0) {
-        BN_sub(sig->s, n, sig->s);
+    if (BN_cmp(s, n_half) > 0) {
+        BN_sub(s, n, s);
     }
 
     fc::ec_key verify(EC_KEY_new());

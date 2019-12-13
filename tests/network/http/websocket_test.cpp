@@ -1,19 +1,21 @@
 #include <boost/test/unit_test.hpp>
 
 #include <fc/network/http/websocket.hpp>
+#include <fc/thread/thread.hpp>
 
 #include <iostream>
 
 BOOST_AUTO_TEST_SUITE(fc_network)
 
 BOOST_AUTO_TEST_CASE(websocket_test)
-{ 
+{
     fc::http::websocket_client client;
     fc::http::websocket_connection_ptr s_conn, c_conn;
     {
         fc::http::websocket_server server;
-        server.on_connection([&]( const fc::http::websocket_connection_ptr& c ){
+        server.on_connection([&]( const fc::http::websocket_connection_ptr& c, bool& is_tls ){
                 s_conn = c;
+                is_tls = false;
                 c->on_message_handler([&](const std::string& s){
                     c->send_message("echo: " + s);
                 });
