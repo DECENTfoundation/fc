@@ -212,10 +212,10 @@ namespace fc
         return writesome_impl(socket, buffer, length, 0);
       }
 
-      template<typename SocketType, typename BufferType>
-      size_t readsome_impl(SocketType& socket, const BufferType& buffer, size_t length, size_t offset);
-      template<typename SocketType, typename BufferType>
-      size_t writesome_impl(SocketType& socket, const BufferType& buffer, size_t length, size_t offset);
+      template<typename SocketType>
+      size_t readsome_impl(SocketType& socket, char* buffer, size_t length, size_t offset);
+      template<typename SocketType>
+      size_t writesome_impl(SocketType& socket, const char* buffer, size_t length, size_t offset);
 
       void process_pending_reads();
       void process_pending_writes();
@@ -258,8 +258,8 @@ namespace fc
       }
     }
 
-    template<typename SocketType, typename BufferType>
-    size_t rate_limiting_group_impl::readsome_impl(SocketType& socket, const BufferType& buffer, size_t length, size_t offset)
+    template<typename SocketType>
+    size_t rate_limiting_group_impl::readsome_impl(SocketType& socket, char* buffer, size_t length, size_t offset)
     {
       size_t bytes_read;
       if (_download_bytes_per_second)
@@ -294,8 +294,8 @@ namespace fc
       return bytes_read;
     }
 
-    template<typename SocketType, typename BufferType>
-    size_t rate_limiting_group_impl::writesome_impl(SocketType& socket, const BufferType& buffer, size_t length, size_t offset)
+    template<typename SocketType>
+    size_t rate_limiting_group_impl::writesome_impl(SocketType& socket, const char* buffer, size_t length, size_t offset)
     {
       size_t bytes_written;
       if (_upload_bytes_per_second)
