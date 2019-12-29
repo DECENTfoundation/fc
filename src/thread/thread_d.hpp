@@ -403,7 +403,6 @@ namespace fc {
                 //slog( "jump to %p from %p", next, prev );
                  //std::cerr << "jump1 to "<< int64_t(next)<<" "<< int64_t(next->my_context) << " from " <<int64_t(prev)<<" "<< int64_t(prev->my_context) << "\n";
                 //fc_dlog( logger::get("fc_context"), "from ${from} to ${to}", ( "from", int64_t(prev) )( "to", int64_t(next) ) );
-#if BOOST_VERSION >= 106100
                 transfer_data * t = new transfer_data;
                 t->calling = prev;
                 t->data = nullptr;
@@ -412,13 +411,6 @@ namespace fc {
                 t1->calling->my_context = res.fctx;
                 delete t1;
 
-#elif BOOST_VERSION >= 105600
-                bc::jump_fcontext( &prev->my_context, next->my_context, 0 );
-#elif BOOST_VERSION >= 105300
-                bc::jump_fcontext( prev->my_context, next->my_context, 0 );
-#else
-                bc::jump_fcontext( &prev->my_context, &next->my_context, 0 );
-#endif
                 BOOST_ASSERT( current );
                 BOOST_ASSERT( current == prev );
                 //current = prev;
@@ -455,7 +447,6 @@ namespace fc {
                 //slog( "jump to %p from %p", next, prev );
                  //std::cerr << "jump2 to "<< int64_t(next)<<" "<< int64_t(next->my_context) << " from " <<int64_t(prev)<<" "<< int64_t(prev->my_context) << "\n";
                  //fc_dlog( logger::get("fc_context"), "from ${from} to ${to}", ( "from", int64_t(prev) )( "to", int64_t(next) ) );
-#if BOOST_VERSION >= 106100
                  transfer_data * t = new transfer_data;
                  t->calling = prev;
                  t->data = this;
@@ -463,13 +454,6 @@ namespace fc {
                  transfer_data* t1 = (transfer_data*)res.data;
                  t1->calling->my_context = res.fctx;
                  delete t1;
-#elif BOOST_VERSION >= 105600
-                bc::jump_fcontext( &prev->my_context, next->my_context, (intptr_t)this );
-#elif BOOST_VERSION >= 105300
-                bc::jump_fcontext( prev->my_context, next->my_context, (intptr_t)this );
-#else
-                bc::jump_fcontext( &prev->my_context, &next->my_context, (intptr_t)this );
-#endif
                 BOOST_ASSERT( current );
                 BOOST_ASSERT( current == prev );
                 //current = prev;
@@ -493,14 +477,10 @@ namespace fc {
 
            static void start_process_tasks( fc::context::fiber_arg my )
            {
-#if BOOST_VERSION >= 106100
               transfer_data * in = (transfer_data*)my.data;
               thread_d* self = (thread_d*)in->data;
               in->calling->my_context = my.fctx;
               delete in;
-#else
-              thread_d* self = (thread_d*)my;
-#endif
               try 
               {
                 self->process_tasks();
